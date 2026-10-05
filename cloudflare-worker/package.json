@@ -1,0 +1,15 @@
+{
+  "name": "shamba-watch-proxy",
+  "version": "1.0.0",
+  "description": "Universal Secure API Proxy for Shamba Watch Intelligence",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

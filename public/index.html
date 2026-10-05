@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shamba Watch — Rift Valley Basin IoT Monitoring</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14120F;
+    --panel: #1C1914;
+    --panel-raised: #23201A;
+    --hairline: #35312A;
+    --ink: #EDE8DE;
+    --ink-dim: #A69E8D;
+    --ink-faint: #726B5C;
+    --moss: #7A9471;
+    --moss-dim: #4E5F49;
+    --water: #4C87A6;
+    --water-dim: #33586B;
+    --earth: #C1622C;
+    --earth-dim: #6B3719;
+    --nutrient: #C9A227;
+    --font-display: 'Fraunces', serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-body: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);height:100%;overflow:hidden;}
+  #app{display:flex;flex-direction:column;height:100vh;}
+
+  /* ---------- Contour texture ---------- */
+  .contour-bg{
+    position:absolute;inset:0;pointer-events:none;opacity:.05;
+    background-image: repeating-radial-gradient(circle at 20% 30%, transparent 0 18px, var(--ink) 18px 19px, transparent 19px 40px);
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 22px;border-bottom:1px solid var(--hairline);
+    background:var(--panel);position:relative;z-index:5;flex-shrink:0;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:3px;
+    background:linear-gradient(155deg, var(--moss) 0%, var(--water-dim) 100%);
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:var(--bg);font-size:16px;
+  }
+  .brand-text h1{font-family:var(--font-display);font-weight:600;font-size:18px;margin:0;letter-spacing:.2px;}
+  .brand-text span{display:block;font-size:10.5px;color:var(--ink-dim);font-family:var(--font-mono);letter-spacing:.5px;text-transform:uppercase;margin-top:1px;}
+  .header-right{display:flex;align-items:center;gap:16px;}
+  .clock{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-dim);}
+  
+  .source-pill{
+    display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;
+    color:var(--ink-dim);background:var(--panel-raised);border:1px solid var(--hairline);
+    padding:5px 11px;border-radius:20px;cursor:pointer;transition:border-color .2s;
+  }
+  .source-pill:hover{border-color:var(--moss);}
+  .source-pill.production-pill{cursor:default;border-color:rgba(122,148,113,.4);background:rgba(35,32,26,.85);}
+  .source-pill.production-pill:hover{border-color:var(--moss);}
+  .source-dot{width:6px;height:6px;border-radius:50%;background:var(--water);}
+  .source-dot.live{background:var(--moss);box-shadow:0 0 6px var(--moss);}
+
+  .alert-pill{
+    display:flex;align-items:center;gap:7px;background:var(--earth-dim);color:#F2C6A9;
+    border:1px solid var(--earth);padding:5px 12px;border-radius:20px;font-family:var(--font-mono);font-size:11.5px;cursor:pointer;
+  }
+  .alert-dot{width:6px;height:6px;border-radius:50%;background:var(--earth);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  /* ---------- Layout ---------- */
+  .layout{flex:1;display:grid;grid-template-columns:250px 1fr 340px;min-height:0;}
+
+  /* ---------- Sidebar: station list ---------- */
+  .sidebar{background:var(--panel);border-right:1px solid var(--hairline);overflow-y:auto;padding:16px 0;position:relative;}
+  .sidebar-header-row{display:flex;justify-content:space-between;align-items:center;padding:0 18px 10px;}
+  .sidebar-label{font-family:var(--font-mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-faint);}
+  .station-item{
+    padding:11px 18px;border-left:2px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+    transition:background .15s;
+  }
+  .station-item:hover{background:var(--panel-raised);}
+  .station-item.active{background:var(--panel-raised);border-left-color:var(--moss);}
+  .station-name{font-size:13.5px;font-weight:500;}
+  .station-sub{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-faint);margin-top:2px;}
+  .station-flag{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+  .sidebar-divider{height:1px;background:var(--hairline);margin:14px 18px;}
+  .layer-toggle{padding:0 18px;}
+  .toggle-row{display:flex;background:var(--panel-raised);border-radius:6px;padding:3px;gap:3px;}
+  .toggle-btn{
+    flex:1;text-align:center;padding:7px 4px;font-family:var(--font-mono);font-size:10.5px;color:var(--ink-dim);
+    border-radius:4px;cursor:pointer;letter-spacing:.3px;
+  }
+  .toggle-btn.active{background:var(--moss-dim);color:var(--ink);}
+
+  /* ---------- Map ---------- */
+  .map-wrap{position:relative;}
+  #map{width:100%;height:100%;filter:saturate(.85) brightness(.9);}
+  #map.ir-mode{filter: sepia(1) hue-rotate(150deg) saturate(4) brightness(.75) contrast(1.2);}
+  .map-legend{
+    position:absolute;bottom:16px;left:16px;z-index:400;background:rgba(20,18,15,.88);
+    border:1px solid var(--hairline);border-radius:6px;padding:10px 12px;font-family:var(--font-mono);font-size:10.5px;color:var(--ink-dim);
+    backdrop-filter:blur(3px);
+  }
+  .map-legend .lg-row{display:flex;align-items:center;gap:7px;margin-top:4px;}
+  .lg-swatch{width:9px;height:9px;border-radius:2px;}
+
+  /* ---------- Detail panel ---------- */
+  .detail{background:var(--panel);border-left:1px solid var(--hairline);overflow-y:auto;padding:20px;}
+  .detail-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;}
+  .detail-title{font-family:var(--font-display);font-size:20px;font-weight:600;margin:0;}
+  .detail-coords{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);margin-bottom:18px;}
+
+  .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+  .metric-card{background:var(--panel-raised);border:1px solid var(--hairline);border-radius:7px;padding:10px 12px;transition:border-color .2s;}
+  .metric-card.status-alert{border-color:var(--earth);}
+  .metric-card.status-watch{border-color:var(--nutrient);}
+  .metric-label{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-faint);display:flex;justify-content:space-between;}
+  .metric-value{font-family:var(--font-mono);font-size:19px;font-weight:600;margin-top:4px;}
+  .metric-unit{font-size:11px;color:var(--ink-dim);font-weight:400;}
+  .metric-delta{font-size:10px;margin-top:3px;font-family:var(--font-mono);}
+  .up{color:var(--water);} .down{color:var(--earth);}
+
+  /* ---------- Soil core signature visualization ---------- */
+  .core-section{margin-bottom:22px;}
+  .section-label{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-faint);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+  .core-wrap{display:flex;gap:14px;align-items:stretch;}
+  .core-sample{width:64px;border-radius:4px;overflow:hidden;border:1px solid var(--hairline);flex-shrink:0;position:relative;}
+  .core-band{position:relative;display:flex;align-items:center;justify-content:center;}
+  .core-band::after{content:attr(data-pct);position:absolute;right:4px;bottom:2px;font-family:var(--font-mono);font-size:8px;color:rgba(20,18,15,.75);}
+  .core-readouts{flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;}
+  .core-readout-row{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dotted var(--hairline);padding-bottom:6px;}
+  .cr-name{font-size:12px;color:var(--ink-dim);}
+  .cr-val{font-family:var(--font-mono);font-size:13px;font-weight:500;}
+
+  /* ---------- Camera thumbnail ---------- */
+  .cam-thumb{
+    height:110px;border-radius:7px;border:1px solid var(--hairline);position:relative;overflow:hidden;
+    background:linear-gradient(160deg,#2a1f14,#1a2620 55%, #24170f 100%);
+  }
+  .cam-thumb::before{
+    content:'';position:absolute;inset:0;
+    background: radial-gradient(circle at 40% 55%, rgba(193,98,44,.55) 0%, rgba(193,98,44,0) 35%),
+                radial-gradient(circle at 65% 40%, rgba(76,135,166,.25) 0%, rgba(76,135,166,0) 30%);
+    mix-blend-mode:screen;
+  }
+  .cam-scanline{position:absolute;left:0;right:0;height:2px;background:rgba(122,148,113,.5);animation:scan 3.2s linear infinite;}
+  @keyframes scan{0%{top:0;}100%{top:100%;}}
+  .cam-label{position:absolute;top:8px;left:9px;font-family:var(--font-mono);font-size:9.5px;color:#F2ECDD;background:rgba(0,0,0,.4);padding:2px 6px;border-radius:3px;}
+  .cam-temp{position:absolute;bottom:8px;right:9px;font-family:var(--font-mono);font-size:13px;color:#F2ECDD;background:rgba(0,0,0,.4);padding:2px 7px;border-radius:3px;}
+
+  /* ---------- Timeseries strip ---------- */
+  .strip{
+    height:130px;border-top:1px solid var(--hairline);background:var(--panel);display:flex;flex-shrink:0;
+  }
+  .strip-label{
+    width:280px;border-right:1px solid var(--hairline);padding:14px 18px;flex-shrink:0;
+    display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .strip-metric-name{font-family:var(--font-display);font-size:15px;font-weight:600;}
+  .strip-metric-sub{font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);margin-top:2px;}
+  .metric-select{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+  .ms-btn{font-family:var(--font-mono);font-size:9.5px;padding:3px 7px;border-radius:4px;background:var(--panel-raised);color:var(--ink-dim);cursor:pointer;border:1px solid transparent;}
+  .ms-btn.active{border-color:var(--moss);color:var(--ink);}
+
+  /* Configurable Windowing Selector (User Approved Decision) */
+  .window-select{display:flex;align-items:center;gap:4px;margin-top:6px;}
+  .window-label{font-family:var(--font-mono);font-size:9.5px;color:var(--ink-faint);margin-right:2px;}
+  .ws-btn{
+    background:var(--panel-raised);border:1px solid var(--hairline);color:var(--ink-dim);
+    font-family:var(--font-mono);font-size:9px;padding:2px 6px;border-radius:3px;cursor:pointer;
+  }
+  .ws-btn.active{border-color:var(--moss);color:var(--ink);background:var(--moss-dim);}
+
+  .strip-chart{flex:1;position:relative;padding:10px 20px;}
+
+  /* ---------- Clockwise Glowing Search Bar (Theme Matched: Moss & Basin Water) ---------- */
+  .search-glow-wrap {
+    position: relative;
+    border-radius: 20px;
+    padding: 1.5px;
+    display: inline-flex;
+    align-items: center;
+    background: transparent;
+  }
+
+  .search-glow-track {
+    position: absolute;
+    inset: -1px;
+    border-radius: 21px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Circulates Clockwise using conic-gradient with Moss (#7A9471), Basin Blue (#4C87A6), and Nutrient Amber (#C9A227) */
+  .search-glow-track::before {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 180deg,
+      rgba(76, 135, 166, 0.45) 230deg,
+      rgba(122, 148, 113, 0.95) 275deg,
+      rgba(201, 162, 39, 0.75) 320deg,
+      transparent 360deg
+    );
+    animation: rotateClockwise 3.2s linear infinite;
+  }
+
+  @keyframes rotateClockwise {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .search-inner {
+    position: relative;
+    z-index: 1;
+    background: var(--panel);
+    border-radius: 19px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 10px;
+    border: 1px solid rgba(53, 49, 42, 0.85);
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .search-glow-wrap:focus-within .search-inner {
+    background: var(--panel-raised);
+    border-color: rgba(122, 148, 113, 0.6);
+  }
+
+  .search-icon {
+    color: var(--moss);
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
+
+  .search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    width: 170px;
+    letter-spacing: 0.2px;
+  }
+
+  .search-input::placeholder {
+    color: var(--ink-faint);
+  }
+
+  .search-kbd {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--ink-faint);
+    background: var(--panel-raised);
+    border: 1px solid var(--hairline);
+    padding: 1px 5px;
+    border-radius: 3px;
+    line-height: 1.2;
+    pointer-events: none;
+  }
+
+  /* Search Dropdown Popup */
+  .search-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 320px;
+    background: rgba(28, 25, 20, 0.96);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.65);
+    backdrop-filter: blur(8px);
+    z-index: 500;
+    display: none;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 6px;
+  }
+
+  .search-dropdown.visible {
+    display: block;
+    animation: fadeIn 0.15s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .search-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+
+  .search-item:hover, .search-item.selected {
+    background: var(--panel-raised);
+  }
+
+  .search-item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .search-badge {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+
+  .badge-station { background: var(--moss-dim); color: #D1E5CB; border: 1px solid var(--moss); }
+  .badge-sensor { background: var(--water-dim); color: #BEE3F8; border: 1px solid var(--water); }
+
+  .search-item-title {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .search-item-title mark {
+    background: rgba(122, 148, 113, 0.35);
+    color: #F4EFE6;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+
+  .search-item-sub {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--ink-faint);
+    margin-top: 1px;
+  }
+
+  .search-arrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    opacity: 0.5;
+  }
+
+  .search-empty {
+    padding: 12px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- Floating Center-Bottom AI Agent Bar ---------- */
+  .ai-chat-container {
+    position: static;
+    pointer-events: none;
+  }
+
+  .ai-bar-pill {
+    position: fixed;
+    bottom: 142px; /* Floats above the 130px bottom timeseries strip */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 990;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(28, 25, 20, 0.92);
+    border: 1px solid rgba(122, 148, 113, 0.35);
+    border-radius: 24px;
+    padding: 4px 6px 4px 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 12px rgba(122, 148, 113, 0.15);
+    backdrop-filter: blur(10px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 330px;
+    max-width: calc(100vw - 28px);
+  }
+
+  .ai-bar-pill:focus-within {
+    border-color: var(--moss);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65), 0 0 16px rgba(122, 148, 113, 0.3);
+    width: 375px;
+  }
+
+  .ai-pill-sparkle {
+    font-size: 12px;
+    color: var(--moss);
+    text-shadow: 0 0 8px var(--moss);
+    animation: gentlePulse 2.5s infinite;
+  }
+
+  @keyframes gentlePulse {
+    0%, 100% { opacity: 0.7; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+
+  .ai-pill-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    letter-spacing: 0.2px;
+  }
+
+  .ai-pill-input::placeholder {
+    color: var(--ink-faint);
+    font-size: 11px;
+  }
+
+  .ai-pill-send-btn {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: var(--moss-dim);
+    border: 1px solid var(--moss);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+    padding: 0;
+  }
+
+  .ai-pill-send-btn:hover {
+    background: var(--moss);
+    color: #14120F;
+    transform: scale(1.05);
+  }
+
+  /* Fade out bottom pill when popover modal is active */
+  .ai-popover.visible ~ .ai-bar-pill {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(8px);
+  }
+
+  /* Expandable Conversational Chat Popover */
+  .ai-popover {
+    position: fixed;
+    bottom: 18px; /* Positioned cleanly within viewport */
+    left: 50%;
+    transform: translateX(-50%) translateY(8px) scale(0.98);
+    width: min(560px, calc(100vw - 28px));
+    height: min(620px, calc(100dvh - 36px));
+    max-width: calc(100vw - 28px);
+    max-height: calc(100dvh - 36px);
+    background: rgba(28, 25, 20, 0.98);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(16px);
+    padding: 14px 16px;
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10000;
+    pointer-events: auto;
+    box-sizing: border-box;
+  }
+
+  .ai-popover.visible {
+    display: flex;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  /* Fullscreen / Fit Screen Mode (Active via Toggle or Mobile) */
+  .ai-popover.ai-fullscreen {
+    position: fixed !important;
+    inset: 14px !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    bottom: 14px !important;
+    left: 14px !important;
+    right: 14px !important;
+    top: 14px !important;
+    transform: none !important;
+    border-radius: 14px !important;
+    z-index: 10001 !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85) !important;
+  }
+
+  .ai-popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+  }
+
+  .ai-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .ai-sparkle { color: var(--moss); }
+  
+  .ai-header-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--ink-faint);
+    background: rgba(122, 148, 113, 0.12);
+    border: 1px solid rgba(122, 148, 113, 0.25);
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+
+  .ai-status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--moss);
+    box-shadow: 0 0 6px var(--moss);
+  }
+
+  .ai-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ai-btn-expand {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ai-btn-expand:hover {
+    border-color: var(--moss);
+    color: var(--ink);
+  }
+
+  .ai-btn-clear {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ai-btn-clear:hover {
+    border-color: var(--ink-dim);
+    color: var(--ink);
+  }
+
+  .ai-popover-close {
+    background: none;
+    border: none;
+    color: var(--ink-faint);
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .ai-popover-close:hover { color: var(--ink); }
+
+  /* Scrollable Message List Feed */
+  .ai-message-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 4px;
+    margin: 4px 0;
+  }
+
+  .ai-message-list::-webkit-scrollbar {
+    width: 5px;
+  }
+  .ai-message-list::-webkit-scrollbar-thumb {
+    background: var(--hairline);
+    border-radius: 4px;
+  }
+
+  .ai-message {
+    display: flex;
+    gap: 8px;
+    max-width: 90%;
+    animation: fadeInMsg 0.2s ease-out;
+  }
+  @keyframes fadeInMsg {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .ai-message-assistant {
+    align-self: flex-start;
+  }
+
+  .ai-message-user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+
+  .ai-msg-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(122, 148, 113, 0.18);
+    color: var(--moss);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .ai-msg-bubble {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+
+  .ai-message-assistant .ai-msg-bubble {
+    background: rgba(35, 32, 26, 0.95);
+    border: 1px solid var(--hairline);
+    color: var(--ink-dim);
+    border-top-left-radius: 3px;
+  }
+
+  .ai-message-user .ai-msg-bubble {
+    background: rgba(122, 148, 113, 0.18);
+    border: 1px solid rgba(122, 148, 113, 0.35);
+    color: var(--ink);
+    border-top-right-radius: 3px;
+  }
+
+  .ai-message-error .ai-msg-bubble {
+    background: rgba(193, 98, 44, 0.15);
+    border: 1px solid var(--alert);
+    color: var(--ink);
+  }
+
+  .ai-msg-time {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+  .ai-message-user .ai-msg-time {
+    text-align: right;
+  }
+
+  .ai-msg-body strong { color: var(--ink); font-weight: 600; }
+  .ai-msg-body em { color: var(--ink-dim); font-style: italic; }
+  .ai-msg-body code {
+    background: rgba(0, 0, 0, 0.35);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--moss);
+  }
+  .ai-msg-body .ai-h2 {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 10px 0 6px 0;
+    font-family: var(--font-display);
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 4px;
+  }
+  .ai-msg-body .ai-h3 {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--moss);
+    margin: 8px 0 4px 0;
+    font-family: var(--font-display);
+  }
+  .ai-msg-body .ai-h4 {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 6px 0 3px 0;
+  }
+  .ai-msg-body .ai-ul,
+  .ai-msg-body .ai-ol {
+    margin: 6px 0 6px 18px;
+    padding: 0;
+  }
+  .ai-msg-body .ai-li,
+  .ai-msg-body .ai-oli {
+    margin-bottom: 4px;
+    color: var(--ink-dim);
+  }
+  .ai-table-wrap {
+    overflow-x: auto;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid var(--hairline);
+    background: rgba(18, 16, 13, 0.6);
+  }
+  .ai-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    text-align: left;
+  }
+  .ai-table th {
+    background: rgba(122, 148, 113, 0.15);
+    color: var(--moss);
+    padding: 6px 10px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--hairline);
+    letter-spacing: 0.3px;
+  }
+  .ai-table td {
+    padding: 5px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--ink-dim);
+  }
+  .ai-table tr:last-child td {
+    border-bottom: none;
+  }
+  .ai-table tr:hover td {
+    background: rgba(122, 148, 113, 0.06);
+    color: var(--ink);
+  }
+  .ai-msg-body .ai-quote {
+    border-left: 3px solid var(--moss);
+    background: rgba(122, 148, 113, 0.08);
+    padding: 6px 10px;
+    margin: 6px 0;
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--ink-dim);
+  }
+  .ai-msg-body .ai-hr {
+    border: none;
+    border-top: 1px solid var(--hairline);
+    margin: 10px 0;
+  }
+
+  /* Loading typing indicator */
+  .ai-loading-item .ai-msg-bubble {
+    padding: 8px 12px;
+  }
+  .ai-loading-dots {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ai-pulse-dot {
+    width: 5px; height: 5px; border-radius: 50%; background: var(--moss);
+    animation: dotPulse 1.2s infinite ease-in-out;
+  }
+  .ai-pulse-dot:nth-child(2) { animation-delay: 0.2s; }
+  .ai-pulse-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotPulse { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+  
+  .ai-loading-text {
+    margin-left: 8px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--ink-faint);
+  }
+
+  .ai-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--hairline);
+    flex-shrink: 0;
+  }
+
+  .ai-chip {
+    background: var(--panel-raised);
+    border: 1px solid var(--hairline);
+    color: var(--ink-dim);
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .ai-chip:hover {
+    border-color: var(--moss);
+    color: var(--ink);
+  }
+
+  /* In-Drawer Input Bar */
+  .ai-dialog-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--hairline);
+    flex-shrink: 0;
+  }
+
+  .ai-dialog-input {
+    flex: 1;
+    background: var(--panel-raised);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .ai-dialog-input:focus {
+    border-color: var(--moss);
+  }
+  .ai-dialog-input::placeholder {
+    color: var(--ink-faint);
+  }
+
+  .ai-dialog-send-btn {
+    background: var(--moss);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+  .ai-dialog-send-btn:hover {
+    opacity: 0.9;
+  }
+
+  /* ---------- Notification Toast System ---------- */
+  .shamba-notification-container {
+    position: fixed;
+    top: 60px;
+    right: 22px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    max-width: 360px;
+  }
+
+  .shamba-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: rgba(28, 25, 20, 0.95);
+    border: 1px solid var(--moss);
+    border-radius: 8px;
+    padding: 10px 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    color: var(--ink);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s;
+  }
+
+  .shamba-toast.toast-visible {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .shamba-toast.toast-leaving {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+
+  .toast-discovery {
+    border-color: var(--moss);
+    background: linear-gradient(135deg, rgba(28,25,20,0.95) 0%, rgba(78,95,73,0.3) 100%);
+  }
+
+  .toast-alert {
+    border-color: var(--earth);
+  }
+
+  .toast-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .toast-body { flex: 1; min-width: 0; }
+  .toast-title { font-size: 12px; font-weight: 600; color: var(--ink); }
+  .toast-message { font-family: var(--font-mono); font-size: 10px; color: var(--ink-dim); margin-top: 2px; }
+  .toast-action-btn {
+    background: var(--moss-dim); border: 1px solid var(--moss); color: var(--ink);
+    font-family: var(--font-mono); font-size: 9.5px; padding: 2px 7px; border-radius: 3px; cursor: pointer;
+    margin-left: 6px; flex-shrink: 0; align-self: center;
+  }
+  .toast-action-btn:hover { background: var(--moss); color: #14120F; }
+  .toast-close-btn { background: none; border: none; color: var(--ink-faint); font-size: 16px; cursor: pointer; line-height: 1; padding: 0 2px; }
+
+  /* ---------- Scrollbars ---------- */
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:4px;}
+
+  /* ---------- Mobile View Tab Switcher ---------- */
+  .mobile-tab-nav {
+    display: none;
+    background: var(--panel);
+    border-bottom: 1px solid var(--hairline);
+    padding: 6px 12px;
+    gap: 8px;
+    flex-shrink: 0;
+    z-index: 4;
+  }
+
+  .mobile-tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    background: var(--panel-raised);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    color: var(--ink-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .mobile-tab-btn:hover {
+    color: var(--ink);
+    border-color: var(--moss-dim);
+  }
+
+  .mobile-tab-btn.active {
+    background: rgba(122, 148, 113, 0.22);
+    border-color: var(--moss);
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---------- Responsive Media Queries across Screen Sizes ---------- */
+  @media (max-width: 1024px) {
+    .layout {
+      grid-template-columns: 220px 1fr 290px;
+    }
+    .strip-label {
+      width: 220px;
+      padding: 10px 14px;
+    }
+    .search-input {
+      width: 130px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    header {
+      padding: 8px 12px;
+    }
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      font-size: 13px;
+    }
+    .brand-text h1 {
+      font-size: 15px;
+    }
+    .brand-text span {
+      display: none;
+    }
+    .clock {
+      display: none;
+    }
+    .header-right {
+      gap: 8px;
+    }
+    .search-inner {
+      padding: 3px 8px;
+    }
+    .search-input {
+      width: 105px;
+      font-size: 10px;
+    }
+    .search-input:focus {
+      width: 135px;
+    }
+    .search-kbd {
+      display: none;
+    }
+    .source-pill {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+    #telemetryStatusLabel {
+      display: none;
+    }
+    .source-pill::after {
+      content: 'Live';
+      font-size: 10px;
+    }
+    .alert-pill {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+
+    /* Mobile Tab Switching */
+    .mobile-tab-nav {
+      display: flex;
+    }
+
+    .layout {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      position: relative;
+    }
+    .layout .sidebar,
+    .layout .map-wrap,
+    .layout .detail {
+      display: none;
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      min-height: 0;
+      border: none;
+    }
+    .layout.show-map .map-wrap {
+      display: block;
+    }
+    .layout.show-stations .sidebar {
+      display: block;
+    }
+    .layout.show-detail .detail {
+      display: block;
+    }
+
+    .detail {
+      padding: 14px 12px;
+    }
+    .metric-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    /* Compact Bottom Timeseries Strip on Mobile */
+    .strip {
+      height: 105px;
+    }
+    .strip-label {
+      width: 125px;
+      padding: 8px 10px;
+    }
+    .strip-metric-name {
+      font-size: 12px;
+    }
+    .strip-metric-sub {
+      display: none;
+    }
+    .window-select {
+      display: none;
+    }
+    .ms-btn {
+      padding: 2px 5px;
+      font-size: 9px;
+    }
+
+    /* Full-screen Fit for AI Chat Modal on Mobile */
+    .ai-bar-pill {
+      bottom: calc(52px + env(safe-area-inset-bottom, 0px) + 8px);
+      width: calc(100vw - 24px);
+      max-width: 380px;
+      height: 38px;
+    }
+    .ai-popover {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100dvh !important;
+      max-width: 100vw !important;
+      max-height: 100dvh !important;
+      border-radius: 0 !important;
+      border: none !important;
+      padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px)) 14px !important;
+      transform: none !important;
+      z-index: 99999 !important;
+    }
+    .ai-popover.visible {
+      display: flex !important;
+      transform: none !important;
+    }
+    .ai-btn-expand {
+      display: none !important; /* Already occupies entire screen on mobile */
+    }
+  }
+
+  @media (max-width: 480px) {
+    .brand-mark {
+      display: none;
+    }
+    .search-input {
+      width: 85px;
+    }
+    .search-input:focus {
+      width: 120px;
+    }
+    .metric-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .strip-label {
+      width: 100px;
+      padding: 6px 8px;
+    }
+  }
+
+  /* Short Viewport Height Optimization */
+  @media (max-height: 680px) {
+    header {
+      padding: 6px 14px;
+    }
+    .strip {
+      height: 85px;
+    }
+    .strip-chart {
+      padding: 4px 10px;
+    }
+    .ai-bar-pill {
+      bottom: 95px; /* Above compact 85px strip */
+    }
+    .ai-popover:not(.ai-fullscreen) {
+      bottom: 12px;
+      height: calc(100dvh - 24px);
+      max-height: calc(100dvh - 24px);
+      padding: 10px 12px;
+    }
+    .ai-popover-header {
+      padding-bottom: 6px;
+      margin-bottom: 2px;
+    }
+    .ai-message-list {
+      padding: 6px 2px;
+      gap: 8px;
+    }
+    .ai-suggestions {
+      padding-top: 6px;
+      gap: 4px;
+    }
+    .ai-dialog-form {
+      margin-top: 6px;
+      padding-top: 6px;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div class="brand-text">
+        <h1>Shamba Watch</h1>
+        <span>Rift Valley Basin · IoT Sensor Network</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="clock" id="clock">—</div>
+
+      <!-- Clockwise Glowing Search Bar (Theme Matched: Moss & Basin Water) -->
+      <div class="search-glow-wrap" id="searchGlowWrap">
+        <div class="search-glow-track"></div>
+        <div class="search-inner">
+          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="Search stations, sensors... (/)" 
+            autocomplete="off" 
+            spellcheck="false"
+          />
+          <span class="search-kbd">/</span>
+        </div>
+        <div class="search-dropdown" id="searchDropdown"></div>
+      </div>
+
+      <div class="source-pill production-pill" id="telemetryStatusPill" title="Production Telemetry Stream · Google Cloud Firestore Live">
+        <span class="source-dot live" id="telemetryStatusDot"></span>
+        <span id="telemetryStatusLabel">Production Telemetry · Firestore Live</span>
+      </div>
+      <div class="alert-pill" id="alertPill"><span class="alert-dot"></span><span id="alertCount">0 active alerts</span></div>
+    </div>
+  </header>
+
+  <!-- MOBILE VIEW TABS (Visible only on screens <= 768px) -->
+  <div class="mobile-tab-nav" id="mobileTabNav">
+    <button class="mobile-tab-btn active" data-tab="map" type="button">
+      <span class="tab-icon">🗺️</span><span>Map</span>
+    </button>
+    <button class="mobile-tab-btn" data-tab="stations" type="button">
+      <span class="tab-icon">📍</span><span>Stations</span>
+    </button>
+    <button class="mobile-tab-btn" data-tab="detail" type="button">
+      <span class="tab-icon">📊</span><span>Telemetry</span>
+    </button>
+  </div>
+
+  <div class="layout show-map" id="mainLayout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-header-row">
+        <div class="sidebar-label">Monitoring Stations</div>
+      </div>
+      <div id="stationList"></div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label" style="padding: 0 18px 8px;">Map Layer</div>
+      <div class="layer-toggle">
+        <div class="toggle-row">
+          <div class="toggle-btn active" data-layer="terrain">Terrain</div>
+          <div class="toggle-btn" data-layer="satellite">Satellite</div>
+          <div class="toggle-btn" data-layer="ir">Infrared</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="map-legend" id="mapLegend">
+        <div style="color:var(--ink);font-size:10.5px;">STATION STATUS</div>
+        <div class="lg-row"><div class="lg-swatch" style="background:var(--moss);"></div>Nominal</div>
+        <div class="lg-row"><div class="lg-swatch" style="background:var(--nutrient);"></div>Watch</div>
+        <div class="lg-row"><div class="lg-swatch" style="background:var(--earth);"></div>Alert</div>
+      </div>
+    </div>
+
+    <!-- DETAIL -->
+    <div class="detail">
+      <div class="detail-header">
+        <h2 class="detail-title" id="detTitle">—</h2>
+      </div>
+      <div class="detail-coords" id="detCoords">—</div>
+
+      <div class="metric-grid" id="metricGrid"></div>
+
+      <div class="core-section">
+        <div class="section-label">
+          <span>Soil Core — Stratigraphy Signature</span>
+          <span id="coreDepth">0–40cm</span>
+        </div>
+        <div class="core-wrap">
+          <div class="core-sample" id="coreSample"></div>
+          <div class="core-readouts" id="coreReadouts"></div>
+        </div>
+      </div>
+
+      <div class="core-section">
+        <div class="section-label"><span>Infrared Camera Feed</span><span id="camId">CAM—</span></div>
+        <div class="cam-thumb">
+          <div class="cam-scanline"></div>
+          <div class="cam-label" id="camLabel">thermal · radiometric</div>
+          <div class="cam-temp" id="camTemp">—°C</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TIMESERIES STRIP -->
+  <div class="strip">
+    <div class="strip-label">
+      <div>
+        <div class="strip-metric-name" id="stripName">Soil Moisture</div>
+        <div class="strip-metric-sub" id="stripSub">Rolling timeseries buffer</div>
+      </div>
+
+      <!-- Configurable Windowing (User Approved Decision) -->
+      <div class="window-select" id="windowSelect">
+        <span class="window-label">Window:</span>
+        <button class="ws-btn active" data-window="24h">24h</button>
+        <button class="ws-btn" data-window="7d">7d</button>
+        <button class="ws-btn" data-window="30d">30d</button>
+      </div>
+
+      <div class="metric-select" id="metricSelect">
+        <div class="ms-btn active" data-metric="moisture">Moisture</div>
+        <div class="ms-btn" data-metric="water">Water Lvl</div>
+        <div class="ms-btn" data-metric="nitrogen">Nitrogen</div>
+        <div class="ms-btn" data-metric="humidity">Humidity</div>
+        <div class="ms-btn" data-metric="temp">Temp</div>
+      </div>
+    </div>
+    <div class="strip-chart">
+      <svg id="chartSvg" width="100%" height="100%" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+</div>
+
+<!-- Floating Center-Bottom AI Agent Bar -->
+<div id="aiChatMount"></div>
+
+<!-- Floating Notification Container (Auto-Discovered Sensors & System Toasts) -->
+<div id="shambaNotificationContainer" class="shamba-notification-container"></div>
+
+<!-- Firebase 10 Compat SDK (Production Telemetry Ingestion & Realtime Sync) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<!-- Leaflet GIS Map Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<!-- Clean Architecture Application Module -->
+<script type="module">
+import { APP_CONFIG, Logger } from './js/config/app-config.js';
+import { FIREBASE_CONFIG, initializeFirestoreClient } from './js/config/firebase-config.js';
+import { InMemorySensorRepository } from './js/infrastructure/in-memory-sensor-repository.js';
+import { FirestoreSensorRepository } from './js/infrastructure/firestore-sensor-repository.js';
+import { SensorRegistry } from './js/services/sensor-registry.js';
+import { DashboardPresenter } from './js/ui/dashboard-presenter.js';
+import { SearchBar } from './js/ui/search-bar.js';
+import { ShambaAgent } from './js/services/shamba-agent.js';
+import { AiChatBar } from './js/ui/ai-chat-bar.js';
+import { NotificationManager } from './js/ui/notification-manager.js';
+
+// ============================================================================
+// CANONICAL STATIONS SPECIFICATION
+// ============================================================================
+const STATIONS = [
+  {id:'ST-01', name:'Naivasha North Plot', lat:-0.6980, lng:36.4200, crop:'Flower greenhouse', water:62, moisture:41, nutrient:{n:58,p:44,k:71}, humidity:55, temp:26.4},
+  {id:'ST-02', name:'Ol Kalou Maize Block', lat:-0.2760, lng:36.3730, crop:'Maize', water:18, moisture:22, nutrient:{n:31,p:29,k:40}, humidity:38, temp:29.1},
+  {id:'ST-03', name:'Nakuru Basin Wetland', lat:-0.3670, lng:36.0800, crop:'Wetland buffer', water:91, moisture:88, nutrient:{n:64,p:50,k:66}, humidity:80, temp:22.7},
+  {id:'ST-04', name:'Molo Highland Terrace', lat:-0.2470, lng:35.7330, crop:'Tea', water:54, moisture:63, nutrient:{n:70,p:61,k:58}, humidity:72, temp:18.9},
+  {id:'ST-05', name:'Elementaita Rangeland', lat:-0.4550, lng:36.2500, crop:'Grazing / rangeland', water:12, moisture:15, nutrient:{n:24,p:20,k:33}, humidity:29, temp:31.6},
+  {id:'ST-06', name:'Gilgil River Intake', lat:-0.5020, lng:36.3190, crop:'Irrigation intake', water:74, moisture:69, nutrient:{n:47,p:39,k:52}, humidity:64, temp:24.2},
+];
+
+// ============================================================================
+// SYSTEM BOOTSTRAP & DEPENDENCY INJECTION (Principles 35, 36)
+// ============================================================================
+const initialRepository = new InMemorySensorRepository();
+const registry = new SensorRegistry(initialRepository);
+const presenter = new DashboardPresenter(registry);
+
+// Application State
+let activeStationId = STATIONS[0].id;
+let activeMetricType = 'moisture';
+let activeWindowMs = APP_CONFIG.TIME_WINDOWS.TWENTY_FOUR_HOURS;
+let activeLayer = 'terrain';
+
+// ============================================================================
+// LEAFLET MAP INITIALIZATION
+// ============================================================================
+const map = L.map('map', {zoomControl:false, attributionControl:false}).setView([-0.42, 36.15], 10.5);
+L.control.zoom({position:'bottomright'}).addTo(map);
+
+const terrainLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {maxZoom:17});
+const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:18});
+terrainLayer.addTo(map);
+
+const markers = {};
+
+function initMapMarkers() {
+  STATIONS.forEach((s) => {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div id="marker-${s.id}" style="width:14px;height:14px;border-radius:50%;background:#7A9471;border:2px solid #14120F;box-shadow:0 0 0 3px rgba(122,148,113,0.35);"></div>`,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+    const m = L.marker([s.lat, s.lng], {icon}).addTo(map);
+    m.on('click', () => selectStation(s.id));
+    markers[s.id] = m;
+  });
+}
+
+// Map layer toggle
+document.querySelectorAll('.toggle-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.toggle-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeLayer = btn.dataset.layer;
+    const mapEl = document.getElementById('map');
+    mapEl.classList.remove('ir-mode');
+    map.removeLayer(terrainLayer);
+    map.removeLayer(satLayer);
+    if (activeLayer === 'terrain') {
+      terrainLayer.addTo(map);
+    } else if (activeLayer === 'satellite') {
+      satLayer.addTo(map);
+    } else {
+      satLayer.addTo(map);
+      mapEl.classList.add('ir-mode');
+    }
+  });
+});
+
+// ============================================================================
+// UI RENDERING DELEGATION (Presenter -> DOM)
+// ============================================================================
+
+function renderSidebar() {
+  const listEl = document.getElementById('stationList');
+  const viewModels = presenter.getStationListViewModels(STATIONS, activeStationId);
+
+  listEl.innerHTML = viewModels.map((vm) => `
+    <div class="station-item ${vm.isActive ? 'active' : ''}" data-station-id="${vm.id}">
+      <div>
+        <div class="station-name">${vm.name}</div>
+        <div class="station-sub">${vm.id} · ${vm.crop} · ${vm.sensorCount} sensors</div>
+      </div>
+      <div class="station-flag" style="background:${vm.color};"></div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('.station-item').forEach((item) => {
+    item.addEventListener('click', () => selectStation(item.dataset.stationId));
+  });
+
+  // Update map marker colors
+  viewModels.forEach((vm) => {
+    const el = document.getElementById(`marker-${vm.id}`);
+    if (el) {
+      el.style.background = vm.color;
+      el.style.boxShadow = `0 0 0 3px ${vm.color}55`;
+    }
+  });
+}
+
+function renderDetail() {
+  const stationSpec = STATIONS.find((s) => s.id === activeStationId);
+  if (!stationSpec) return;
+
+  document.getElementById('detTitle').textContent = stationSpec.name;
+  document.getElementById('detCoords').textContent = 
+    `${stationSpec.id} · ${stationSpec.lat.toFixed(4)}°, ${stationSpec.lng.toFixed(4)}° · ${stationSpec.crop}`;
+
+  // Metric Cards
+  const cards = presenter.getMetricCardViewModels(activeStationId);
+  const gridEl = document.getElementById('metricGrid');
+  if (cards.length > 0) {
+    gridEl.innerHTML = cards.map((c) => `
+      <div class="metric-card status-${c.status}">
+        <div class="metric-label">
+          <span>${c.name}</span>
+          ${c.depthInfo ? `<span style="opacity:0.6">${c.depthInfo}</span>` : ''}
+        </div>
+        <div class="metric-value">${c.value}<span class="metric-unit"> ${c.unit}</span></div>
+        <div class="metric-delta ${c.deltaDirectionClass}">${c.deltaFormatted}</div>
+      </div>
+    `).join('');
+  } else {
+    gridEl.innerHTML = `
+      <div style="grid-column: 1 / -1; padding: 22px; text-align: center; color: var(--ink-faint); font-family: var(--font-mono); font-size: 11px; border: 1px dashed var(--hairline); border-radius: 8px;">
+        🌱 No active sensors reporting in Firestore (/sensors) for this station.<br>
+        <span style="color: var(--moss); margin-top: 6px; display: inline-block;">Ready to receive hardware telemetry stream.</span>
+      </div>`;
+  }
+
+  // Soil Core Stratigraphy
+  const cores = presenter.getSoilCoreViewModels(activeStationId);
+  const coreSampleEl = document.getElementById('coreSample');
+  const coreReadoutsEl = document.getElementById('coreReadouts');
+
+  if (cores.length > 0) {
+    const h = 100 / cores.length;
+    coreSampleEl.innerHTML = cores.map((b) => `
+      <div class="core-band" data-pct="${Math.round(b.pct)}%" style="height:${h}%;background:${b.color};opacity:${b.opacity};"></div>
+    `).join('');
+
+    coreReadoutsEl.innerHTML = cores.map((b) => `
+      <div class="core-readout-row">
+        <span class="cr-name">${b.name}</span>
+        <span class="cr-val">${b.valueFormatted}</span>
+      </div>
+    `).join('');
+  } else {
+    coreSampleEl.innerHTML = '';
+    coreReadoutsEl.innerHTML = '<div style="padding: 8px 0; color: var(--ink-faint); font-family: var(--font-mono); font-size: 10.5px;">Awaiting soil probe data...</div>';
+  }
+
+  // Camera temp
+  const tempSensors = registry.getSensorsByStation(activeStationId).filter(s => s.metricDefinition.metricType === 'temp');
+  if (tempSensors.length > 0) {
+    document.getElementById('camTemp').textContent = `${tempSensors[0].currentState.latestValue.toFixed(1)}°C`;
+    document.getElementById('camId').textContent = 'CAM-' + activeStationId.split('-')[1];
+  } else {
+    document.getElementById('camTemp').textContent = '—°C';
+    document.getElementById('camId').textContent = 'STANDBY';
+  }
+
+  // Alert Counter
+  const totalAlerts = presenter.getTotalActiveAlertCount();
+  document.getElementById('alertCount').textContent = `${totalAlerts} active alert${totalAlerts !== 1 ? 's' : ''}`;
+}
+
+function renderChart() {
+  const sensors = registry.getSensorsByStation(activeStationId);
+  const targetSensor = sensors.find((s) => s.metricDefinition.metricType === activeMetricType) || sensors[0];
+
+  const svg = document.getElementById('chartSvg');
+  if (!targetSensor) {
+    svg.innerHTML = '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#726B5C" font-family="var(--font-mono)" font-size="11">Awaiting sensor readings in Firestore (/sensors)...</text>';
+    document.getElementById('stripName').textContent = 'No Active Sensors';
+    document.getElementById('stripSub').textContent = '0 samples recorded';
+    return;
+  }
+
+  const w = svg.clientWidth || 600;
+  const h = svg.clientHeight || 100;
+
+  const geom = presenter.getSparklineGeometry(targetSensor.id, activeWindowMs, w, h);
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${geom.color}" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="${geom.color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${geom.areaPath ? `<path d="${geom.areaPath}" fill="url(#chartGrad)" />` : ''}
+    ${geom.linePath ? `<path d="${geom.linePath}" fill="none" stroke="${geom.color}" stroke-width="2" />` : ''}
+    ${geom.points.map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r="2" fill="${geom.color}" opacity="0.6"/>`).join('')}
+  `;
+
+  document.getElementById('stripName').textContent = targetSensor.metadata.name;
+  const winLabels = { [APP_CONFIG.TIME_WINDOWS.TWENTY_FOUR_HOURS]: 'Last 24 Hours', [APP_CONFIG.TIME_WINDOWS.SEVEN_DAYS]: 'Last 7 Days', [APP_CONFIG.TIME_WINDOWS.THIRTY_DAYS]: 'Last 30 Days' };
+  document.getElementById('stripSub').textContent = `${winLabels[activeWindowMs] || 'Time Window'} · ${targetSensor.getTimeseries(activeWindowMs).length} samples`;
+}
+
+let isFirebaseConnected = false;
+let firestoreUnsubscribe = null;
+let firestoreRepo = null;
+
+function subscribeCurrentStation() {
+  if (!isFirebaseConnected || !firestoreRepo) return;
+  if (firestoreUnsubscribe) {
+    firestoreUnsubscribe();
+    firestoreUnsubscribe = null;
+  }
+  firestoreUnsubscribe = firestoreRepo.subscribeToStation(activeStationId, (remoteSensors) => {
+    if (remoteSensors && remoteSensors.length > 0) {
+      remoteSensors.forEach(s => {
+        const existing = registry.getSensor(s.id);
+        if (existing) {
+          const latest = s.getLatestReading();
+          if (latest) {
+            existing.addReading(latest.value, latest.timestampMs, latest.quality);
+          }
+        } else {
+          registry.registerSensor(s);
+        }
+      });
+      renderSidebar();
+      renderDetail();
+      renderChart();
+    }
+  });
+}
+
+// Mobile View Tab Switcher Logic
+function setMobileTab(tab) {
+  const layout = document.getElementById('mainLayout');
+  const tabBtns = document.querySelectorAll('.mobile-tab-btn');
+  if (!layout) return;
+  layout.classList.remove('show-map', 'show-stations', 'show-detail');
+  layout.classList.add(`show-${tab}`);
+  tabBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+  if (tab === 'map' && map) {
+    setTimeout(() => map.invalidateSize(), 150);
+  }
+}
+
+document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setMobileTab(btn.dataset.tab);
+  });
+});
+
+function selectStation(id) {
+  activeStationId = id;
+  const spec = STATIONS.find((s) => s.id === id);
+  if (spec) {
+    map.panTo([spec.lat, spec.lng]);
+  }
+  subscribeCurrentStation();
+  renderSidebar();
+  renderDetail();
+  renderChart();
+  // On mobile screens, automatically show the telemetry detail tab when a station is tapped
+  if (window.innerWidth <= 768) {
+    setMobileTab('detail');
+  }
+}
+
+// ============================================================================
+// INTERACTIVE CONTROLS (Windowing, Metric Select, Add Sensor)
+// ============================================================================
+
+// Configurable Windowing Selector (User Approved Decision)
+document.querySelectorAll('.ws-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ws-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    const win = btn.dataset.window;
+    if (win === '24h') activeWindowMs = APP_CONFIG.TIME_WINDOWS.TWENTY_FOUR_HOURS;
+    else if (win === '7d') activeWindowMs = APP_CONFIG.TIME_WINDOWS.SEVEN_DAYS;
+    else if (win === '30d') activeWindowMs = APP_CONFIG.TIME_WINDOWS.THIRTY_DAYS;
+
+    // Propagate window change to all sensors
+    registry.getAllSensors().forEach(s => s.setWindow(activeWindowMs));
+    renderChart();
+  });
+});
+
+// Metric Selector
+document.querySelectorAll('.ms-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ms-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeMetricType = btn.dataset.metric;
+    renderChart();
+  });
+});
+
+// ============================================================================
+// NOTIFICATION MANAGER (Sensor Auto-Discovery & System Alerts)
+// ============================================================================
+const notificationManager = new NotificationManager(
+  document.getElementById('shambaNotificationContainer'),
+  (stationId, sensorId) => {
+    selectStation(stationId);
+    if (sensorId) {
+      const sensor = registry.getSensor(sensorId);
+      if (sensor) {
+        activeMetricType = sensor.metricDefinition.metricType;
+        document.querySelectorAll('.ms-btn').forEach((b) => {
+          b.classList.toggle('active', b.dataset.metric === activeMetricType);
+        });
+        renderChart();
+      }
+    }
+  }
+);
+
+// Auto-discovery listener: triggers notification toast whenever a new field sensor appears
+registry.onChange((event, sensor) => {
+  if (event === 'SENSOR_DISCOVERED') {
+    const station = STATIONS.find(s => s.id === sensor.stationId);
+    notificationManager.notifyNewSensor(sensor, station ? station.name : sensor.stationId);
+    renderSidebar();
+    renderDetail();
+    renderChart();
+  }
+});
+
+// ============================================================================
+// SEARCH BAR COMPONENT (Clockwise Glowing Border & Autocomplete)
+// ============================================================================
+const searchBar = new SearchBar({
+  inputEl: document.getElementById('searchInput'),
+  dropdownEl: document.getElementById('searchDropdown'),
+  registry,
+  stations: STATIONS,
+  onSelect: ({ stationId, sensorId, metricType }) => {
+    selectStation(stationId);
+    if (metricType) {
+      activeMetricType = metricType;
+      document.querySelectorAll('.ms-btn').forEach((b) => {
+        b.classList.toggle('active', b.dataset.metric === metricType);
+      });
+      renderChart();
+    }
+  }
+});
+
+// ============================================================================
+// AI AGENT & FLOATING CHAT BAR (Center-Bottom Platform Entry Point)
+// ============================================================================
+const shambaAgent = new ShambaAgent({
+  registry,
+  stations: STATIONS,
+  presenter,
+});
+
+const aiChatBar = new AiChatBar({
+  mountEl: document.getElementById('aiChatMount'),
+  agent: shambaAgent,
+  onSelectStation: (stationId) => {
+    selectStation(stationId);
+  }
+});
+
+// Live Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString(APP_CONFIG.DEFAULT_LOCALE, { hour:'2-digit', minute:'2-digit', second:'2-digit', timeZone: APP_CONFIG.TIMEZONE }) + ' EAT';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============================================================================
+// INITIALIZE & START (Strict Production Firestore Telemetry Pipeline)
+// ============================================================================
+async function bootstrap() {
+  initMapMarkers();
+
+  const statusDot = document.getElementById('telemetryStatusDot');
+  const statusLabel = document.getElementById('telemetryStatusLabel');
+
+  // Direct Production Firestore Initialization (No Simulated or Mock Telemetry)
+  try {
+    const db = initializeFirestoreClient();
+    if (db) {
+      firestoreRepo = new FirestoreSensorRepository(db);
+      registry.setRepository(firestoreRepo);
+      isFirebaseConnected = true;
+      if (statusDot) statusDot.classList.add('live');
+      if (statusLabel) statusLabel.textContent = 'Production Telemetry · Firestore Live';
+      Logger.info('App', 'Production pipeline active: connected directly to Google Cloud Firestore.');
+
+      // Reactive Full-System Visibility: subscribe to canonical /sensors collection
+      firestoreRepo.subscribeAllSensors((remoteSensors) => {
+        registry.syncFromRemoteSensors(remoteSensors);
+        renderSidebar();
+        renderDetail();
+        renderChart();
+      });
+    } else {
+      Logger.warn('App', 'Firebase SDK uninitialized; operating with production local cache.');
+      if (statusDot) statusDot.classList.remove('live');
+      if (statusLabel) statusLabel.textContent = 'Production Telemetry · Local Cache';
+    }
+  } catch (err) {
+    Logger.error('App', 'Failed to initialize production Firestore repository:', err);
+    if (statusDot) statusDot.classList.remove('live');
+    if (statusLabel) statusLabel.textContent = 'Production Telemetry · Local Cache';
+  }
+
+  // Subscribe to live registry updates
+  registry.onChange(() => {
+    renderSidebar();
+    renderDetail();
+    renderChart();
+  });
+
+  // Render initial frame (Grounded in real database state)
+  renderSidebar();
+  renderDetail();
+  renderChart();
+
+  window.addEventListener('resize', () => {
+    renderChart();
+    if (map) map.invalidateSize();
+  });
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      renderChart();
+      if (map) map.invalidateSize();
+    }, 200);
+  });
+  Logger.info('App', 'Shamba Watch 2.0 cleanly initialized in production mode with strict Firestore telemetry pipeline.');
+}
+
+bootstrap();
+</script>
+</body>
+</html>

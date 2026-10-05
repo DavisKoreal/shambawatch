@@ -1,0 +1,8 @@
+name = "shamba-watch-proxy"
+main = "src/index.js"
+compatibility_date = "2024-12-18"
+
+# Optional environment variables
+[vars]
+ENVIRONMENT = "production"
+INFERENCE_MODEL = "deepseek-chat"

@@ -1,0 +1,328 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // This security rules file assumes the following data structures:
+    //
+    // Collection: /sensors/{sensorId}
+    // Document ID: sensorId (e.g., 'sensor_naivasha_soil_moisture_01', 'urn:shamba:station:st-01:sensor:moisture')
+    // Fields:
+    //   - id: string (optional, must match sensorId, <= 128 chars)
+    //   - stationId: string (required, 1..64 chars, immutable on update)
+    //   - metadata: map (required, max 20 keys)
+    //       - name: string (optional, <= 128 chars)
+    //       - description: string (optional, <= 500 chars)
+    //       - sensorType: string (optional, <= 64 chars)
+    //       - crop: string (optional, <= 100 chars)
+    //       - stationId: string (optional, <= 64 chars)
+    //       - stationName: string (optional, <= 128 chars)
+    //       - altitudeMeters: number/null (optional, -500..9000)
+    //       - minDepthCm: number/null (optional, 0..5000)
+    //       - maxDepthCm: number/null (optional, 0..5000)
+    //       - manufacturer: string (optional, <= 128 chars)
+    //       - model: string (optional, <= 128 chars)
+    //       - serialNumber: string (optional, <= 128 chars)
+    //       - hardwareId: string (optional, <= 128 chars)
+    //       - location: map (optional, stationId, stationName, lat [-90..90], lng [-180..180], altitudeMeters, depthCm)
+    //       - hardware: map (optional, manufacturer, model, serialNumber, hardwareId)
+    //       - customAttributes: map (optional, <= 20 entries)
+    //   - metricDefinition: map (required)
+    //       - type / metricType: string (required, 1..64 chars)
+    //       - unit / unitSymbol: string (required, 1..32 chars)
+    //       - minSafe / minValid: number (required)
+    //       - maxSafe / maxValid: number (required)
+    //       - precision: number (optional, 0..10)
+    //   - thresholds: map (required)
+    //       - criticalLow: number/null (optional)
+    //       - warningLow: number/null (optional)
+    //       - warningHigh: number/null (optional)
+    //       - criticalHigh: number/null (optional)
+    //       - deadband / hysteresis: number/null (optional, >= 0)
+    //   - currentState: map (required)
+    //       - value / latestValue: number (optional)
+    //       - timestampMs / lastSampledMs: int (optional, > 0)
+    //       - quality: string (optional, in ['GOOD', 'SUSPECT', 'OUT_OF_BOUNDS', 'FAULT'])
+    //       - status: string (optional, in ['nominal', 'watch', 'alert', 'offline', 'calibrating'])
+    //       - batteryPct: number (optional, 0..100)
+    //       - delta: number (optional)
+    //   - hardwareConfig: map (optional, <= 20 entries)
+    //   - windowDurationMs: number (optional, > 0)
+    //
+    // Subcollection: /sensors/{sensorId}/readings/{readingId}
+    // Document ID: readingId (e.g. '1727784000000_sensor_01')
+    // Fields:
+    //   - value: number (required)
+    //   - timestampMs: int (required, > 0)
+    //   - quality: string (required, in ['GOOD', 'SUSPECT', 'OUT_OF_BOUNDS', 'FAULT'])
+    //   - id: string (optional, <= 128 chars)
+    //   - sensorId: string (optional, <= 128 chars)
+    //   - timestampISO: string (optional, <= 64 chars)
+    //   - delta: number (optional)
+    //   - batteryPct: number (optional, 0..100)
+    //
+    // Collection: /stations/{stationId}
+    // Document ID: stationId (e.g. 'ST-01')
+    // Fields:
+    //   - id / stationId: string (optional, <= 64 chars, immutable on update)
+    //   - name / stationName: string (optional, <= 128 chars)
+    //   - description: string (optional, <= 500 chars)
+    //   - location: map (optional)
+    //   - altitudeMeters: number/null (optional, -500..9000)
+    //   - active: bool (optional)
+    //   - totalSensors: int (optional, >= 0)
+    //
+    // Subcollection: /stations/{stationId}/sensors/{sensorId}
+    //   - [Identical schema to /sensors/{sensorId}]
+    //
+    // Subcollection: /stations/{stationId}/sensors/{sensorId}/readings/{readingId}
+    //   - [Identical schema to /sensors/{sensorId}/readings/{readingId}]
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // ===============================================================
+    // Domain Validators: Readings (Immutable Timeseries)
+    // ===============================================================
+
+    function isValidReading(data) {
+      let allowedKeys = [
+        'id', 'sensorId', 'value', 'timestampMs', 'timestampISO', 'quality', 'delta', 'batteryPct'
+      ];
+      let validQualities = ['GOOD', 'SUSPECT', 'OUT_OF_BOUNDS', 'FAULT'];
+
+      return data.keys().hasOnly(allowedKeys)
+        && data.keys().hasAll(['value', 'timestampMs', 'quality'])
+        && data.value is number
+        && data.timestampMs is int
+        && data.timestampMs > 0
+        && data.timestampMs < 4102444800000
+        && data.quality in validQualities
+        && (!('id' in data) || (data.id is string && data.id.size() > 0 && data.id.size() <= 128))
+        && (!('sensorId' in data) || (data.sensorId is string && data.sensorId.size() > 0 && data.sensorId.size() <= 128))
+        && (!('timestampISO' in data) || (data.timestampISO is string && data.timestampISO.size() <= 64))
+        && (!('delta' in data) || data.delta is number)
+        && (!('batteryPct' in data) || (data.batteryPct is number && data.batteryPct >= 0 && data.batteryPct <= 100));
+    }
+
+    // ===============================================================
+    // Domain Validators: Sensors
+    // ===============================================================
+
+    function isValidLocation(loc) {
+      let allowedLocKeys = ['stationId', 'stationName', 'lat', 'lng', 'altitudeMeters', 'depthCm'];
+      return loc is map
+        && loc.keys().hasOnly(allowedLocKeys)
+        && (!('stationId' in loc) || (loc.stationId is string && loc.stationId.size() <= 64))
+        && (!('stationName' in loc) || (loc.stationName is string && loc.stationName.size() <= 128))
+        && (!('lat' in loc) || loc.lat == null || (loc.lat is number && loc.lat >= -90.0 && loc.lat <= 90.0))
+        && (!('lng' in loc) || loc.lng == null || (loc.lng is number && loc.lng >= -180.0 && loc.lng <= 180.0))
+        && (!('altitudeMeters' in loc) || loc.altitudeMeters == null || (loc.altitudeMeters is number && loc.altitudeMeters >= -500 && loc.altitudeMeters <= 9000))
+        && (!('depthCm' in loc) || loc.depthCm == null || (loc.depthCm is number && loc.depthCm >= 0 && loc.depthCm <= 5000));
+    }
+
+    function isValidHardware(hw) {
+      let allowedHwKeys = ['manufacturer', 'model', 'serialNumber', 'hardwareId'];
+      return hw is map
+        && hw.keys().hasOnly(allowedHwKeys)
+        && (!('manufacturer' in hw) || (hw.manufacturer is string && hw.manufacturer.size() <= 128))
+        && (!('model' in hw) || (hw.model is string && hw.model.size() <= 128))
+        && (!('serialNumber' in hw) || (hw.serialNumber is string && hw.serialNumber.size() <= 128))
+        && (!('hardwareId' in hw) || (hw.hardwareId is string && hw.hardwareId.size() <= 128));
+    }
+
+    function isValidSensorMetadata(meta) {
+      let allowedMetaKeys = [
+        'name', 'description', 'sensorType', 'crop', 'stationId', 'stationName',
+        'altitudeMeters', 'minDepthCm', 'maxDepthCm', 'manufacturer', 'model',
+        'serialNumber', 'hardwareId', 'location', 'hardware', 'customAttributes'
+      ];
+
+      return meta is map
+        && meta.keys().hasOnly(allowedMetaKeys)
+        && (!('name' in meta) || (meta.name is string && meta.name.size() <= 128))
+        && (!('description' in meta) || (meta.description is string && meta.description.size() <= 500))
+        && (!('sensorType' in meta) || (meta.sensorType is string && meta.sensorType.size() <= 64))
+        && (!('crop' in meta) || (meta.crop is string && meta.crop.size() <= 100))
+        && (!('stationId' in meta) || (meta.stationId is string && meta.stationId.size() <= 64))
+        && (!('stationName' in meta) || (meta.stationName is string && meta.stationName.size() <= 128))
+        && (!('altitudeMeters' in meta) || meta.altitudeMeters == null || (meta.altitudeMeters is number && meta.altitudeMeters >= -500 && meta.altitudeMeters <= 9000))
+        && (!('minDepthCm' in meta) || meta.minDepthCm == null || (meta.minDepthCm is number && meta.minDepthCm >= 0 && meta.minDepthCm <= 5000))
+        && (!('maxDepthCm' in meta) || meta.maxDepthCm == null || (meta.maxDepthCm is number && meta.maxDepthCm >= 0 && meta.maxDepthCm <= 5000))
+        && (!('manufacturer' in meta) || (meta.manufacturer is string && meta.manufacturer.size() <= 128))
+        && (!('model' in meta) || (meta.model is string && meta.model.size() <= 128))
+        && (!('serialNumber' in meta) || (meta.serialNumber is string && meta.serialNumber.size() <= 128))
+        && (!('hardwareId' in meta) || (meta.hardwareId is string && meta.hardwareId.size() <= 128))
+        && (!('location' in meta) || isValidLocation(meta.location))
+        && (!('hardware' in meta) || isValidHardware(meta.hardware))
+        && (!('customAttributes' in meta) || (meta.customAttributes is map && meta.customAttributes.size() <= 20));
+    }
+
+    function isValidMetricDefinition(metric) {
+      let allowedMetricKeys = [
+        'type', 'metricType', 'unit', 'unitSymbol', 'minSafe', 'minValid', 'maxSafe', 'maxValid', 'precision'
+      ];
+
+      return metric is map
+        && metric.keys().hasOnly(allowedMetricKeys)
+        && (
+          ('type' in metric && metric.type is string && metric.type.size() > 0 && metric.type.size() <= 64) ||
+          ('metricType' in metric && metric.metricType is string && metric.metricType.size() > 0 && metric.metricType.size() <= 64)
+        )
+        && (
+          ('unit' in metric && metric.unit is string && metric.unit.size() > 0 && metric.unit.size() <= 32) ||
+          ('unitSymbol' in metric && metric.unitSymbol is string && metric.unitSymbol.size() > 0 && metric.unitSymbol.size() <= 32)
+        )
+        && (
+          ('minSafe' in metric && metric.minSafe is number) ||
+          ('minValid' in metric && metric.minValid is number)
+        )
+        && (
+          ('maxSafe' in metric && metric.maxSafe is number) ||
+          ('maxValid' in metric && metric.maxValid is number)
+        )
+        && (!('precision' in metric) || (metric.precision is number && metric.precision >= 0 && metric.precision <= 10));
+    }
+
+    function isValidThresholds(thresh) {
+      let allowedThreshKeys = [
+        'criticalLow', 'warningLow', 'warningHigh', 'criticalHigh', 'deadband', 'hysteresis'
+      ];
+
+      return thresh is map
+        && thresh.keys().hasOnly(allowedThreshKeys)
+        && (!('criticalLow' in thresh) || thresh.criticalLow == null || thresh.criticalLow is number)
+        && (!('warningLow' in thresh) || thresh.warningLow == null || thresh.warningLow is number)
+        && (!('warningHigh' in thresh) || thresh.warningHigh == null || thresh.warningHigh is number)
+        && (!('criticalHigh' in thresh) || thresh.criticalHigh == null || thresh.criticalHigh is number)
+        && (!('deadband' in thresh) || thresh.deadband == null || (thresh.deadband is number && thresh.deadband >= 0))
+        && (!('hysteresis' in thresh) || thresh.hysteresis == null || (thresh.hysteresis is number && thresh.hysteresis >= 0));
+    }
+
+    function isValidCurrentState(cs) {
+      let allowedStateKeys = [
+        'value', 'latestValue', 'timestampMs', 'lastSampledMs', 'quality', 'status', 'batteryPct', 'delta'
+      ];
+      let validQualities = ['GOOD', 'SUSPECT', 'OUT_OF_BOUNDS', 'FAULT'];
+      let validStatuses = ['nominal', 'watch', 'alert', 'offline', 'calibrating'];
+
+      return cs is map
+        && cs.keys().hasOnly(allowedStateKeys)
+        && (!('value' in cs) || cs.value is number)
+        && (!('latestValue' in cs) || cs.latestValue is number)
+        && (!('timestampMs' in cs) || (cs.timestampMs is int && cs.timestampMs > 0))
+        && (!('lastSampledMs' in cs) || (cs.lastSampledMs is int && cs.lastSampledMs > 0))
+        && (!('quality' in cs) || cs.quality in validQualities)
+        && (!('status' in cs) || cs.status in validStatuses)
+        && (!('batteryPct' in cs) || (cs.batteryPct is number && cs.batteryPct >= 0 && cs.batteryPct <= 100))
+        && (!('delta' in cs) || cs.delta is number);
+    }
+
+    function isValidSensor(data, sensorId) {
+      let allowedSensorKeys = [
+        'id', 'stationId', 'metadata', 'metricDefinition', 'thresholds',
+        'currentState', 'hardwareConfig', 'windowDurationMs'
+      ];
+
+      return data.keys().hasOnly(allowedSensorKeys)
+        && data.keys().hasAll(['stationId', 'metadata', 'metricDefinition', 'thresholds', 'currentState'])
+        && data.stationId is string
+        && data.stationId.size() > 0
+        && data.stationId.size() <= 64
+        && (!('id' in data) || (data.id is string && data.id == sensorId && data.id.size() <= 128))
+        && (!('hardwareConfig' in data) || (data.hardwareConfig is map && data.hardwareConfig.size() <= 20))
+        && (!('windowDurationMs' in data) || (data.windowDurationMs is number && data.windowDurationMs > 0))
+        && isValidSensorMetadata(data.metadata)
+        && isValidMetricDefinition(data.metricDefinition)
+        && isValidThresholds(data.thresholds)
+        && isValidCurrentState(data.currentState);
+    }
+
+    function isSensorImmutableUnchanged() {
+      return (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id)
+        && (!('stationId' in resource.data) || !('stationId' in request.resource.data) || request.resource.data.stationId == resource.data.stationId);
+    }
+
+    // ===============================================================
+    // Domain Validators: Stations
+    // ===============================================================
+
+    function isValidStation(data, stationId) {
+      let allowedStationKeys = [
+        'id', 'stationId', 'name', 'stationName', 'description', 'location',
+        'altitudeMeters', 'active', 'totalSensors', 'createdAt', 'updatedAt'
+      ];
+
+      return data.keys().hasOnly(allowedStationKeys)
+        && (!('id' in data) || (data.id is string && data.id == stationId && data.id.size() <= 64))
+        && (!('stationId' in data) || (data.stationId is string && data.stationId == stationId && data.stationId.size() <= 64))
+        && (!('name' in data) || (data.name is string && data.name.size() <= 128))
+        && (!('stationName' in data) || (data.stationName is string && data.stationName.size() <= 128))
+        && (!('description' in data) || (data.description is string && data.description.size() <= 500))
+        && (!('location' in data) || isValidLocation(data.location))
+        && (!('altitudeMeters' in data) || data.altitudeMeters == null || (data.altitudeMeters is number && data.altitudeMeters >= -500 && data.altitudeMeters <= 9000))
+        && (!('active' in data) || data.active is bool)
+        && (!('totalSensors' in data) || (data.totalSensors is int && data.totalSensors >= 0));
+    }
+
+    function isStationImmutableUnchanged() {
+      return (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id)
+        && (!('stationId' in resource.data) || !('stationId' in request.resource.data) || request.resource.data.stationId == resource.data.stationId);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Root collection: /sensors/{sensorId}
+    // Represents IoT field sensors with real-time state, metadata, and metric boundaries.
+    match /sensors/{sensorId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidSensor(request.resource.data, sensorId);
+      allow update: if isAuthenticated() && isValidSensor(request.resource.data, sensorId) && isSensorImmutableUnchanged();
+      allow delete: if isAuthenticated();
+
+      // Subcollection: /sensors/{sensorId}/readings/{readingId}
+      // Strictly append-only, immutable timeseries telemetry buffer.
+      match /readings/{readingId} {
+        allow read: if true;
+        allow create: if isValidReading(request.resource.data);
+        allow update, delete: if false; // Immutability strictly enforced!
+      }
+    }
+
+    // Stations metadata collection: /stations/{stationId}
+    // Maintained for backwards-compatibility and station grouping.
+    match /stations/{stationId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidStation(request.resource.data, stationId);
+      allow update: if isAuthenticated() && isValidStation(request.resource.data, stationId) && isStationImmutableUnchanged();
+      allow delete: if isAuthenticated();
+
+      // Nested sensors subcollection: /stations/{stationId}/sensors/{sensorId}
+      match /sensors/{sensorId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidSensor(request.resource.data, sensorId);
+        allow update: if isAuthenticated() && isValidSensor(request.resource.data, sensorId) && isSensorImmutableUnchanged();
+        allow delete: if isAuthenticated();
+
+        // Nested readings subcollection: /stations/{stationId}/sensors/{sensorId}/readings/{readingId}
+        match /readings/{readingId} {
+          allow read: if true;
+          allow create: if isValidReading(request.resource.data);
+          allow update, delete: if false; // Immutability strictly enforced!
+        }
+      }
+    }
+  }
+}
