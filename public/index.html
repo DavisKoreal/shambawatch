@@ -1459,22 +1459,70 @@ document.querySelectorAll('.toggle-btn').forEach((btn) => {
 // UI RENDERING DELEGATION (Presenter -> DOM)
 // ============================================================================
 
+function getAllStations() {
+  const discovered = registry.getStations(STATIONS);
+  const stationsMap = new Map();
+  // Discovered stations with reporting sensors appear first
+  discovered.forEach((s) => stationsMap.set(s.id, s));
+  // Canonical template stations
+  STATIONS.forEach((s) => {
+    if (!stationsMap.has(s.id)) {
+      stationsMap.set(s.id, { ...s, sensorCount: 0 });
+    }
+  });
+  return Array.from(stationsMap.values());
+}
+
+let userManuallySelectedStation = false;
+
 function renderSidebar() {
   const listEl = document.getElementById('stationList');
-  const viewModels = presenter.getStationListViewModels(STATIONS, activeStationId);
+  const allStations = getAllStations();
+
+  // If active station has 0 sensors but there are stations with active sensors, auto-switch to active one
+  if (!userManuallySelectedStation) {
+    const activeWithSensors = allStations.find(s => s.sensorCount > 0);
+    const current = allStations.find(s => s.id === activeStationId);
+    if (activeWithSensors && (!current || current.sensorCount === 0)) {
+      activeStationId = activeWithSensors.id;
+    }
+  }
+
+  const viewModels = presenter.getStationListViewModels(allStations, activeStationId);
 
   listEl.innerHTML = viewModels.map((vm) => `
     <div class="station-item ${vm.isActive ? 'active' : ''}" data-station-id="${vm.id}">
       <div>
         <div class="station-name">${vm.name}</div>
-        <div class="station-sub">${vm.id} · ${vm.crop} · ${vm.sensorCount} sensors</div>
+        <div class="station-sub">${vm.id} · ${vm.crop} · ${vm.sensorCount} sensor${vm.sensorCount === 1 ? '' : 's'}</div>
       </div>
       <div class="station-flag" style="background:${vm.color};"></div>
     </div>
   `).join('');
 
   listEl.querySelectorAll('.station-item').forEach((item) => {
-    item.addEventListener('click', () => selectStation(item.dataset.stationId));
+    item.addEventListener('click', () => {
+      userManuallySelectedStation = true;
+      selectStation(item.dataset.stationId);
+    });
+  });
+
+  // Ensure map markers exist for all stations
+  allStations.forEach((s) => {
+    if (s.lat != null && s.lng != null && !markers[s.id] && map) {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div id="marker-${s.id}" style="width:14px;height:14px;border-radius:50%;background:#7A9471;border:2px solid #14120F;box-shadow:0 0 0 3px rgba(122,148,113,0.35);"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+      const m = L.marker([s.lat, s.lng], {icon}).addTo(map);
+      m.on('click', () => {
+        userManuallySelectedStation = true;
+        selectStation(s.id);
+      });
+      markers[s.id] = m;
+    }
   });
 
   // Update map marker colors
@@ -1488,12 +1536,15 @@ function renderSidebar() {
 }
 
 function renderDetail() {
-  const stationSpec = STATIONS.find((s) => s.id === activeStationId);
+  const allStations = getAllStations();
+  let stationSpec = allStations.find((s) => s.id === activeStationId) || allStations[0];
   if (!stationSpec) return;
 
   document.getElementById('detTitle').textContent = stationSpec.name;
+  const latStr = stationSpec.lat != null ? `${stationSpec.lat.toFixed(4)}°` : '—';
+  const lngStr = stationSpec.lng != null ? `${stationSpec.lng.toFixed(4)}°` : '—';
   document.getElementById('detCoords').textContent = 
-    `${stationSpec.id} · ${stationSpec.lat.toFixed(4)}°, ${stationSpec.lng.toFixed(4)}° · ${stationSpec.crop}`;
+    `${stationSpec.id} · ${latStr}, ${lngStr} · ${stationSpec.crop}`;
 
   // Metric Cards
   const cards = presenter.getMetricCardViewModels(activeStationId);
@@ -1638,12 +1689,13 @@ document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
 });
 
 function selectStation(id) {
+  userManuallySelectedStation = true;
   activeStationId = id;
-  const spec = STATIONS.find((s) => s.id === id);
-  if (spec) {
+  const allStations = getAllStations();
+  const spec = allStations.find((s) => s.id === id);
+  if (spec && spec.lat != null && spec.lng != null && map) {
     map.panTo([spec.lat, spec.lng]);
   }
-  subscribeCurrentStation();
   renderSidebar();
   renderDetail();
   renderChart();
@@ -1706,7 +1758,8 @@ const notificationManager = new NotificationManager(
 // Auto-discovery listener: triggers notification toast whenever a new field sensor appears
 registry.onChange((event, sensor) => {
   if (event === 'SENSOR_DISCOVERED') {
-    const station = STATIONS.find(s => s.id === sensor.stationId);
+    const allSt = getAllStations();
+    const station = allSt.find(s => s.id === sensor.stationId);
     notificationManager.notifyNewSensor(sensor, station ? station.name : sensor.stationId);
     renderSidebar();
     renderDetail();
@@ -1721,7 +1774,7 @@ const searchBar = new SearchBar({
   inputEl: document.getElementById('searchInput'),
   dropdownEl: document.getElementById('searchDropdown'),
   registry,
-  stations: STATIONS,
+  stations: getAllStations,
   onSelect: ({ stationId, sensorId, metricType }) => {
     selectStation(stationId);
     if (metricType) {

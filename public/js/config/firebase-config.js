@@ -11,12 +11,13 @@ import { Logger } from './app-config.js';
 // Replace with your Firebase Project credentials from Firebase Console.
 // ============================================================================
 export const FIREBASE_CONFIG = {
-  apiKey: "AIzaSy_SHAMBAWATCH_PLACEHOLDER_KEY",
+  apiKey: "AIzaSyBHJ38xvf5GrUq_VsAKqcS3CK1BIkIBSSM",
   authDomain: "shambawatch.firebaseapp.com",
   projectId: "shambawatch",
-  storageBucket: "shambawatch.appspot.com",
-  messagingSenderId: "1029384756",
-  appId: "1:1029384756:web:a1b2c3d4e5f6g7h8",
+  storageBucket: "shambawatch.firebasestorage.app",
+  messagingSenderId: "633801544514",
+  appId: "1:633801544514:web:52f70eff1b3f1e68596edb",
+  measurementId: "G-M63S91V77V",
   
   // Set to true if running against local Firebase Emulator Suite
   useEmulator: false,

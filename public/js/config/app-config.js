@@ -148,6 +148,16 @@ export const APP_CONFIG = Object.freeze({
     TEMPERATURE: 0.2,
   }),
 
+  // Live LoRaWAN MQTT Telemetry Ingestion Bridge
+  MQTT_INGESTION: Object.freeze({
+    BROKER_URL: 'mqtt://backend.teleops.io',
+    TOPIC: 'lorawan-server-uplink/#',
+    CLIENT_ID_PREFIX: 'shamba_watch_bridge_',
+    RECONNECT_PERIOD_MS: 5000,
+    CONNECT_TIMEOUT_MS: 15000,
+    DEDUPLICATION_WINDOW_MS: 60000,
+  }),
+
   // Verbose Logging Levels for Instant Troubleshooting
   LOG_LEVEL: 'DEBUG', // 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
 });

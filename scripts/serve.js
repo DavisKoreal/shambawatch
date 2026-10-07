@@ -2,6 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { fork } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,11 +51,64 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`\n============================================================`);
-  console.log(`  Shamba Watch IoT Dashboard is running locally!`);
-  console.log(`  Local URL:  http://localhost:${PORT}`);
-  console.log(`  Serving:    ${PUBLIC_DIR}`);
-  console.log(`  Press Ctrl+C to stop.`);
-  console.log(`============================================================\n`);
-});
+let mqttProcess = null;
+
+function cleanup() {
+  if (mqttProcess && !mqttProcess.killed) {
+    try {
+      mqttProcess.kill('SIGINT');
+    } catch {
+      // Ignore
+    }
+  }
+  server.close();
+  process.exit(0);
+}
+
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
+
+function startServer(port, maxAttempts = 10) {
+  server.once('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`⚠️ Port ${port} is already in use.`);
+      if (maxAttempts > 1) {
+        const nextPort = port + 1;
+        console.log(`🔄 Trying next available port: http://localhost:${nextPort}...`);
+        startServer(nextPort, maxAttempts - 1);
+      } else {
+        console.error(`❌ Could not find an open port after multiple attempts.`);
+        process.exit(1);
+      }
+    } else {
+      console.error('Server error:', err);
+      process.exit(1);
+    }
+  });
+
+  server.listen(port, () => {
+    console.log(`\n============================================================`);
+    console.log(`  Shamba Watch IoT Dashboard is running locally!`);
+    console.log(`  Local URL:  http://localhost:${port}`);
+    console.log(`  Serving:    ${PUBLIC_DIR}`);
+    console.log(`  Press Ctrl+C to stop.`);
+    console.log(`============================================================\n`);
+
+    const bridgePath = path.resolve(__dirname, 'mqtt_ingestion_bridge.js');
+    const disableMqtt = process.argv.includes('--no-mqtt');
+
+    if (!disableMqtt && fs.existsSync(bridgePath)) {
+      console.log(`📡 Launching Live LoRaWAN MQTT Telemetry Ingestion Bridge in background...\n`);
+      const bridgeArgs = process.argv.slice(2).filter((arg) => arg !== '--no-mqtt');
+      mqttProcess = fork(bridgePath, bridgeArgs, { stdio: 'inherit' });
+
+      mqttProcess.on('exit', (code) => {
+        if (code !== 0 && code !== null) {
+          console.warn(`[MQTT] Ingestion bridge exited with code ${code}`);
+        }
+      });
+    }
+  });
+}
+
+startServer(Number(PORT));

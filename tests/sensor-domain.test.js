@@ -15,6 +15,7 @@ import { InMemorySensorRepository } from '../public/js/infrastructure/in-memory-
 import { FirestoreSensorRepository } from '../public/js/infrastructure/firestore-sensor-repository.js';
 import { SensorRegistry } from '../public/js/services/sensor-registry.js';
 import { ShambaAgent } from '../public/js/services/shamba-agent.js';
+import { decodeLoRaMessage } from '../public/js/domain/lorawan-decoder.js';
 import { APP_CONFIG } from '../public/js/config/app-config.js';
 
 let passedTests = 0;
@@ -844,6 +845,102 @@ await testAsync('should recognize test sensor and explain that test sensors are 
   assert.ok(response.text.includes('test sensor'));
   assert.ok(response.text.includes('Test sensors are sensors connected to just test the system'));
   assert.ok(response.text.includes('46.2%'));
+});
+
+// ============================================================================
+// 11. POLYMORPHIC LORAWAN DECODER & DOMAIN INTEGRATION TESTS
+// ============================================================================
+console.log('\n11. Polymorphic LoRaWAN Decoder & Domain Integration Tests:');
+
+await testAsync('should decode live LoRaWAN 5FEE telemetry frame and register Sensor aggregate root', async () => {
+  const repo = new InMemorySensorRepository();
+  const registry = new SensorRegistry(repo);
+
+  const rawSample = {
+    all_gw: [{ desc: "ESP Gateway", gpsalt: 1890, gpspos: { lat: -0.0917, lon: 34.7680 }, lsnr: 10, mac: "308398FFFFA21DC0", rssi: -87 }],
+    best_gw: { desc: "ESP Gateway", gpsalt: 1890, gpspos: { lat: -0.0917, lon: 34.7680 }, lsnr: 10, mac: "308398FFFFA21DC0", rssi: -87 },
+    codr: "4/5",
+    data: "5FEE040203A300000B10",
+    datetime: new Date().toISOString(),
+    datr: "SF12BW125",
+    desc: "Tivoili, Kisumu",
+    devaddr: "02010570",
+    fcnt: 14795,
+    freq: 868.099975,
+    lsnr: 10,
+    mac: "308398FFFFA21DC0",
+    netid: "0123AB",
+    port: 1,
+    rssi: -87
+  };
+
+  const decoded = decodeLoRaMessage(rawSample);
+  assert.equal(decoded.deviceId, '02010570');
+  assert.equal(decoded.stationId, 'ST-KISUMU-01');
+  assert.equal(decoded.stationName, 'Tivoili Station, Kisumu');
+  // 0x03A3 = 931 -> 93.1% moisture
+  assert.equal(decoded.metrics.moisture, 93.1);
+  // 0x0B10 = 2832 mV battery
+  assert.equal(decoded.metrics.batteryMv, 2832);
+
+  // Instantiate Sensor domain aggregate from decoded packet
+  const loraSensor = new Sensor({
+    id: decoded.sensorId,
+    stationId: decoded.stationId,
+    metadata: new SensorMetadata({
+      name: `${decoded.stationName} LoRa Moisture Probe`,
+      description: `LoRaWAN field telemetry node (DevAddr: ${decoded.deviceId})`,
+      sensorType: 'lorawan field sensor',
+      crop: decoded.crop,
+      stationId: decoded.stationId,
+      stationName: decoded.stationName,
+      altitudeMeters: decoded.location.altitudeMeters,
+      location: decoded.location,
+      customAttributes: decoded.customAttributes,
+    }),
+    metricDefinition: new MetricDefinition(APP_CONFIG.METRIC_TYPES.MOISTURE),
+    thresholds: new ThresholdRule(APP_CONFIG.METRIC_TYPES.MOISTURE.defaultThresholds),
+  });
+
+  loraSensor.addReading(decoded.primaryMetric.value, decoded.timestampMs);
+  loraSensor.currentState.batteryPct = decoded.metrics.batteryPct;
+
+  await registry.registerSensor(loraSensor);
+
+  const registered = registry.getSensor(decoded.sensorId);
+  assert.ok(registered);
+  assert.equal(registered.id, 'lora_02010570');
+  assert.equal(registered.currentState.latestValue, 93.1);
+  assert.equal(registered.getMetadataAttribute('fcnt'), '14795');
+  assert.equal(registered.getMetadataAttribute('freq'), '868.099975');
+
+  // Verify proof reflects the newly ingested LoRaWAN sensor
+  const proof = registry.getSystemStateProof();
+  assert.equal(proof.totalSensors, 1);
+  assert.equal(proof.sensors[0].stationName, 'Tivoili Station, Kisumu');
+});
+
+await testAsync('should resiliently handle unknown future schema without losing custom properties', async () => {
+  const repo = new InMemorySensorRepository();
+  const registry = new SensorRegistry(repo);
+
+  const unknownPayload = {
+    device_eui: "FUTURE-IOT-NODE-77",
+    reading_type: "deep_aquifer",
+    water_level: 68.4,
+    battery: 92,
+    rf_noise_floor_dbm: -108,
+    carrier_frequency: "915MHz",
+    mesh_route_cost: 4
+  };
+
+  const decoded = decodeLoRaMessage(unknownPayload);
+  assert.equal(decoded.deviceId, 'FUTURE-IOT-NODE-77');
+  assert.equal(decoded.metrics.water, 68.4);
+  assert.equal(decoded.metrics.batteryPct, 92);
+  assert.equal(decoded.customAttributes.rf_noise_floor_dbm, '-108');
+  assert.equal(decoded.customAttributes.carrier_frequency, '915MHz');
+  assert.equal(decoded.customAttributes.mesh_route_cost, '4');
 });
 
 console.log(`\n========================================`);

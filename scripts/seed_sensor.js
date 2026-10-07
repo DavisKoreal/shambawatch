@@ -48,13 +48,14 @@ async function resolveAuthToken() {
     if (!tokens || !tokens.access_token) return null;
 
     // Refresh if within 2 minutes of expiry
-    if (tokens.expires_at && Date.now() > (tokens.expires_at - 120000) && tokens.refresh_token) {
+    if ((!tokens.access_token || !tokens.expires_at || Date.now() > (tokens.expires_at - 120000)) && tokens.refresh_token) {
       console.log('[AUTH] Refreshing Firebase OAuth access token...');
-      const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
+      const refreshRes = await fetch('https://www.googleapis.com/oauth2/v3/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           client_id: '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com',
+          client_secret: 'j9iVZfS8kkCEFUPaAeJV0sAi',
           grant_type: 'refresh_token',
           refresh_token: tokens.refresh_token,
         }),

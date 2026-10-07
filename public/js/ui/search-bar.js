@@ -68,21 +68,29 @@ export class SearchBar {
     this._showDropdown();
   }
 
+  _getStationsList() {
+    if (typeof this._stations === 'function') {
+      return this._stations();
+    }
+    return Array.isArray(this._stations) ? this._stations : [];
+  }
+
   _search(query) {
     const results = [];
+    const stationsList = this._getStationsList();
 
     // 1. Search Stations
-    this._stations.forEach((s) => {
+    stationsList.forEach((s) => {
       const matchName = s.name.toLowerCase().includes(query);
       const matchId = s.id.toLowerCase().includes(query);
-      const matchCrop = s.crop.toLowerCase().includes(query);
+      const matchCrop = (s.crop || '').toLowerCase().includes(query);
 
       if (matchName || matchId || matchCrop) {
         results.push({
           type: 'STATION',
           id: s.id,
           title: s.name,
-          subtitle: `${s.id} · ${s.crop}`,
+          subtitle: `${s.id} · ${s.crop || 'Field'}`,
           stationId: s.id,
           badge: 'STATION',
           badgeClass: 'badge-station',
@@ -103,7 +111,7 @@ export class SearchBar {
         const val = sensor.currentState?.latestValue != null
           ? `${sensor.currentState.latestValue}${sensor.metricDefinition.unitSymbol}`
           : '';
-        const station = this._stations.find(s => s.id === sensor.stationId);
+        const station = stationsList.find(s => s.id === sensor.stationId);
 
         results.push({
           type: 'SENSOR',

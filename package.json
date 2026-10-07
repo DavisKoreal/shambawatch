@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "start": "node scripts/serve.js",
-    "test": "node tests/sensor-domain.test.js",
+    "test": "node tests/sensor-domain.test.js && node tests/lorawan-decoder.test.js",
     "ingest": "node scripts/ingest_telemetry.js",
     "ingest:dry": "node scripts/ingest_telemetry.js --dry-run",
-    "ingest:loop": "node scripts/ingest_telemetry.js --loop --interval 3"
+    "ingest:loop": "node scripts/ingest_telemetry.js --loop --interval 3",
+    "ingest:mqtt": "node scripts/mqtt_ingestion_bridge.js",
+    "ingest:mqtt:dry": "node scripts/mqtt_ingestion_bridge.js --dry-run"
   },
   "keywords": [
     "iot",
@@ -19,5 +21,8 @@
     "clean-architecture"
   ],
   "author": "Google DeepMind / Antigravity",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "mqtt": "^5.16.0"
+  }
 }
