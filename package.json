@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "start": "node scripts/serve.js",
-    "test": "node tests/sensor-domain.test.js && node tests/lorawan-decoder.test.js",
+    "test": "node tests/sensor-domain.test.js && node tests/lorawan-decoder.test.js && node tests/rate-limiter.test.js",
     "ingest": "node scripts/ingest_telemetry.js",
     "ingest:dry": "node scripts/ingest_telemetry.js --dry-run",
     "ingest:loop": "node scripts/ingest_telemetry.js --loop --interval 3",
     "ingest:mqtt": "node scripts/mqtt_ingestion_bridge.js",
-    "ingest:mqtt:dry": "node scripts/mqtt_ingestion_bridge.js --dry-run"
+    "ingest:mqtt:dry": "node scripts/mqtt_ingestion_bridge.js --dry-run",
+    "ingest:worker": "node scripts/mqtt_ingestion_bridge.js --worker"
   },
   "keywords": [
     "iot",

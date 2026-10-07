@@ -37,6 +37,8 @@ const options = {
   projectId: process.env.FIREBASE_PROJECT_ID || FIREBASE_CONFIG.projectId || 'shambawatch',
   brokerUrl: process.env.MQTT_BROKER_URL || APP_CONFIG.MQTT_INGESTION?.BROKER_URL || 'mqtt://backend.teleops.io',
   topic: process.env.MQTT_TOPIC || APP_CONFIG.MQTT_INGESTION?.TOPIC || 'lorawan-server-uplink/#',
+  worker: false,
+  workerUrl: process.env.WORKER_INGEST_URL || 'https://shamba-watch-proxy.lawyerai.workers.dev/api/telemetry/ingest',
 };
 
 for (let i = 0; i < args.length; i++) {
@@ -49,6 +51,8 @@ for (let i = 0; i < args.length; i++) {
   else if (arg === '--project' && args[i + 1]) options.projectId = args[++i];
   else if (arg === '--broker' && args[i + 1]) options.brokerUrl = args[++i];
   else if (arg === '--topic' && args[i + 1]) options.topic = args[++i];
+  else if (arg === '--worker') options.worker = true;
+  else if (arg === '--worker-url' && args[i + 1]) options.workerUrl = args[++i];
 }
 
 console.log('\n============================================================');
@@ -57,7 +61,8 @@ console.log('============================================================');
 console.log(`• Broker URL:     ${options.brokerUrl}`);
 console.log(`• Topic Filter:   ${options.topic}`);
 console.log(`• Target Project: ${options.projectId} (${options.emulator ? 'EMULATOR' : 'PRODUCTION'})`);
-console.log(`• Mode:           ${options.dryRun ? 'DRY-RUN (No Database Writes)' : 'LIVE INGESTION'}`);
+console.log(`• Mode:           ${options.dryRun ? 'DRY-RUN (No Database Writes)' : (options.worker ? 'CLOUDFLARE WORKER GATEWAY' : 'LIVE DIRECT FIRESTORE')}`);
+if (options.worker) console.log(`• Worker Ingest:  ${options.workerUrl}`);
 if (options.limit > 0) console.log(`• Message Limit:  ${options.limit} message(s) then exit`);
 if (options.filterDevaddr) console.log(`• DevAddr Filter: ${options.filterDevaddr}`);
 console.log('============================================================\n');
@@ -431,11 +436,35 @@ client.on('message', async (topic, messageBuffer) => {
       console.log(`     • Custom Attributes:`, decoded.customAttributes);
     }
 
-    // 1. Ensure Sensor Document is Provisioned
-    await ensureSensorProvisioned(decoded);
+    if (options.worker) {
+      if (options.dryRun) {
+        console.log(`[DRY-RUN] Would forward raw uplink payload to Cloudflare Worker (${options.workerUrl})`);
+      } else {
+        try {
+          const wRes = await fetch(options.workerUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: rawString,
+          });
+          const wJson = await wRes.json();
+          if (wRes.status === 200) {
+            console.log(`[WORKER INGEST] ✓ HTTP 200 Ingested via Worker -> Reading: ${wJson.readingId} | Tokens: ${wJson.rateLimit?.tokensRemaining} | Safe Rate: ${wJson.rateLimit?.safeWritesPer10s}/10s`);
+          } else if (wRes.status === 429) {
+            console.log(`[WORKER INGEST] ⏳ HTTP 429 Throttled by Worker (${wJson.reason}): ${wJson.message} (Retry after ${wJson.retryAfterSeconds}s)`);
+          } else {
+            console.warn(`[WORKER INGEST] ⚠️ Worker returned HTTP ${wRes.status}:`, wJson);
+          }
+        } catch (wErr) {
+          console.error(`[WORKER INGEST] ❌ Exception forwarding to Worker:`, wErr.message);
+        }
+      }
+    } else {
+      // 1. Ensure Sensor Document is Provisioned
+      await ensureSensorProvisioned(decoded);
 
-    // 2. Ingest Reading into Subcollection
-    await ingestReading(decoded);
+      // 2. Ingest Reading into Subcollection
+      await ingestReading(decoded);
+    }
 
     // Check limit
     if (options.limit > 0 && processedCount >= options.limit) {

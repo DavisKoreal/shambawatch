@@ -288,8 +288,8 @@ service cloud.firestore {
     // Represents IoT field sensors with real-time state, metadata, and metric boundaries.
     match /sensors/{sensorId} {
       allow read: if true;
-      allow create: if isAuthenticated() && isValidSensor(request.resource.data, sensorId);
-      allow update: if isAuthenticated() && isValidSensor(request.resource.data, sensorId) && isSensorImmutableUnchanged();
+      allow create: if isValidSensor(request.resource.data, sensorId);
+      allow update: if isValidSensor(request.resource.data, sensorId) && isSensorImmutableUnchanged();
       allow delete: if isAuthenticated();
 
       // Subcollection: /sensors/{sensorId}/readings/{readingId}

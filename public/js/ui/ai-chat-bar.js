@@ -279,12 +279,15 @@ export class AiChatBar {
     loadEl.className = 'ai-message ai-message-assistant ai-loading-item';
     loadEl.innerHTML = `
       <div class="ai-msg-avatar">✦</div>
-      <div class="ai-msg-bubble">
+      <div class="ai-msg-bubble ai-msg-skeleton">
+        <div class="skeleton-shimmer skeleton-text" style="width: 90%; height: 11px; margin-bottom: 7px;"></div>
+        <div class="skeleton-shimmer skeleton-text" style="width: 76%; height: 11px; margin-bottom: 7px;"></div>
+        <div class="skeleton-shimmer skeleton-text" style="width: 45%; height: 11px; margin-bottom: 10px;"></div>
         <div class="ai-loading-dots">
           <span class="ai-pulse-dot"></span>
           <span class="ai-pulse-dot"></span>
           <span class="ai-pulse-dot"></span>
-          <span class="ai-loading-text">Analyzing telemetry...</span>
+          <span class="ai-loading-text">Analyzing live telemetry stream...</span>
         </div>
       </div>
     `;

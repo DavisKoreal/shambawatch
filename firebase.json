@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "shambawatch",
     "public": "public",
     "ignore": [
       "firebase.json",
