@@ -18,9 +18,12 @@ export const APP_CONFIG = Object.freeze({
 
   // Telemetry & Timeseries Windowing Defaults (in milliseconds)
   TIME_WINDOWS: Object.freeze({
+    ONE_HOUR: 1 * 60 * 60 * 1000,              // 3,600,000 ms
+    SIX_HOURS: 6 * 60 * 60 * 1000,             // 21,600,000 ms
     TWENTY_FOUR_HOURS: 24 * 60 * 60 * 1000,   // 86,400,000 ms
     SEVEN_DAYS: 7 * 24 * 60 * 60 * 1000,       // 604,800,000 ms
     THIRTY_DAYS: 30 * 24 * 60 * 60 * 1000,     // 2,592,000,000 ms
+    ALL_TIME: 0,                               // 0 = all historical data
   }),
   DEFAULT_WINDOW_KEY: '24h',
   DEFAULT_SAMPLE_INTERVAL_MS: 4000,           // 4 seconds simulation cycle

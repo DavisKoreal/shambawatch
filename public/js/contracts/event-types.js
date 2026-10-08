@@ -32,10 +32,16 @@ export const EventTypes = Object.freeze({
   THEME_CHANGED: 'theme:changed:v1',
 
   // Monitoring & Alert Events
-  // Monitoring & Alert Events
   ALERT_TRIGGERED: 'alert:triggered:v1',
   ALERT_RAISED: 'alert:triggered:v1',
-  ALERT_CLEARED: 'alert:cleared:v1'
+  ALERT_CLEARED: 'alert:cleared:v1',
+
+  // Authentication & RBAC Events
+  AUTH_STATE_CHANGED: 'auth:state_changed:v1',
+  FARMER_ASSIGNED: 'admin:farmer_assigned:v1',
+
+  // Sensor Selection Event
+  SENSOR_SELECTED: 'telemetry:sensor_selected:v1'
 });
 
 /**

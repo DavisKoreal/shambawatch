@@ -8,12 +8,20 @@ export class TelemetryDetailView {
    * @param {Object} dependencies
    * @param {import('../services/station-service.js').StationService} dependencies.stationService
    * @param {import('../services/telemetry-service.js').TelemetryService} dependencies.telemetryService
+   * @param {import('../services/analytics-service.js').AnalyticsService} [dependencies.analyticsService]
    * @param {import('./dashboard-presenter.js').DashboardPresenter} dependencies.presenter
+   * @param {(sensorId: string) => void} [dependencies.onSelectSensor]
+   * @param {(sensorId: string) => void} [dependencies.onOpenSensorModal]
+   * @param {(sensor: Object) => void} [dependencies.onAskAi]
    */
-  constructor({ stationService, telemetryService, presenter }) {
+  constructor({ stationService, telemetryService, analyticsService = null, presenter, onSelectSensor = null, onOpenSensorModal = null, onAskAi = null }) {
     this._stationService = stationService;
     this._telemetryService = telemetryService;
+    this._analyticsService = analyticsService;
     this._presenter = presenter;
+    this._onSelectSensor = onSelectSensor;
+    this._onOpenSensorModal = onOpenSensorModal;
+    this._onAskAi = onAskAi;
   }
 
   /**
@@ -62,20 +70,71 @@ export class TelemetryDetailView {
       detCoordsEl.textContent = `${stationSpec.id} · ${latStr}, ${lngStr} · ${stationSpec.crop}`;
     }
 
-    // 1. Metric Cards
-    const cards = this._presenter.getMetricCardViewModels(activeStationId);
+    // 1. Station Sensors Grid (Interactive Sensor Cards)
+    const activeSensorId = this._analyticsService?.activeSensorId;
+    const cards = this._presenter.getStationSensorsViewModel(activeStationId, activeSensorId);
     if (metricGridEl) {
       if (cards.length > 0) {
-        metricGridEl.innerHTML = cards.map((c) => `
-          <div class="metric-card status-${c.status}">
-            <div class="metric-label">
-              <span>${c.name}</span>
-              ${c.depthInfo ? `<span style="opacity:0.6">${c.depthInfo}</span>` : ''}
+        metricGridEl.innerHTML = cards.map((c) => {
+          const isSelected = c.id === activeSensorId;
+          return `
+            <div class="metric-card status-${c.status} ${isSelected ? 'metric-card-selected' : ''}" data-sensor-id="${c.id}" role="button" tabindex="0" title="Click to graph sensor timeseries">
+              <div class="metric-label">
+                <span class="sensor-title">${c.name}</span>
+                ${c.depthInfo ? `<span class="sensor-depth-tag">${c.depthInfo}</span>` : ''}
+              </div>
+              <div class="metric-hw-row">
+                <span class="sensor-hw-id">#${c.hardwareId}</span>
+                ${c.batteryPct != null ? `<span class="sensor-battery-pill">🔋 ${c.batteryPct}%</span>` : ''}
+              </div>
+              <div class="metric-value">${c.value}<span class="metric-unit"> ${c.unit}</span></div>
+              <div class="metric-card-footer">
+                <div class="metric-delta ${c.deltaDirectionClass}">${c.deltaFormatted} vs prev</div>
+                <div class="sensor-card-actions">
+                  <button type="button" class="btn-sensor-inspect" data-sensor-id="${c.id}" title="Deep-Dive Timeseries & Custom Time Range">📈 Graph</button>
+                  <button type="button" class="btn-sensor-ask-ai" data-sensor-id="${c.id}" title="Ask AI Agronomist about this sensor">✦ AI</button>
+                </div>
+              </div>
             </div>
-            <div class="metric-value">${c.value}<span class="metric-unit"> ${c.unit}</span></div>
-            <div class="metric-delta ${c.deltaDirectionClass}">${c.deltaFormatted}</div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
+
+        // Attach click listeners to cards and action buttons
+        metricGridEl.querySelectorAll('.metric-card').forEach((cardEl) => {
+          const sensorId = cardEl.dataset.sensorId;
+          cardEl.addEventListener('click', (e) => {
+            // Ignore if clicked on an action button directly
+            if (e.target.closest('button')) return;
+            if (this._analyticsService) {
+              this._analyticsService.setActiveSensorId(sensorId);
+            }
+            if (this._onSelectSensor) {
+              this._onSelectSensor(sensorId);
+            }
+          });
+        });
+
+        metricGridEl.querySelectorAll('.btn-sensor-inspect').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const sensorId = btn.dataset.sensorId;
+            if (this._onOpenSensorModal) {
+              this._onOpenSensorModal(sensorId);
+            }
+          });
+        });
+
+        metricGridEl.querySelectorAll('.btn-sensor-ask-ai').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const sensorId = btn.dataset.sensorId;
+            const sensor = this._telemetryService.registry.getSensor(sensorId);
+            if (this._onAskAi && sensor) {
+              this._onAskAi(sensor);
+            }
+          });
+        });
+
       } else {
         metricGridEl.innerHTML = `
           <div class="metric-card metric-card-skeleton" style="opacity: 0.65;">

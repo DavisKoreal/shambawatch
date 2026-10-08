@@ -15,6 +15,10 @@ import { MapView } from './map-view.js';
 import { NotificationManager } from './notification-manager.js';
 import { AiChatBar } from './ai-chat-bar.js';
 import { ShambaAgent } from '../services/shamba-agent.js';
+import { AuthModal } from './auth-modal.js';
+import { AdminPortalView } from './admin-portal-view.js';
+import { SensorDetailModal } from './sensor-detail-modal.js';
+import { UserRole } from '../services/auth-service.js';
 
 export class AppShell {
   /**
@@ -29,6 +33,9 @@ export class AppShell {
 
     this._clockTimer = null;
     this._subscriptions = [];
+    this._authModal = null;
+    this._adminPortal = null;
+    this._sensorDetailModal = null;
   }
 
   /**
@@ -44,6 +51,7 @@ export class AppShell {
     const mapService = this._serviceRegistry.get('mapService');
     const themeService = this._serviceRegistry.get('themeService');
     const presenter = this._serviceRegistry.get('presenter');
+    const authService = this._serviceRegistry.get('authService');
 
     // 1. Initialize Theme Service
     themeService.init();
@@ -53,7 +61,33 @@ export class AppShell {
       stationService.selectStation(stationId, true);
     });
 
-    // 3. Initialize View Controllers
+    // 3. Initialize Modals
+    this._authModal = new AuthModal({
+      authService,
+      stationService,
+      mountEl: document.getElementById('authModalMount')
+    });
+
+    this._adminPortal = new AdminPortalView({
+      authService,
+      stationService,
+      mountEl: document.getElementById('adminPortalMount'),
+      onAssignmentChanged: () => {
+        this.renderAll();
+      }
+    });
+
+    this._sensorDetailModal = new SensorDetailModal({
+      registry: telemetryService.registry,
+      analyticsService,
+      presenter,
+      mountEl: document.getElementById('sensorModalMount'),
+      onOpenAiWithPrompt: (prompt) => {
+        this._aiChatBar.ask(prompt);
+      }
+    });
+
+    // 4. Initialize View Controllers
     this._stationListView = new StationListView({
       containerEl: document.getElementById('stationList'),
       stationService,
@@ -64,20 +98,35 @@ export class AppShell {
     this._telemetryDetailView = new TelemetryDetailView({
       stationService,
       telemetryService,
-      presenter
+      analyticsService,
+      presenter,
+      onSelectSensor: (sensorId) => {
+        this._timeseriesChartView.render();
+      },
+      onOpenSensorModal: (sensorId, windowMs) => {
+        this._sensorDetailModal.open(sensorId, windowMs);
+      },
+      onAskAi: (sensor) => {
+        const crop = sensor.metadata.crop || 'crop';
+        const prompt = `Explain the reading of ${sensor.currentState.latestValue}${sensor.metricDefinition.unitSymbol} on my ${sensor.metadata.name} (${sensor.id}) for ${crop}. What actions or irrigation should I take?`;
+        this._aiChatBar.ask(prompt);
+      }
     });
 
     this._timeseriesChartView = new TimeseriesChartView({
       stationService,
       analyticsService,
       telemetryService,
-      presenter
+      presenter,
+      onOpenSensorModal: (sensorId, windowMs) => {
+        this._sensorDetailModal.open(sensorId, windowMs);
+      }
     });
 
     this._themeToggleView = new ThemeToggleView({ themeService });
     this._mapView = new MapView({ mapService, stationService });
 
-    // 4. Initialize Notification Manager
+    // 5. Initialize Notification Manager
     this._notificationManager = new NotificationManager(
       document.getElementById('shambaNotificationContainer'),
       (stationId, sensorId) => {
@@ -85,14 +134,14 @@ export class AppShell {
         if (sensorId) {
           const sensor = telemetryService.registry.getSensor(sensorId);
           if (sensor) {
-            analyticsService.setMetricType(sensor.metricDefinition.metricType);
+            analyticsService.setActiveSensorId(sensor.id);
             this._timeseriesChartView.setActiveMetricButton(sensor.metricDefinition.metricType);
           }
         }
       }
     );
 
-    // 5. Initialize AI Field Agent & Unified AI Search Bar
+    // 6. Initialize AI Field Agent & Unified AI Search Bar
     this._shambaAgent = new ShambaAgent({
       registry: telemetryService.registry,
       stations: () => stationService.getActiveStations(),
@@ -111,11 +160,18 @@ export class AppShell {
       }
     });
 
-    // 6. Connect Header AI Search Launcher & Global Shortcuts (/ or Ctrl+K)
+    // 7. Connect Header Controls
     const headerAiLauncher = document.getElementById('headerAiLauncher');
     if (headerAiLauncher) {
       headerAiLauncher.addEventListener('click', () => {
         this._aiChatBar.openAndFocus();
+      });
+    }
+
+    const adminPortalBtn = document.getElementById('adminPortalBtn');
+    if (adminPortalBtn) {
+      adminPortalBtn.addEventListener('click', () => {
+        this._adminPortal.open();
       });
     }
 
@@ -129,16 +185,21 @@ export class AppShell {
     };
     document.addEventListener('keydown', this._globalKeyHandler);
 
-    // 7. Wire EventBus Subscriptions (Rule 46)
+    // 8. Wire EventBus Subscriptions (Rule 46)
     this._wireEventSubscriptions();
 
-    // 8. Start Live Clock
+    // 9. Initialize Authentication
+    if (authService) {
+      await authService.init();
+    }
+
+    // 10. Start Live Clock
     this._startClock();
 
-    // 9. Initial View Render
+    // 11. Initial View Render
     this.renderAll();
 
-    // 10. Connect Real-Time Telemetry Pipeline
+    // 12. Connect Real-Time Telemetry Pipeline
     await telemetryService.connectPipeline();
 
     // Window resize chart re-render
@@ -241,6 +302,87 @@ export class AppShell {
         this._timeseriesChartView.render();
       })
     );
+
+    // On Auth State Changed (Rule 46)
+    this._subscriptions.push(
+      this._eventBus.subscribe(EventTypes.AUTH_STATE_CHANGED, (event) => {
+        const payload = event?.payload || event || {};
+        this._updateHeaderAuthUI(payload);
+      })
+    );
+
+    // On Farmer Assigned
+    this._subscriptions.push(
+      this._eventBus.subscribe(EventTypes.FARMER_ASSIGNED, () => {
+        this.renderAll();
+      })
+    );
+
+    // On Sensor Selected
+    this._subscriptions.push(
+      this._eventBus.subscribe(EventTypes.SENSOR_SELECTED, () => {
+        this._telemetryDetailView.render();
+        this._timeseriesChartView.render();
+      })
+    );
+  }
+
+  /**
+   * Updates Header Authentication UI widget and role-based buttons.
+   * @private
+   */
+  _updateHeaderAuthUI(authPayload) {
+    const authSlot = document.getElementById('headerAuthSlot');
+    const adminPortalBtn = document.getElementById('adminPortalBtn');
+    const authService = this._serviceRegistry.get('authService');
+    const stationService = this._serviceRegistry.get('stationService');
+
+    if (!authSlot) return;
+
+    if (!authPayload.isAuthenticated || !authPayload.user) {
+      // Guest observer state
+      authSlot.innerHTML = `
+        <button class="header-auth-btn signin-btn" id="headerSignInBtn" type="button" title="Sign In or Register with Email/Password">
+          <span class="auth-btn-icon">🔐</span>
+          <span>Sign In</span>
+        </button>
+      `;
+      const signInBtn = authSlot.querySelector('#headerSignInBtn');
+      signInBtn?.addEventListener('click', () => {
+        this._authModal.open('signin');
+      });
+
+      if (adminPortalBtn) adminPortalBtn.style.display = 'none';
+      return;
+    }
+
+    const { user, profile, role, isAdmin, isFarmer, assignedStationId } = authPayload;
+    const displayName = profile?.displayName || user.displayName || user.email?.split('@')[0] || 'User';
+
+    if (adminPortalBtn) {
+      adminPortalBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+    }
+
+    authSlot.innerHTML = `
+      <div class="user-profile-badge">
+        <span class="user-role-tag role-${role}">${role.toUpperCase()}</span>
+        <span class="user-display-name" title="${user.email}">${displayName}</span>
+        ${isFarmer && assignedStationId ? `
+          <span class="farmer-station-chip" title="Subscribed Station: ${assignedStationId}">🌾 ${assignedStationId}</span>
+        ` : ''}
+        <button class="header-signout-btn" id="headerSignOutBtn" type="button" title="Sign Out">Sign Out</button>
+      </div>
+    `;
+
+    const signOutBtn = authSlot.querySelector('#headerSignOutBtn');
+    signOutBtn?.addEventListener('click', async () => {
+      await authService.signOut();
+    });
+
+    // If farmer is subscribed to a station, auto-focus their station
+    if (isFarmer && assignedStationId) {
+      stationService.selectStation(assignedStationId, true);
+    }
   }
 
   /**

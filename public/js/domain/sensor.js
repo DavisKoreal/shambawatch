@@ -56,7 +56,7 @@ export class Sensor {
     this.hardwareConfig = { ...hardwareConfig };
 
     // Configurable Windowing (User Approved Decision)
-    this.windowDurationMs = Math.max(60000, Number(windowDurationMs));
+    this.windowDurationMs = Number(windowDurationMs) === 0 ? 0 : Math.max(60000, Number(windowDurationMs));
     this.maxBufferPoints = Math.max(10, Number(maxBufferPoints));
 
     /** @type {Array<SensorReading>} Appendable, chronologically ordered timeseries buffer */
@@ -156,8 +156,12 @@ export class Sensor {
    * @returns {Sensor} this instance for chaining.
    */
   setWindow(durationMs) {
-    if (!durationMs || durationMs <= 0) {
-      throw new RangeError('Window duration must be a positive number of milliseconds.');
+    if (durationMs === 0) {
+      this.windowDurationMs = 0;
+      return this;
+    }
+    if (!durationMs || durationMs < 0) {
+      throw new RangeError('Window duration must be a non-negative number of milliseconds.');
     }
     this.windowDurationMs = Number(durationMs);
     this._sortAndPruneReadings();
@@ -188,6 +192,9 @@ export class Sensor {
    */
   getTimeseries(windowDurationMs = this.windowDurationMs) {
     if (this._readings.length === 0) return [];
+    if (!windowDurationMs || windowDurationMs <= 0) {
+      return [...this._readings];
+    }
     const cutoffMs = Date.now() - windowDurationMs;
     return this._readings.filter((r) => r.timestampMs >= cutoffMs);
   }
@@ -259,8 +266,10 @@ export class Sensor {
     this._readings.sort((a, b) => a.timestampMs - b.timestampMs);
 
     // Prune older than active window cutoff
-    const cutoffMs = Date.now() - this.windowDurationMs;
-    this._readings = this._readings.filter((r) => r.timestampMs >= cutoffMs);
+    if (this.windowDurationMs > 0) {
+      const cutoffMs = Date.now() - this.windowDurationMs;
+      this._readings = this._readings.filter((r) => r.timestampMs >= cutoffMs);
+    }
 
     // Enforce safety buffer ceiling
     if (this._readings.length > this.maxBufferPoints) {

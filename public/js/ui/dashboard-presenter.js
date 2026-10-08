@@ -160,8 +160,19 @@ export class DashboardPresenter {
     };
     const color = colorPalette[metricType] || '#7A9471';
 
-    if (readings.length < 2) {
+    if (readings.length === 0) {
       return { linePath: '', areaPath: '', points: [], color };
+    }
+
+    if (readings.length === 1) {
+      const normalizedY = (readings[0].value - min) / range;
+      const y = height - (normalizedY * (height - 10)) - 5;
+      return {
+        linePath: `M 0,${y.toFixed(1)} L ${width},${y.toFixed(1)}`,
+        areaPath: `M 0,${y.toFixed(1)} L ${width},${y.toFixed(1)} L ${width},${height} L 0,${height} Z`,
+        points: [[Number((width / 2).toFixed(1)), Number(y.toFixed(1))]],
+        color
+      };
     }
 
     const min = sensor.metricDefinition.minValid;
@@ -183,6 +194,48 @@ export class DashboardPresenter {
     const areaPath = `${linePath} L${width},${height} L0,${height} Z`;
 
     return { linePath, areaPath, points, color };
+  }
+
+  /**
+   * Builds view models for all discrete sensors deployed at a station.
+   * @param {string} stationId
+   * @param {string|null} [activeSensorId=null]
+   * @returns {Array<Object>}
+   */
+  getStationSensorsViewModel(stationId, activeSensorId = null) {
+    const sensors = this._registry.getSensorsByStation(stationId);
+
+    return sensors.map((sensor) => {
+      const state = sensor.currentState;
+      const metric = sensor.metricDefinition;
+      const delta = state.delta || 0;
+      const isUp = delta >= 0;
+
+      const hardwareId = sensor.metadata.hardwareId ||
+        sensor.metadata.hardware?.hardwareId ||
+        sensor.id.replace(/^urn:shamba:station:[^:]+:sensor:/, '').replace(/^lora_/, '');
+
+      return {
+        id: sensor.id,
+        name: sensor.metadata.name,
+        metricType: metric.metricType,
+        value: state.latestValue,
+        unit: metric.unitSymbol,
+        formattedValue: metric.format(state.latestValue),
+        status: state.status,
+        statusColor: this.getStatusColor(state.status),
+        deltaFormatted: `${isUp ? '▲' : '▼'} ${Math.abs(delta).toFixed(1)}`,
+        deltaDirectionClass: isUp ? 'up' : 'down',
+        batteryPct: state.batteryPct != null ? Math.round(state.batteryPct) : null,
+        hardwareId,
+        quality: state.quality || 'GOOD',
+        readingCount: sensor.readings.length,
+        isActive: sensor.id === activeSensorId,
+        depthInfo: sensor.metadata.minDepthCm !== null
+          ? `${sensor.metadata.minDepthCm}–${sensor.metadata.maxDepthCm}cm`
+          : null,
+      };
+    });
   }
 
   /**

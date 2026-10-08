@@ -21,6 +21,7 @@ import { MapService } from './services/map-service.js';
 import { ThemeService } from './services/theme-service.js';
 import { AlertService } from './services/alert-service.js';
 import { GatewayClient } from './services/gateway-client.js';
+import { AuthService } from './services/auth-service.js';
 
 // UI Orchestration
 import { AppShell } from './ui/app-shell.js';
@@ -51,6 +52,7 @@ export async function bootstrap() {
     const themeService = new ThemeService({ eventBus });
     const alertService = new AlertService({ registry, eventBus });
     const gatewayClient = new GatewayClient();
+    const authService = new AuthService({ eventBus });
 
     // 4. Register Services into ServiceRegistry for IoC Discovery (Rules 36, 49)
     serviceRegistry
@@ -63,7 +65,8 @@ export async function bootstrap() {
       .register('mapService', mapService)
       .register('themeService', themeService)
       .register('alertService', alertService)
-      .register('gatewayClient', gatewayClient);
+      .register('gatewayClient', gatewayClient)
+      .register('authService', authService);
 
     // 5. Instantiate and Launch App Shell (Rule 6: Low Cyclomatic Complexity)
     const appShell = new AppShell({ serviceRegistry, eventBus });

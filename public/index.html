@@ -53,9 +53,17 @@
 
       <div class="source-pill production-pill" id="telemetryStatusPill" title="Production Telemetry Stream · Google Cloud Firestore Live">
         <span class="source-dot live" id="telemetryStatusDot"></span>
-        <span id="telemetryStatusLabel">Production Telemetry · Firestore Live</span>
-      </div>
       <div class="alert-pill" id="alertPill"><span class="alert-dot"></span><span id="alertCount">0 active alerts</span></div>
+
+      <!-- Farmer Administration Portal (Visible to Admin Role) -->
+      <button class="admin-portal-btn" id="adminPortalBtn" type="button" style="display:none;" title="Farmer & Station Management Console">
+        <span class="btn-icon">⚙️</span>
+        <span class="btn-label">Farmer Admin</span>
+      </button>
+
+      <!-- User Authentication & Role Slot -->
+      <div class="header-auth-slot" id="headerAuthSlot"></div>
+
       <button class="theme-toggle-btn" id="themeToggleBtn" type="button" aria-label="Toggle color theme (Light / Dark)" title="Toggle theme (Light / Dark)">
         <span class="theme-toggle-icon">
           <svg class="theme-svg theme-svg-moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -218,9 +226,13 @@
       <!-- Configurable Windowing Selector -->
       <div class="window-select" id="windowSelect">
         <span class="window-label">Window:</span>
+        <button class="ws-btn" data-window="1h">1h</button>
+        <button class="ws-btn" data-window="6h">6h</button>
         <button class="ws-btn active" data-window="24h">24h</button>
         <button class="ws-btn" data-window="7d">7d</button>
         <button class="ws-btn" data-window="30d">30d</button>
+        <button class="ws-btn" data-window="all">All</button>
+        <button class="ws-btn ws-btn-custom" id="customWindowBtn" title="Set Custom Time Period or Inspect Sensor">Custom...</button>
       </div>
 
       <div class="metric-select" id="metricSelect">
@@ -244,8 +256,14 @@
 <!-- Floating Notification Container (Auto-Discovered Sensors & System Toasts) -->
 <div id="shambaNotificationContainer" class="shamba-notification-container"></div>
 
-<!-- Firebase 10 Compat SDK (Production Telemetry Ingestion & Realtime Sync) -->
+<!-- Modal Mount Points -->
+<div id="authModalMount"></div>
+<div id="adminPortalMount"></div>
+<div id="sensorModalMount"></div>
+
+<!-- Firebase 10 Compat SDK (Production Telemetry Ingestion, Auth & Realtime Sync) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <!-- Leaflet GIS Map Library -->

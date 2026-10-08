@@ -74,12 +74,29 @@ service cloud.firestore {
     //   - altitudeMeters: number/null (optional, -500..9000)
     //   - active: bool (optional)
     //   - totalSensors: int (optional, >= 0)
+    //   - createdAt: string/int (optional, <= 64 chars or int)
+    //   - updatedAt: string/int (optional, <= 64 chars or int)
+    //   - assignedFarmerId: string/null (optional, <= 128 chars)
+    //   - assignedFarmerName: string/null (optional, <= 128 chars)
+    //   - assignedFarmerEmail: string/null (optional, <= 256 chars)
+    //   - assignedAt: string/null (optional, <= 64 chars)
     //
     // Subcollection: /stations/{stationId}/sensors/{sensorId}
     //   - [Identical schema to /sensors/{sensorId}]
     //
     // Subcollection: /stations/{stationId}/sensors/{sensorId}/readings/{readingId}
     //   - [Identical schema to /sensors/{sensorId}/readings/{readingId}]
+    //
+    // Collection: /users/{userId}
+    // Document ID: userId (must match request.auth.uid or created by admin)
+    // Fields:
+    //   - uid: string (required, must match userId, <= 128 chars)
+    //   - email: string (required, 4..256 chars)
+    //   - role: string (required, in ['admin', 'farmer'])
+    //   - displayName: string (optional, <= 128 chars)
+    //   - assignedStationId: string/null (optional, <= 64 chars or null)
+    //   - createdAt: string/int (optional, <= 64 chars or int)
+    //   - updatedAt: string/int (optional, <= 64 chars or int)
     //
     // ===============================================================
 
@@ -89,6 +106,14 @@ service cloud.firestore {
 
     function isAuthenticated() {
       return request.auth != null;
+    }
+
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.role == 'admin' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
     }
 
     // ===============================================================
@@ -260,7 +285,8 @@ service cloud.firestore {
     function isValidStation(data, stationId) {
       let allowedStationKeys = [
         'id', 'stationId', 'name', 'stationName', 'description', 'location',
-        'altitudeMeters', 'active', 'totalSensors', 'createdAt', 'updatedAt'
+        'altitudeMeters', 'active', 'totalSensors', 'createdAt', 'updatedAt',
+        'assignedFarmerId', 'assignedFarmerName', 'assignedFarmerEmail', 'assignedAt'
       ];
 
       return data.keys().hasOnly(allowedStationKeys)
@@ -272,12 +298,43 @@ service cloud.firestore {
         && (!('location' in data) || isValidLocation(data.location))
         && (!('altitudeMeters' in data) || data.altitudeMeters == null || (data.altitudeMeters is number && data.altitudeMeters >= -500 && data.altitudeMeters <= 9000))
         && (!('active' in data) || data.active is bool)
-        && (!('totalSensors' in data) || (data.totalSensors is int && data.totalSensors >= 0));
+        && (!('totalSensors' in data) || (data.totalSensors is int && data.totalSensors >= 0))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64) || data.createdAt is int)
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64) || data.updatedAt is int)
+        && (!('assignedFarmerId' in data) || data.assignedFarmerId == null || (data.assignedFarmerId is string && data.assignedFarmerId.size() <= 128))
+        && (!('assignedFarmerName' in data) || data.assignedFarmerName == null || (data.assignedFarmerName is string && data.assignedFarmerName.size() <= 128))
+        && (!('assignedFarmerEmail' in data) || data.assignedFarmerEmail == null || (data.assignedFarmerEmail is string && data.assignedFarmerEmail.size() <= 256))
+        && (!('assignedAt' in data) || data.assignedAt == null || (data.assignedAt is string && data.assignedAt.size() <= 64));
     }
 
     function isStationImmutableUnchanged() {
       return (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id)
         && (!('stationId' in resource.data) || !('stationId' in request.resource.data) || request.resource.data.stationId == resource.data.stationId);
+    }
+
+    // ===============================================================
+    // Domain Validators: Users & RBAC Profiles
+    // ===============================================================
+
+    function isValidUserProfile(data, userId) {
+      let allowedUserKeys = [
+        'uid', 'email', 'displayName', 'role', 'assignedStationId', 'createdAt', 'updatedAt'
+      ];
+      let requiredUserKeys = ['uid', 'email', 'role'];
+      let validRoles = ['admin', 'farmer'];
+
+      return data.keys().hasAll(requiredUserKeys)
+        && data.keys().hasOnly(allowedUserKeys)
+        && data.uid is string
+        && data.uid == userId
+        && data.email is string
+        && data.email.size() > 3
+        && data.email.size() <= 256
+        && data.role in validRoles
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 128))
+        && (!('assignedStationId' in data) || data.assignedStationId == null || (data.assignedStationId is string && data.assignedStationId.size() <= 64))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64) || data.createdAt is int)
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64) || data.updatedAt is int);
     }
 
     // ===============================================================
@@ -323,6 +380,15 @@ service cloud.firestore {
           allow update, delete: if false; // Immutability strictly enforced!
         }
       }
+    }
+
+    // Users collection: /users/{userId}
+    // Profile metadata, role claims, and station assignment for authenticated users.
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin()) && isValidUserProfile(request.resource.data, userId);
+      allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin()) && isValidUserProfile(request.resource.data, userId);
+      allow delete: if isAuthenticated() && isAdmin();
     }
   }
 }

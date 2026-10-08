@@ -13,11 +13,20 @@ export class TimeseriesChartView {
    * @param {import('../services/telemetry-service.js').TelemetryService} dependencies.telemetryService
    * @param {import('./dashboard-presenter.js').DashboardPresenter} dependencies.presenter
    */
-  constructor({ stationService, analyticsService, telemetryService, presenter }) {
+  /**
+   * @param {Object} dependencies
+   * @param {import('../services/station-service.js').StationService} dependencies.stationService
+   * @param {import('../services/analytics-service.js').AnalyticsService} dependencies.analyticsService
+   * @param {import('../services/telemetry-service.js').TelemetryService} dependencies.telemetryService
+   * @param {import('./dashboard-presenter.js').DashboardPresenter} dependencies.presenter
+   * @param {(sensorId: string, windowMs?: number) => void} [dependencies.onOpenSensorModal]
+   */
+  constructor({ stationService, analyticsService, telemetryService, presenter, onOpenSensorModal = null }) {
     this._stationService = stationService;
     this._analyticsService = analyticsService;
     this._telemetryService = telemetryService;
     this._presenter = presenter;
+    this._onOpenSensorModal = onOpenSensorModal;
 
     this._bindControls();
   }
@@ -30,12 +39,27 @@ export class TimeseriesChartView {
     // Window Selector Buttons
     document.querySelectorAll('.ws-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
+        if (btn.id === 'customWindowBtn') {
+          const allStations = this._stationService.getActiveStations();
+          const activeStationId = this._stationService.getActiveStationId() || allStations[0]?.id;
+          const sensors = this._telemetryService.registry.getSensorsByStation(activeStationId);
+          const activeSensorId = this._analyticsService.activeSensorId;
+          const targetSensor = (activeSensorId && sensors.find((s) => s.id === activeSensorId)) || sensors[0];
+          if (this._onOpenSensorModal && targetSensor) {
+            this._onOpenSensorModal(targetSensor.id, this._analyticsService.activeWindowMs);
+          }
+          return;
+        }
+
         document.querySelectorAll('.ws-btn').forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
         const win = btn.dataset.window;
         let windowMs = APP_CONFIG.TIME_WINDOWS.TWENTY_FOUR_HOURS;
-        if (win === '7d') windowMs = APP_CONFIG.TIME_WINDOWS.SEVEN_DAYS;
+        if (win === '1h') windowMs = APP_CONFIG.TIME_WINDOWS?.ONE_HOUR || 3600000;
+        else if (win === '6h') windowMs = APP_CONFIG.TIME_WINDOWS?.SIX_HOURS || 21600000;
+        else if (win === '7d') windowMs = APP_CONFIG.TIME_WINDOWS.SEVEN_DAYS;
         else if (win === '30d') windowMs = APP_CONFIG.TIME_WINDOWS.THIRTY_DAYS;
+        else if (win === 'all') windowMs = 0; // ALL_TIME
 
         this._analyticsService.setWindow(windowMs);
       });
@@ -71,10 +95,17 @@ export class TimeseriesChartView {
     const allStations = this._stationService.getActiveStations();
     const activeStationId = this._stationService.getActiveStationId() || (allStations[0]?.id ?? null);
     const activeMetricType = this._analyticsService.activeMetricType;
+    const activeSensorId = this._analyticsService.activeSensorId;
     const activeWindowMs = this._analyticsService.activeWindowMs;
 
     const sensors = this._telemetryService.registry.getSensorsByStation(activeStationId);
-    const targetSensor = sensors.find((s) => s.metricDefinition.metricType === activeMetricType) || sensors[0];
+    let targetSensor = null;
+    if (activeSensorId) {
+      targetSensor = sensors.find((s) => s.id === activeSensorId);
+    }
+    if (!targetSensor) {
+      targetSensor = sensors.find((s) => s.metricDefinition.metricType === activeMetricType) || sensors[0];
+    }
 
     const stripNameEl = document.getElementById('stripName');
     const stripSubEl = document.getElementById('stripSub');
@@ -130,14 +161,43 @@ export class TimeseriesChartView {
       </defs>
       ${geom.areaPath ? `<path d="${geom.areaPath}" fill="url(#chartGrad)" />` : ''}
       ${geom.linePath ? `<path d="${geom.linePath}" fill="none" stroke="${geom.color}" stroke-width="2" />` : ''}
-      ${geom.points.map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r="2" fill="${geom.color}" opacity="0.6"/>`).join('')}
+      ${geom.points.map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r="2.5" fill="${geom.color}" opacity="0.7"/>`).join('')}
     `;
 
-    if (stripNameEl) stripNameEl.textContent = targetSensor.metadata.name;
+    const hwShort = targetSensor.id.replace(/^urn:shamba:station:[^:]+:sensor:/, '').replace(/^lora_/, '');
+    if (stripNameEl) {
+      stripNameEl.innerHTML = `
+        <span class="strip-sensor-title">${targetSensor.metadata.name}</span>
+        <span class="strip-hw-tag">#${hwShort}</span>
+        <button type="button" class="btn-strip-deep-dive" id="btnStripDeepDive" title="Open Interactive Timeseries Inspector">Deep Dive ↗</button>
+      `;
+      const deepDiveBtn = stripNameEl.querySelector('#btnStripDeepDive');
+      deepDiveBtn?.addEventListener('click', () => {
+        if (this._onOpenSensorModal) {
+          this._onOpenSensorModal(targetSensor.id, activeWindowMs);
+        }
+      });
+    }
+
     if (stripSubEl) {
       const label = this._analyticsService.getWindowLabel(activeWindowMs);
-      const sampleCount = targetSensor.getTimeseries(activeWindowMs).length;
-      stripSubEl.textContent = `${label} · ${sampleCount} samples`;
+      const readings = targetSensor.getTimeseries(activeWindowMs);
+      const sampleCount = readings.length;
+      const stats = targetSensor.getStatistics(activeWindowMs);
+      const unit = targetSensor.metricDefinition.unitSymbol;
+
+      if (sampleCount > 0) {
+        stripSubEl.innerHTML = `
+          <span>${label} · ${sampleCount} sample${sampleCount !== 1 ? 's' : ''}</span>
+          <span class="strip-stats-chips">
+            <span class="stat-chip">Min: <strong>${stats.min}${unit}</strong></span>
+            <span class="stat-chip">Avg: <strong>${stats.avg}${unit}</strong></span>
+            <span class="stat-chip">Max: <strong>${stats.max}${unit}</strong></span>
+          </span>
+        `;
+      } else {
+        stripSubEl.textContent = `${label} · 0 samples recorded`;
+      }
     }
   }
 }

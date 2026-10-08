@@ -21,6 +21,7 @@ export class AnalyticsService {
     this._logger = new StructuredLogger('AnalyticsService');
 
     this._activeMetricType = 'moisture';
+    this._activeSensorId = null;
     this._activeWindowMs = APP_CONFIG.TIME_WINDOWS ? APP_CONFIG.TIME_WINDOWS.TWENTY_FOUR_HOURS : 86400000;
   }
 
@@ -28,8 +29,33 @@ export class AnalyticsService {
     return this._activeMetricType;
   }
 
+  get activeSensorId() {
+    return this._activeSensorId;
+  }
+
   get activeWindowMs() {
     return this._activeWindowMs;
+  }
+
+  /**
+   * Focuses a specific individual sensor for telemetry and timeseries graphing.
+   * @param {string|null} sensorId
+   */
+  async setActiveSensorId(sensorId) {
+    this._activeSensorId = sensorId;
+    if (sensorId && this._registry) {
+      const sensor = this._registry.getSensor(sensorId);
+      if (sensor) {
+        this._activeMetricType = sensor.metricDefinition.metricType;
+      }
+    }
+
+    await this._eventBus.publish(EventTypes.SENSOR_SELECTED, {
+      sensorId,
+      metricType: this._activeMetricType
+    }, { sourceService: 'AnalyticsService' });
+
+    return createSuccessEnvelope({ sensorId, metricType: this._activeMetricType });
   }
 
   /**
@@ -39,7 +65,9 @@ export class AnalyticsService {
   async setWindow(windowMs) {
     this._activeWindowMs = windowMs;
     // Propagate window change to all sensors in the registry
-    this._registry.getAllSensors().forEach((s) => s.setWindow(windowMs));
+    if (this._registry) {
+      this._registry.getAllSensors().forEach((s) => s.setWindow(windowMs));
+    }
 
     await this._eventBus.publish(EventTypes.WINDOW_CHANGED, {
       windowMs,
@@ -55,6 +83,7 @@ export class AnalyticsService {
    */
   async setMetricType(metricType) {
     this._activeMetricType = metricType;
+    this._activeSensorId = null; // Reset explicit sensor focus to allow metric grouping
 
     await this._eventBus.publish(EventTypes.METRIC_CHANGED, {
       metricType
@@ -70,14 +99,23 @@ export class AnalyticsService {
    */
   getWindowLabel(windowMs) {
     switch (windowMs) {
-      case APP_CONFIG.TIME_WINDOWS.TWENTY_FOUR_HOURS:
+      case APP_CONFIG.TIME_WINDOWS?.ONE_HOUR:
+        return 'Last 1 Hour';
+      case APP_CONFIG.TIME_WINDOWS?.SIX_HOURS:
+        return 'Last 6 Hours';
+      case APP_CONFIG.TIME_WINDOWS?.TWENTY_FOUR_HOURS:
         return 'Last 24 Hours';
-      case APP_CONFIG.TIME_WINDOWS.SEVEN_DAYS:
+      case APP_CONFIG.TIME_WINDOWS?.SEVEN_DAYS:
         return 'Last 7 Days';
-      case APP_CONFIG.TIME_WINDOWS.THIRTY_DAYS:
+      case APP_CONFIG.TIME_WINDOWS?.THIRTY_DAYS:
         return 'Last 30 Days';
+      case APP_CONFIG.TIME_WINDOWS?.ALL_TIME:
+      case 0:
+        return 'All Recorded History';
       default:
-        return 'Time Window';
+        if (windowMs < 3600000) return `${Math.round(windowMs / 60000)}m Window`;
+        if (windowMs < 86400000) return `${Math.round(windowMs / 3600000)}h Window`;
+        return `${Math.round(windowMs / 86400000)}d Window`;
     }
   }
 
@@ -109,8 +147,18 @@ export class AnalyticsService {
     const points = sensor.getTimeseries(windowMs);
     const color = APP_CONFIG.STATUS_COLORS[sensor.currentState.status] || '#7A9471';
 
-    if (points.length < 2) {
+    if (points.length === 0) {
       return { linePath: '', areaPath: '', points: [], color };
+    }
+
+    if (points.length === 1) {
+      const y = height / 2;
+      return {
+        linePath: `M 0 ${y} L ${width} ${y}`,
+        areaPath: `M 0 ${y} L ${width} ${y} L ${width} ${height} L 0 ${height} Z`,
+        points: [[width / 2, y]],
+        color
+      };
     }
 
     const values = points.map((p) => p.value);
