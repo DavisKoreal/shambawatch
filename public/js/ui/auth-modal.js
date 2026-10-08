@@ -1,11 +1,10 @@
 /**
  * @fileoverview AuthModal — User Authentication Dialog for Shamba Watch.
- * Provides Email/Password sign in, registration, role selection, and quick demo logins.
+ * Provides Email/Password sign in, registration, and role selection.
  * Adheres to Rules 1 (SRP), 6 (Low Cyclomatic Complexity), and 34 (Interface Adapters).
  */
 
 import { UserRole } from '../services/auth-service.js';
-import { Icons } from './icons.js';
 
 export class AuthModal {
   /**
@@ -128,28 +127,6 @@ export class AuthModal {
             </button>
           </form>
 
-          <!-- QUICK DEMO LOGINS -->
-          <div class="auth-demo-divider">
-            <span>Quick Demonstration Logins</span>
-          </div>
-
-          <div class="auth-demo-buttons">
-            <button class="btn-demo demo-admin-btn" type="button" id="demoAdminBtn">
-              <span class="demo-icon">${Icons.crown({ size: 18 })}</span>
-              <div class="demo-btn-text">
-                <strong>Sign in as Admin</strong>
-                <small>admin@shambawatch.org (All Stations & Management)</small>
-              </div>
-            </button>
-            <button class="btn-demo demo-farmer-btn" type="button" id="demoFarmerBtn">
-              <span class="demo-icon">${Icons.sprout({ size: 18 })}</span>
-              <div class="demo-btn-text">
-                <strong>Sign in as Farmer</strong>
-                <small>farmer@shambawatch.org (Single Station Subscriber)</small>
-              </div>
-            </button>
-          </div>
-
         </div>
       </div>
     `;
@@ -166,8 +143,6 @@ export class AuthModal {
     const tabSignUp = this._mountEl.querySelector('#authTabSignUp');
     const signInForm = this._mountEl.querySelector('#signInForm');
     const signUpForm = this._mountEl.querySelector('#signUpForm');
-    const demoAdminBtn = this._mountEl.querySelector('#demoAdminBtn');
-    const demoFarmerBtn = this._mountEl.querySelector('#demoFarmerBtn');
     const signUpRole = this._mountEl.querySelector('#signUpRole');
 
     // Close on overlay click or close button
@@ -247,35 +222,6 @@ export class AuthModal {
 
       if (res.error) {
         this._showError(res.error.message || 'Failed to create account.');
-      } else {
-        this.close();
-      }
-    });
-
-    // Demo Logins
-    demoAdminBtn?.addEventListener('click', async () => {
-      demoAdminBtn.disabled = true;
-      demoAdminBtn.style.opacity = '0.6';
-      this._clearError();
-      const res = await this._authService.quickSignInDemo('admin');
-      demoAdminBtn.disabled = false;
-      demoAdminBtn.style.opacity = '1';
-      if (res.error) {
-        this._showError(res.error.message);
-      } else {
-        this.close();
-      }
-    });
-
-    demoFarmerBtn?.addEventListener('click', async () => {
-      demoFarmerBtn.disabled = true;
-      demoFarmerBtn.style.opacity = '0.6';
-      this._clearError();
-      const res = await this._authService.quickSignInDemo('farmer');
-      demoFarmerBtn.disabled = false;
-      demoFarmerBtn.style.opacity = '1';
-      if (res.error) {
-        this._showError(res.error.message);
       } else {
         this.close();
       }

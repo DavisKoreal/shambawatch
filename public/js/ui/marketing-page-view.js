@@ -142,16 +142,6 @@ export class MarketingPageView {
                 </button>
               </div>
 
-              <!-- 1-Click Instant Demo Credentials for Evaluation -->
-              <div class="mkt-instant-demo-row">
-                <span>Evaluate right now with 1 click:</span>
-                <button class="mkt-demo-pill" id="mktQuickAdminBtn" type="button" title="Sign in as Demo Administrator">
-                  <span>${Icons.crown({ size: 14 })} Instant Demo Admin</span>
-                </button>
-                <button class="mkt-demo-pill" id="mktQuickFarmerBtn" type="button" title="Sign in as Demo Basin Farmer">
-                  <span>${Icons.sprout({ size: 14 })} Instant Demo Farmer</span>
-                </button>
-              </div>
 
               <!-- Trust Badges below CTA (Characteristic 10, Hypothesis 6) -->
               <div class="mkt-trust-strip">
@@ -680,23 +670,6 @@ export class MarketingPageView {
     this._mountEl.querySelector('#mktDemoLaunchBtn')?.addEventListener('click', openSignup);
     this._mountEl.querySelectorAll('.mkt-trigger-signup').forEach((btn) => {
       btn.addEventListener('click', openSignup);
-    });
-
-    // 3. One-Click Instant Demo Credentials (Admin & Farmer)
-    this._mountEl.querySelector('#mktQuickAdminBtn')?.addEventListener('click', async () => {
-      this._eventBus.publish('MARKETING_CTA_CLICKED', { action: 'instant_demo_admin' }, { sourceService: 'MarketingPage' });
-      const res = await this._authService.quickSignInDemo('admin');
-      if (res.data && this._onLaunchPlatform) {
-        this._onLaunchPlatform();
-      }
-    });
-
-    this._mountEl.querySelector('#mktQuickFarmerBtn')?.addEventListener('click', async () => {
-      this._eventBus.publish('MARKETING_CTA_CLICKED', { action: 'instant_demo_farmer' }, { sourceService: 'MarketingPage' });
-      const res = await this._authService.quickSignInDemo('farmer');
-      if (res.data && this._onLaunchPlatform) {
-        this._onLaunchPlatform();
-      }
     });
 
     // 4. FAQ Accordion Toggles (Char 14)
