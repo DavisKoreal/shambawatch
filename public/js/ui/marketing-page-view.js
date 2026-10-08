@@ -148,7 +148,7 @@ export class MarketingPageView {
                 <span class="mkt-trust-item">${Icons.shieldCheck({ size: 14 })} 256-bit AES LoRaWAN</span>
                 <span class="mkt-trust-item">${Icons.sprout({ size: 14 })} KALRO Agronomy Standard</span>
                 <span class="mkt-trust-item">${Icons.sun({ size: 14 })} IP68 Weatherproof Hardware</span>
-                <span class="mkt-trust-item">${Icons.shield({ size: 14 })} 30-Day Money-Back Guarantee</span>
+                <span class="mkt-trust-item">${Icons.shield({ size: 14 })} Guaranteed Sensor Accuracy</span>
               </div>
             </div>
 
@@ -343,10 +343,10 @@ export class MarketingPageView {
                     <td>Raw charts only</td>
                   </tr>
                   <tr>
-                    <td><strong>Monthly Cost per 100 Acres</strong></td>
-                    <td class="highlight">From $19/mo</td>
-                    <td>High Labor Hours</td>
-                    <td>$300+ / mo</td>
+                    <td><strong>Pricing & Deployment</strong></td>
+                    <td class="highlight">Contact for Pricing</td>
+                    <td>High Labor Overhead</td>
+                    <td>Costly Proprietary Imports</td>
                   </tr>
                 </tbody>
               </table>
@@ -416,13 +416,13 @@ export class MarketingPageView {
           </div>
         </section>
 
-        <!-- 10. TRANSPARENT PRICING & RISK REVERSAL (Characteristics 11, 12, Hypotheses 11, 12) -->
+        <!-- 10. CUSTOM PLANS & CONTACT FOR PRICING (Characteristics 11, 12) -->
         <section class="mkt-pricing-section">
           <div class="mkt-container">
             <div class="mkt-section-header">
-              <span>Transparent Investment</span>
-              <h2>Predictable, Zero-Lock-in Plans</h2>
-              <p>Hardware installed free on all commercial pilots. Cancel anytime.</p>
+              <span>Field Solutions</span>
+              <h2>Flexible Plans for Every Farm Scale</h2>
+              <p>Hardware installed and calibrated directly on your land by local agronomy technicians. Contact us for custom pricing.</p>
             </div>
 
             <div class="mkt-pricing-grid">
@@ -433,8 +433,8 @@ export class MarketingPageView {
                   <h3 style="font-size:20px; margin:0;">Smallholder Starter</h3>
                   <p style="font-size:13px; color:var(--ink-dim); margin:6px 0 0 0;">Ideal for single-block family farms & greenhouses.</p>
                   <div class="mkt-price-tag">
-                    <span class="mkt-price-amount">$19</span>
-                    <span class="mkt-price-period">/ month</span>
+                    <span class="mkt-price-amount">Contact for Pricing</span>
+                    <span class="mkt-price-period">Single Station Deployment</span>
                   </div>
                   <ul class="mkt-bullet-list">
                     <li><span class="icon">${Icons.check({ size: 14 })}</span> 1 Field Monitoring Station</li>
@@ -444,7 +444,7 @@ export class MarketingPageView {
                   </ul>
                 </div>
                 <button class="mkt-btn-secondary mkt-trigger-signup" type="button" style="margin-top:24px; justify-content:center;">
-                  Select Starter Plan ${Icons.arrowUpRight({ size: 14 })}
+                  Contact for Pricing ${Icons.arrowUpRight({ size: 14 })}
                 </button>
               </div>
 
@@ -455,8 +455,8 @@ export class MarketingPageView {
                   <h3 style="font-size:20px; margin:0; color:var(--moss);">Commercial Basin Pro</h3>
                   <p style="font-size:13px; color:var(--ink-dim); margin:6px 0 0 0;">For commercial farms, tea estates & flower growers.</p>
                   <div class="mkt-price-tag">
-                    <span class="mkt-price-amount">$49</span>
-                    <span class="mkt-price-period">/ month</span>
+                    <span class="mkt-price-amount">Contact for Pricing</span>
+                    <span class="mkt-price-period">Commercial Field Package</span>
                   </div>
                   <ul class="mkt-bullet-list">
                     <li><span class="icon">${Icons.check({ size: 14 })}</span> Up to 5 Solar Field Stations</li>
@@ -467,7 +467,7 @@ export class MarketingPageView {
                   </ul>
                 </div>
                 <button class="mkt-btn-primary mkt-trigger-signup" type="button" style="margin-top:24px; justify-content:center;">
-                  Start 14-Day Free Pilot ${Icons.arrowUpRight({ size: 14 })}
+                  Contact for Pricing ${Icons.arrowUpRight({ size: 14 })}
                 </button>
               </div>
 
@@ -477,8 +477,8 @@ export class MarketingPageView {
                   <h3 style="font-size:20px; margin:0;">Co-operative Basin</h3>
                   <p style="font-size:13px; color:var(--ink-dim); margin:6px 0 0 0;">For co-operatives, agribusinesses & basin projects.</p>
                   <div class="mkt-price-tag">
-                    <span class="mkt-price-amount">$120</span>
-                    <span class="mkt-price-period">/ month</span>
+                    <span class="mkt-price-amount">Contact for Pricing</span>
+                    <span class="mkt-price-period">Enterprise & Basin Network</span>
                   </div>
                   <ul class="mkt-bullet-list">
                     <li><span class="icon">${Icons.check({ size: 14 })}</span> Up to 20 Solar Field Stations</li>
@@ -495,13 +495,13 @@ export class MarketingPageView {
 
             </div>
 
-            <!-- Risk Reversal Guarantee (Characteristic 11, Hypothesis 12) -->
+            <!-- Agronomic Guarantee -->
             <div class="mkt-guarantee-box">
               <span style="display:inline-flex; color:var(--moss);">${Icons.shieldCheck({ size: 36 })}</span>
               <div>
-                <strong style="display:block; font-size:15px; color:var(--ink);">100% Risk-Free 30-Day Money-Back Guarantee</strong>
+                <strong style="display:block; font-size:15px; color:var(--ink);">Engineered & Calibrated On-Site</strong>
                 <span style="font-size:13px; color:var(--ink-dim);">
-                  If Shamba Watch does not reduce your water costs or increase crop yield within 30 days, we remove the equipment and refund every shilling. No questions asked.
+                  Every deployment is verified on your soil with calibrated depth probes to ensure dependable real-time telemetry from day one.
                 </span>
               </div>
             </div>
@@ -513,10 +513,10 @@ export class MarketingPageView {
           <div class="mkt-container">
             <div class="mkt-lead-box">
               <h2 style="font-family:var(--font-display); font-size:26px; margin:0 0 8px 0; color:var(--ink);">
-                Request a Free Field Survey & Pilot
+                Request a Custom Quote & Field Survey
               </h2>
               <p style="font-size:14px; color:var(--ink-dim); margin:0;">
-                Tell us your location and crop. Our agronomist will assess your field LoRa coverage within 24 hours.
+                Tell us your location and crop. Our team will contact you with custom pricing and assess your field LoRa coverage within 24 hours.
               </p>
 
               <form class="mkt-lead-form" id="mktLeadForm">
@@ -583,11 +583,11 @@ export class MarketingPageView {
 
             <div class="mkt-faq-item">
               <button class="mkt-faq-question" type="button">
-                <span>5. Is there any long-term contract or hardware purchase lock-in?</span>
+                <span>5. How does pricing and deployment work?</span>
                 <span class="toggle">+</span>
               </button>
               <div class="mkt-faq-answer">
-                None. Our subscriptions are month-to-month and cancelable anytime. If you wish to purchase the hardware outright or lease it, our plans adapt to your balance sheet.
+                Pricing is tailored based on your farm acreage, topography, and probe density requirements. Contact us for custom pricing and our engineering team will provide a tailored deployment estimate.
               </div>
             </div>
 
@@ -614,7 +614,7 @@ export class MarketingPageView {
               Before You Go: Free Agronomy Guide
             </h3>
             <p style="font-size:13px; color:var(--ink-dim); margin:0 0 16px 0;">
-              Download the <strong>"Commercial Soil Moisture & Drip Irrigation Playbook (2026 Edition)"</strong> + get a 20% hardware discount voucher.
+              Download the <strong>"Commercial Soil Moisture & Drip Irrigation Playbook (2026 Edition)"</strong> + get priority agronomic survey access.
             </p>
             <form id="mktExitForm" style="display:flex; flex-direction:column; gap:10px;">
               <input type="email" class="mkt-form-input" id="mktExitEmail" placeholder="Enter your email address" required>
@@ -726,7 +726,7 @@ export class MarketingPageView {
       const email = this._mountEl.querySelector('#mktExitEmail')?.value.trim();
       const exitFb = this._mountEl.querySelector('#mktExitFeedback');
       if (exitFb) {
-        exitFb.textContent = `Guide and 20% discount voucher dispatched to ${email}!`;
+        exitFb.textContent = `Agronomy Guide dispatched to ${email}!`;
         exitFb.style.display = 'block';
       }
       setTimeout(() => {

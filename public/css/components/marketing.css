@@ -878,9 +878,11 @@ body.marketing-mode {
 
 .mkt-price-amount {
   font-family: var(--font-display);
-  font-size: 38px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 700;
   color: var(--ink);
+  display: block;
+  line-height: 1.2;
 }
 
 .mkt-price-period {
