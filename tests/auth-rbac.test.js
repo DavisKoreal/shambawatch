@@ -27,7 +27,7 @@ test('AuthService: Role-Based Access Control (RBAC) & Session Management', async
     const authService = new AuthService({ eventBus });
 
     assert.equal(authService.isAuthenticated, false);
-    assert.equal(authService.isAdmin(), true); // Default unauthenticated role is admin for dashboard viewing
+    assert.equal(authService.isAdmin(), false); // Unauthenticated users have no admin privileges (marketing page gate)
     assert.equal(authService.isFarmer(), false);
     assert.equal(authService.getCurrentUser(), null);
     assert.equal(authService.getAssignedStationId(), null);
@@ -83,7 +83,16 @@ test('AuthService: Role-Based Access Control (RBAC) & Session Management', async
 });
 
 test('AuthService: Station Assignment Bounded Context', async (t) => {
-  await t.test('should assign station to farmer and broadcast FARMER_ASSIGNED domain event', async () => {
+  await t.test('should reject station assignment when unauthenticated', async () => {
+    const eventBus = new EventBus();
+    const authService = new AuthService({ eventBus });
+    const result = await authService.assignStationToFarmer('farmer-demo-01', 'station-molo-01');
+
+    assert.equal(result.success, false);
+    assert.equal(result.error?.code, 'UNAUTHORIZED');
+  });
+
+  await t.test('should assign station to farmer and broadcast FARMER_ASSIGNED domain event when admin is authenticated', async () => {
     const eventBus = new EventBus();
     let assignmentEvent = null;
     eventBus.subscribe(EventTypes.FARMER_ASSIGNED, (payload) => {
@@ -91,6 +100,7 @@ test('AuthService: Station Assignment Bounded Context', async (t) => {
     });
 
     const authService = new AuthService({ eventBus });
+    await authService.quickSignInDemo('admin');
     const result = await authService.assignStationToFarmer('farmer-demo-01', 'station-molo-01', 'Molo Highland Station');
 
     assert.ok(result.data);
@@ -100,9 +110,10 @@ test('AuthService: Station Assignment Bounded Context', async (t) => {
     assert.equal(assignmentEvent.stationId, 'station-molo-01');
   });
 
-  await t.test('should unassign station when stationId is null or empty', async () => {
+  await t.test('should unassign station when admin assigns null or empty stationId', async () => {
     const eventBus = new EventBus();
     const authService = new AuthService({ eventBus });
+    await authService.quickSignInDemo('admin');
     const result = await authService.assignStationToFarmer('farmer-demo-01', null);
 
     assert.ok(result.data);

@@ -1,0 +1,1149 @@
+/**
+ * Shamba Watch 2.0 — High-Performing Marketing Page Stylesheet
+ * Incorporating 30 Characteristics of High-Performing Landing Pages
+ * and 30 Proven Conversion Hypotheses.
+ */
+
+/* ============================================================================
+   CONTAINER & VIEW STATE
+   ============================================================================ */
+html.marketing-mode,
+body.marketing-mode {
+  height: auto !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.marketing-page {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  position: relative;
+  line-height: 1.6;
+}
+
+.marketing-page.hidden {
+  display: none !important;
+}
+
+/* ============================================================================
+   ANNOUNCEMENT & URGENCY BANNER (Hypothesis 26)
+   ============================================================================ */
+.mkt-urgency-banner {
+  background: linear-gradient(90deg, var(--earth-dim), #853715);
+  color: #FFF2EB;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  letter-spacing: 0.02em;
+}
+
+.mkt-urgency-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mkt-timer-box {
+  font-family: var(--font-mono);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  color: #FFD1B3;
+}
+
+/* ============================================================================
+   MINIMAL NAVIGATION (Characteristic 6, Hypothesis 9)
+   ============================================================================ */
+.mkt-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  background: var(--popover-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.mkt-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.mkt-brand-logo {
+  width: 38px;
+  height: 38px;
+  background: var(--moss);
+  color: #14120F;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(122, 148, 113, 0.3);
+}
+
+.mkt-brand-titles h1 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.mkt-brand-titles span {
+  font-size: 11px;
+  color: var(--ink-dim);
+  letter-spacing: 0.03em;
+}
+
+.mkt-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mkt-btn-signin {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.mkt-btn-signin:hover {
+  background: var(--panel-raised);
+  border-color: var(--moss);
+  color: var(--ink);
+}
+
+.mkt-btn-cta-nav {
+  background: var(--moss);
+  color: #14120F;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(122, 148, 113, 0.25);
+  transition: all 0.2s ease;
+}
+
+.mkt-btn-cta-nav:hover {
+  background: #8FA886;
+  transform: translateY(-1px);
+}
+
+/* ============================================================================
+   HERO SECTION (Characteristics 1, 2, 3, 4, 5)
+   ============================================================================ */
+.mkt-hero {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 56px 24px 64px 24px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.mkt-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mkt-pill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  background: rgba(122, 148, 113, 0.15);
+  border: 1px solid var(--moss-dim);
+  color: var(--ink);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.mkt-pill-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--moss);
+  box-shadow: 0 0 8px var(--moss);
+  animation: mktPulse 2s infinite;
+}
+
+@keyframes mktPulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.mkt-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4.5vw, 54px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.mkt-hero-title em {
+  font-style: italic;
+  color: var(--moss);
+}
+
+.mkt-hero-sub {
+  font-size: clamp(16px, 1.8vw, 19px);
+  color: var(--ink-dim);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 580px;
+}
+
+/* Call To Action Buttons (High Contrast, Action-Oriented) */
+.mkt-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.mkt-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.mkt-btn-primary {
+  background: var(--earth);
+  color: #FFFFFF;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 14px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 18px rgba(193, 98, 44, 0.45);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.mkt-btn-primary:hover {
+  background: #D2723A;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(193, 98, 44, 0.55);
+}
+
+.mkt-btn-secondary {
+  background: var(--panel-raised);
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.mkt-btn-secondary:hover {
+  background: var(--panel);
+  border-color: var(--ink-dim);
+}
+
+/* 1-Click Instant Demo Pills (Zero-Friction Evaluation) */
+.mkt-instant-demo-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+
+.mkt-demo-pill {
+  background: rgba(122, 148, 113, 0.12);
+  border: 1px dashed var(--moss-dim);
+  color: var(--ink);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.mkt-demo-pill:hover {
+  background: rgba(122, 148, 113, 0.25);
+  border-color: var(--moss);
+  transform: translateY(-1px);
+}
+
+/* Trust Badges (Characteristic 10, Hypothesis 6) */
+.mkt-trust-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+
+.mkt-trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ============================================================================
+   HERO INTERACTIVE PRODUCT DEMO CARD (Characteristic 4, Hypothesis 5, 19)
+   ============================================================================ */
+.mkt-demo-frame {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 20px rgba(122, 148, 113, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.mkt-demo-frame-header {
+  background: var(--panel-raised);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.mkt-frame-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.mkt-frame-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--hairline);
+}
+
+.mkt-frame-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.mkt-demo-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mkt-demo-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.mkt-demo-station-tag strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.mkt-demo-station-tag span {
+  font-size: 11px;
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+}
+
+.mkt-demo-live-badge {
+  background: rgba(122, 148, 113, 0.15);
+  color: var(--moss);
+  border: 1px solid var(--moss-dim);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mkt-telemetry-sim-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mkt-telemetry-card {
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.mkt-card-label {
+  font-size: 11px;
+  color: var(--ink-dim);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mkt-card-value {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.mkt-card-status {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mkt-status-good { color: var(--moss); }
+.mkt-status-warn { color: var(--nutrient); }
+
+.mkt-sim-graph {
+  width: 100%;
+  height: 90px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  border: 1px solid var(--hairline);
+  position: relative;
+  overflow: hidden;
+}
+
+.mkt-sim-graph svg {
+  width: 100%;
+  height: 100%;
+}
+
+.mkt-demo-interactive-cta {
+  background: rgba(193, 98, 44, 0.1);
+  border: 1px solid rgba(193, 98, 44, 0.3);
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mkt-demo-interactive-cta span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.mkt-btn-launch-demo {
+  background: var(--earth);
+  color: #FFFFFF;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   SOCIAL PROOF LOGOS (Characteristic 7, Hypothesis 15)
+   ============================================================================ */
+.mkt-logos-section {
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--panel);
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.mkt-logos-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+
+.mkt-logos-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 36px;
+  opacity: 0.75;
+}
+
+.mkt-partner-logo {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  border: 1px solid var(--hairline);
+  padding: 6px 16px;
+  border-radius: 6px;
+  background: var(--panel-raised);
+}
+
+/* ============================================================================
+   QUANTIFIED METRICS / SUCCESS IMPACT (Characteristic 9, Hypothesis 16)
+   ============================================================================ */
+.mkt-stats-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 24px;
+}
+
+.mkt-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.mkt-stat-card {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 24px 20px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.mkt-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--moss);
+}
+
+.mkt-stat-number {
+  font-family: var(--font-display);
+  font-size: clamp(34px, 3.5vw, 44px);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--moss);
+  margin-bottom: 8px;
+}
+
+.mkt-stat-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.mkt-stat-desc {
+  font-size: 12px;
+  color: var(--ink-dim);
+  line-height: 1.4;
+}
+
+/* ============================================================================
+   EMOTIONAL PAIN VS BENEFIT (Characteristic 26, 27)
+   ============================================================================ */
+.mkt-pain-section {
+  background: var(--panel-raised);
+  padding: 72px 24px;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.mkt-container {
+  max-width: 1140px;
+  margin: 0 auto;
+}
+
+.mkt-section-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 48px auto;
+}
+
+.mkt-section-header span {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--earth);
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.mkt-section-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.2vw, 38px);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--ink);
+  margin: 0 0 12px 0;
+}
+
+.mkt-section-header p {
+  font-size: 16px;
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+.mkt-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+.mkt-pain-card {
+  background: var(--panel);
+  border: 1px solid rgba(193, 98, 44, 0.35);
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.mkt-pain-card h3 {
+  color: var(--earth);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mkt-benefit-card {
+  background: var(--panel);
+  border: 1px solid rgba(122, 148, 113, 0.45);
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.mkt-benefit-card h3 {
+  color: var(--moss);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mkt-bullet-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mkt-bullet-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.mkt-bullet-list li span.icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   COMPARISON TABLE VS COMPETITORS (Characteristic 13, Hypothesis 20)
+   ============================================================================ */
+.mkt-table-section {
+  padding: 80px 24px;
+}
+
+.mkt-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.mkt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: left;
+}
+
+.mkt-table th, .mkt-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.mkt-table th {
+  background: var(--panel-raised);
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mkt-table th.highlight, .mkt-table td.highlight {
+  background: rgba(122, 148, 113, 0.08);
+  color: var(--moss);
+  font-weight: 700;
+}
+
+/* ============================================================================
+   TESTIMONIALS (Characteristic 8, Hypothesis 4, 16, 28)
+   ============================================================================ */
+.mkt-testimonials-section {
+  background: var(--panel-raised);
+  padding: 80px 24px;
+  border-top: 1px solid var(--hairline);
+}
+
+.mkt-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.mkt-testimonial-card {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mkt-quote {
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.mkt-quote-metric {
+  display: inline-block;
+  background: rgba(122, 148, 113, 0.15);
+  color: var(--moss);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.mkt-author-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mkt-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--moss-dim);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  border: 2px solid var(--moss);
+}
+
+.mkt-author-meta strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.mkt-author-meta span {
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+
+/* ============================================================================
+   TRANSPARENT PRICING & RISK REVERSAL (Characteristics 11, 12, Hypotheses 11, 12)
+   ============================================================================ */
+.mkt-pricing-section {
+  padding: 80px 24px;
+}
+
+.mkt-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.mkt-pricing-card {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.mkt-pricing-card.featured {
+  border: 2px solid var(--moss);
+  box-shadow: 0 10px 32px rgba(122, 148, 113, 0.2);
+}
+
+.mkt-popular-ribbon {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--moss);
+  color: #14120F;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 14px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mkt-price-tag {
+  margin: 18px 0;
+}
+
+.mkt-price-amount {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.mkt-price-period {
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+
+.mkt-guarantee-box {
+  background: rgba(122, 148, 113, 0.1);
+  border: 1px solid var(--moss-dim);
+  border-radius: 10px;
+  padding: 18px 24px;
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+}
+
+/* ============================================================================
+   MINIMAL 2-FIELD LEAD CAPTURE (Characteristic 15, Hypothesis 3)
+   ============================================================================ */
+.mkt-lead-section {
+  background: linear-gradient(180deg, var(--panel-raised), var(--bg));
+  padding: 80px 24px;
+  border-top: 1px solid var(--hairline);
+  text-align: center;
+}
+
+.mkt-lead-box {
+  max-width: 580px;
+  margin: 0 auto;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  padding: 36px 32px;
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+}
+
+.mkt-lead-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.mkt-form-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.mkt-form-input:focus {
+  border-color: var(--moss);
+  box-shadow: 0 0 0 2px rgba(122, 148, 113, 0.2);
+}
+
+/* ============================================================================
+   FAQ ACCORDION (Characteristic 14, Hypothesis 13)
+   ============================================================================ */
+.mkt-faq-section {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.mkt-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mkt-faq-item {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.mkt-faq-question {
+  width: 100%;
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mkt-faq-answer {
+  display: none;
+  padding: 0 20px 20px 20px;
+  font-size: 14px;
+  color: var(--ink-dim);
+  line-height: 1.6;
+}
+
+.mkt-faq-item.open .mkt-faq-answer {
+  display: block;
+}
+
+.mkt-faq-item.open .mkt-faq-question span.toggle {
+  transform: rotate(45deg);
+}
+
+/* ============================================================================
+   STICKY MOBILE CTA BAR (Characteristic 16, Hypothesis 10)
+   ============================================================================ */
+.mkt-sticky-cta-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--popover-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--hairline);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 99;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* ============================================================================
+   EXIT-INTENT POPUP (Characteristic 17, Hypothesis 21)
+   ============================================================================ */
+.mkt-exit-intent-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.82);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.mkt-exit-box {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  max-width: 480px;
+  width: 100%;
+  padding: 32px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+}
+
+.mkt-exit-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+/* ============================================================================
+   LIVE SOCIAL PROOF TOAST (Hypothesis 25)
+   ============================================================================ */
+.mkt-social-toast {
+  position: fixed;
+  bottom: 74px;
+  left: 20px;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-left: 4px solid var(--moss);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 90;
+  max-width: 320px;
+  font-size: 12px;
+  transform: translateY(120px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mkt-social-toast.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ============================================================================
+   FLOATING AI AGRONOMIST CHATBOT (Characteristic 18, Hypothesis 14)
+   ============================================================================ */
+.mkt-chat-floating-btn {
+  position: fixed;
+  bottom: 74px;
+  right: 20px;
+  background: var(--moss);
+  color: #14120F;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 20px rgba(122, 148, 113, 0.4);
+  z-index: 95;
+  transition: transform 0.2s ease;
+}
+
+.mkt-chat-floating-btn:hover {
+  transform: scale(1.04);
+}
+
+/* ============================================================================
+   RESPONSIVENESS (Characteristic 20, Hypothesis 23)
+   ============================================================================ */
+@media (max-width: 992px) {
+  .mkt-hero {
+    grid-template-columns: 1fr;
+    padding: 36px 20px;
+  }
+  .mkt-stats-grid,
+  .mkt-testimonials-grid,
+  .mkt-pricing-grid {
+    grid-template-columns: 1fr;
+  }
+  .mkt-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .mkt-nav {
+    padding: 12px 16px;
+  }
+  .mkt-hero-title {
+    font-size: 30px;
+  }
+  .mkt-cta-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .mkt-btn-primary, .mkt-btn-secondary {
+    justify-content: center;
+  }
+}

@@ -449,7 +449,7 @@ export class AuthService {
    */
   async assignStationToFarmer(farmerUid, stationId, stationName = '') {
     if (!this.isAdmin()) {
-      return createErrorEnvelope(ServiceErrorCode.FORBIDDEN, 'Only administrators can assign stations.');
+      return createErrorEnvelope(ServiceErrorCode.UNAUTHORIZED, 'Only administrators can assign stations.');
     }
 
     const fb = getFirebase();
@@ -564,15 +564,14 @@ export class AuthService {
     return Boolean(this._currentUser);
   }
 
-  /** @returns {string} */
+  /** @returns {string|null} */
   get role() {
-    return this._currentProfile?.role || (this._currentUser ? UserRole.FARMER : UserRole.ADMIN);
+    return this._currentProfile?.role || (this._currentUser ? UserRole.FARMER : null);
   }
 
   /** @returns {boolean} */
   isAdmin() {
-    // If not logged in, default role is admin as requested by user ("The current role is admin")
-    if (!this._currentUser) return true;
+    if (!this._currentUser) return false;
     return this.role === UserRole.ADMIN;
   }
 

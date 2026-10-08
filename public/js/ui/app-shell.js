@@ -18,6 +18,7 @@ import { ShambaAgent } from '../services/shamba-agent.js';
 import { AuthModal } from './auth-modal.js';
 import { AdminPortalView } from './admin-portal-view.js';
 import { SensorDetailModal } from './sensor-detail-modal.js';
+import { MarketingPageView } from './marketing-page-view.js';
 import { UserRole } from '../services/auth-service.js';
 
 export class AppShell {
@@ -36,6 +37,7 @@ export class AppShell {
     this._authModal = null;
     this._adminPortal = null;
     this._sensorDetailModal = null;
+    this._marketingPageView = null;
   }
 
   /**
@@ -61,7 +63,31 @@ export class AppShell {
       stationService.selectStation(stationId, true);
     });
 
-    // 3. Initialize Modals
+    // 3. Initialize Marketing Page & Modals
+    const marketingMount = document.getElementById('marketingPageMount');
+    if (marketingMount) {
+      this._marketingPageView = new MarketingPageView({
+        mountEl: marketingMount,
+        authService,
+        eventBus: this._eventBus,
+        onLaunchPlatform: () => {
+          if (authService?.isAuthenticated) {
+            this._handleAuthStateChange({
+              isAuthenticated: true,
+              user: authService.getCurrentUser(),
+              profile: authService.getCurrentProfile(),
+              role: authService.role
+            });
+          } else {
+            this._authModal.open('signup');
+          }
+        },
+        onOpenSignIn: () => {
+          this._authModal.open('signin');
+        }
+      });
+    }
+
     this._authModal = new AuthModal({
       authService,
       stationService,
@@ -190,35 +216,44 @@ export class AppShell {
     // 8. Wire EventBus Subscriptions (Rule 46)
     this._wireEventSubscriptions();
 
-    // 9. Initialize Authentication
+    // 9. Initialize Authentication & Gatekeeper Access Control
     if (authService) {
       await authService.init();
-      if (!authService.isAuthenticated) {
-        // Explicitly prompt the user to sign in or pick a demo role
-        this._authModal.open('signin');
-      }
+      const isAuth = authService.isAuthenticated;
+      await this._handleAuthStateChange({
+        isAuthenticated: isAuth,
+        user: authService.getCurrentUser(),
+        profile: authService.getCurrentProfile(),
+        role: authService.role
+      });
+    } else {
+      await this._handleAuthStateChange({ isAuthenticated: false, user: null, role: null });
     }
 
     // 10. Start Live Clock
     this._startClock();
 
-    // 11. Initial View Render
-    this.renderAll();
+    // 11. Initial View Render (if authenticated)
+    if (authService?.isAuthenticated) {
+      this.renderAll();
 
-    // 12. Connect Real-Time Telemetry Pipeline
-    await telemetryService.connectPipeline();
+      // 12. Connect Real-Time Telemetry Pipeline
+      await telemetryService.connectPipeline();
 
-    // 13. Proactively load recorded history from Firestore for initial active station
-    const activeStations = stationService.getActiveStations();
-    if (activeStations.length > 0) {
-      telemetryService.fetchStationSensorsHistory(activeStations[0].id).then(() => {
-        this._timeseriesChartView.render();
-      });
+      // 13. Proactively load recorded history from Firestore for initial active station
+      const activeStations = stationService.getActiveStations();
+      if (activeStations.length > 0) {
+        telemetryService.fetchStationSensorsHistory(activeStations[0].id).then(() => {
+          this._timeseriesChartView.render();
+        });
+      }
     }
 
     // Window resize chart re-render
     window.addEventListener('resize', () => {
-      this._timeseriesChartView.render();
+      if (authService?.isAuthenticated) {
+        this._timeseriesChartView.render();
+      }
     });
 
     this._logger.info('Shamba Watch 2.0 SOA successfully initialized.');
@@ -322,9 +357,10 @@ export class AppShell {
 
     // On Auth State Changed (Rule 46)
     this._subscriptions.push(
-      this._eventBus.subscribe(EventTypes.AUTH_STATE_CHANGED, (event) => {
+      this._eventBus.subscribe(EventTypes.AUTH_STATE_CHANGED, async (event) => {
         const payload = event?.payload || event || {};
         this._updateHeaderAuthUI(payload);
+        await this._handleAuthStateChange(payload);
       })
     );
 
@@ -399,6 +435,56 @@ export class AppShell {
     // If farmer is subscribed to a station, auto-focus their station
     if (isFarmer && assignedStationId) {
       stationService.selectStation(assignedStationId, true);
+    }
+  }
+
+  /**
+   * Enforces Gatekeeper access control.
+   * If not logged in, visitor can only access the marketing page.
+   * @private
+   * @param {Object} authPayload
+   */
+  async _handleAuthStateChange(authPayload) {
+    const appEl = document.getElementById('app');
+    const telemetryService = this._serviceRegistry.get('telemetryService');
+    const stationService = this._serviceRegistry.get('stationService');
+
+    const isAuth = Boolean(authPayload?.isAuthenticated && authPayload?.user);
+
+    if (!isAuth) {
+      // 1. Unauthenticated: Show Marketing Page only, hide dashboard platform
+      if (this._marketingPageView) {
+        this._marketingPageView.show();
+      }
+      if (appEl) {
+        appEl.style.display = 'none';
+      }
+      // Stop telemetry polling to save quota and enforce access control
+      if (telemetryService) {
+        telemetryService.stopPolling();
+      }
+      this._logger.info('Access control enforced: Visitor unauthenticated. Displaying marketing page.');
+    } else {
+      // 2. Authenticated: Hide Marketing Page, unlock platform
+      if (this._marketingPageView) {
+        this._marketingPageView.hide();
+      }
+      if (appEl) {
+        appEl.style.display = 'flex';
+      }
+      this.renderAll();
+
+      // Connect pipeline & start polling if authenticated
+      if (telemetryService) {
+        await telemetryService.connectPipeline();
+        const activeStations = stationService.getActiveStations();
+        if (activeStations.length > 0) {
+          telemetryService.fetchStationSensorsHistory(activeStations[0].id).then(() => {
+            this._timeseriesChartView.render();
+          });
+        }
+      }
+      this._logger.info(`Access granted to platform for authenticated user: ${authPayload.user.email} (${authPayload.role})`);
     }
   }
 
