@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="color-scheme" content="dark light">
-  <title>Shamba Watch · Rift Valley Basin IoT Network</title>
-  <meta name="description" content="Autonomous solar LoRaWAN IoT soil moisture, weather and crop telemetry across Kenya's Great Rift Valley. Reduce water waste and prevent crop wilt by 40%.">
-  <meta property="og:title" content="Shamba Watch · Precision Rift Valley Agricultural IoT">
+  <title>Shamba Watch · Agricultural IoT Network</title>
+  <meta name="description" content="Autonomous solar LoRaWAN IoT soil moisture, weather and crop telemetry across commercial farming basins. Reduce water waste and prevent crop wilt by 40%.">
+  <meta property="og:title" content="Shamba Watch · Precision Agricultural IoT">
   <meta property="og:description" content="Autonomous 24/7 solar soil moisture and climate telemetry for commercial farms and cooperatives in East Africa.">
   <meta property="og:type" content="website">
   
@@ -45,7 +45,7 @@
       <div class="brand-mark">S</div>
       <div class="brand-text">
         <h1>Shamba Watch</h1>
-        <span>Rift Valley Basin · IoT Sensor Network</span>
+        <span>Agricultural IoT Sensor Network</span>
       </div>
     </div>
     <div class="header-right">
@@ -53,7 +53,9 @@
 
       <!-- Unified AI Search & Intelligence Launcher (Merged into AI) -->
       <button class="header-ai-launcher" id="headerAiLauncher" type="button" title="AI Search & Field Intelligence (Press / or Ctrl+K)" aria-label="Open AI Search & Intelligence">
-        <span class="header-ai-sparkle">✦</span>
+        <span class="header-ai-sparkle">
+          <svg class="shamba-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        </span>
         <span class="header-ai-launcher-text">Search & Ask AI...</span>
         <span class="search-kbd">/</span>
       </button>
@@ -64,7 +66,9 @@
 
       <!-- Farmer Administration Portal (Visible to Admin Role) -->
       <button class="admin-portal-btn" id="adminPortalBtn" type="button" style="display:none;" title="Farmer & Station Management Console">
-        <span class="btn-icon">⚙️</span>
+        <span class="btn-icon">
+          <svg class="shamba-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
         <span class="btn-label">Farmer Admin</span>
       </button>
 
@@ -96,13 +100,19 @@
   <!-- MOBILE VIEW TABS (Visible only on screens <= 768px) -->
   <div class="mobile-tab-nav" id="mobileTabNav">
     <button class="mobile-tab-btn active" data-tab="map" type="button">
-      <span class="tab-icon">🗺️</span><span>Map</span>
+      <span class="tab-icon">
+        <svg class="shamba-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      </span><span>Map</span>
     </button>
     <button class="mobile-tab-btn" data-tab="stations" type="button">
-      <span class="tab-icon">📍</span><span>Stations</span>
+      <span class="tab-icon">
+        <svg class="shamba-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </span><span>Stations</span>
     </button>
     <button class="mobile-tab-btn" data-tab="detail" type="button">
-      <span class="tab-icon">📊</span><span>Telemetry</span>
+      <span class="tab-icon">
+        <svg class="shamba-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+      </span><span>Telemetry</span>
     </button>
   </div>
 

@@ -7,6 +7,7 @@
 
 import { StructuredLogger } from '../core/structured-logger.js';
 import { UserRole } from '../services/auth-service.js';
+import { Icons } from './icons.js';
 
 export class AdminPortalView {
   /**
@@ -85,7 +86,7 @@ export class AdminPortalView {
               <p class="admin-header-sub">Manage network subscribers, assign stations to field farmers, and audit unassigned infrastructure.</p>
             </div>
             <div class="admin-header-actions">
-              <button class="btn-secondary btn-sm" id="adminRefreshBtn" type="button">🔄 Refresh Data</button>
+              <button class="btn-secondary btn-sm" id="adminRefreshBtn" type="button">${Icons.refresh({ size: 14 })} Refresh Data</button>
             </div>
           </div>
 
@@ -115,7 +116,7 @@ export class AdminPortalView {
           <!-- SECTION 2: FARMERS & ASSIGNMENTS TABLE -->
           <div class="admin-section">
             <div class="admin-section-header">
-              <h3>🌾 Registered Farmers & Assigned Stations</h3>
+              <h3>${Icons.sprout({ size: 16 })} Registered Farmers & Assigned Stations</h3>
               <span class="admin-section-meta" id="farmerTableMeta">0 farmers registered</span>
             </div>
 
@@ -139,7 +140,7 @@ export class AdminPortalView {
           <!-- SECTION 3: UNASSIGNED STATIONS -->
           <div class="admin-section">
             <div class="admin-section-header">
-              <h3>📡 Unassigned Monitoring Stations</h3>
+              <h3>${Icons.radio({ size: 16 })} Unassigned Monitoring Stations</h3>
               <span class="admin-section-meta" id="unassignedStationsMeta">Stations without a subscribed farmer</span>
             </div>
             <div class="unassigned-stations-grid" id="unassignedStationsGrid">
@@ -150,7 +151,7 @@ export class AdminPortalView {
           <!-- SECTION 4: QUICK ADD FARMER -->
           <div class="admin-section">
             <div class="admin-section-header">
-              <h3>➕ Provision New Farmer Account</h3>
+              <h3>${Icons.plus({ size: 16 })} Provision New Farmer Account</h3>
             </div>
             <form class="admin-add-farmer-form" id="adminAddFarmerForm">
               <div class="form-row">
@@ -168,7 +169,7 @@ export class AdminPortalView {
           <!-- SECTION 5: EMAIL-TO-ROLE MAPPINGS (/roles/roles) -->
           <div class="admin-section">
             <div class="admin-section-header">
-              <h3>🔐 Email-to-Role Mappings (Firestore <code>/roles/roles</code>)</h3>
+              <h3>${Icons.lock({ size: 16 })} Email-to-Role Mappings (Firestore <code>/roles/roles</code>)</h3>
               <span class="admin-section-meta" id="roleMappingMeta">Firestore Access Control Matrix</span>
             </div>
             <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
@@ -250,7 +251,7 @@ export class AdminPortalView {
         if (res.error) {
           this._showFeedback(res.error.message, 'error');
         } else {
-          this._showFeedback(`✓ Successfully provisioned farmer ${name} (${email})!`, 'success');
+          this._showFeedback(`Successfully provisioned farmer ${name} (${email})!`, 'success');
           addFarmerForm.reset();
           await this.refresh();
         }
@@ -279,7 +280,7 @@ export class AdminPortalView {
         if (res.error) {
           this._showFeedback(res.error.message, 'error');
         } else {
-          this._showFeedback(`✓ Role mapped: ${email} ➔ ${role.toUpperCase()}`, 'success');
+          this._showFeedback(`Role mapped: ${email} -> ${role.toUpperCase()}`, 'success');
           addRoleForm.reset();
           await this._renderRoleMappingTable();
         }
@@ -348,7 +349,7 @@ export class AdminPortalView {
     tbody.innerHTML = this._farmers.map((farmer) => {
       const assignedStation = allStations.find((s) => s.id === farmer.assignedStationId);
       const stationDisplay = assignedStation
-        ? `<span class="station-assigned-tag">📍 ${assignedStation.name} (${assignedStation.id})</span>`
+        ? `<span class="station-assigned-tag">${Icons.mapPin({ size: 12 })} ${assignedStation.name} (${assignedStation.id})</span>`
         : `<span class="station-unassigned-tag">Unassigned</span>`;
 
       const options = allStations.map((s) => {
@@ -409,7 +410,7 @@ export class AdminPortalView {
         if (res.error) {
           this._showFeedback(res.error.message, 'error');
         } else {
-          this._showFeedback(`✓ Station ${station?.name || targetStationId} assigned successfully!`, 'success');
+          this._showFeedback(`Station ${station?.name || targetStationId} assigned successfully!`, 'success');
           await this.refresh();
           if (this._onAssignmentChanged) this._onAssignmentChanged();
         }
@@ -429,7 +430,7 @@ export class AdminPortalView {
         if (res.error) {
           this._showFeedback(res.error.message, 'error');
         } else {
-          this._showFeedback('✓ Station assignment removed.', 'success');
+          this._showFeedback('Station assignment removed.', 'success');
           await this.refresh();
           if (this._onAssignmentChanged) this._onAssignmentChanged();
         }
@@ -452,7 +453,7 @@ export class AdminPortalView {
     if (unassignedStations.length === 0) {
       container.innerHTML = `
         <div class="table-empty" style="grid-column: 1 / -1; padding: 20px;">
-          ✓ All monitoring stations currently have a dedicated farmer assigned!
+          All monitoring stations currently have a dedicated farmer assigned!
         </div>`;
       return;
     }
@@ -507,7 +508,7 @@ export class AdminPortalView {
         if (res.error) {
           this._showFeedback(res.error.message, 'error');
         } else {
-          this._showFeedback(`✓ Station ${station?.name || stationId} assigned successfully!`, 'success');
+          this._showFeedback(`Station ${station?.name || stationId} assigned successfully!`, 'success');
           await this.refresh();
           if (this._onAssignmentChanged) this._onAssignmentChanged();
         }
@@ -583,7 +584,7 @@ export class AdminPortalView {
           if (res.error) {
             this._showFeedback(res.error.message, 'error');
           } else {
-            this._showFeedback(`✓ Role updated: ${email} ➔ ${newRole.toUpperCase()}`, 'success');
+            this._showFeedback(`Role updated: ${email} -> ${newRole.toUpperCase()}`, 'success');
             await this._renderRoleMappingTable();
           }
         });

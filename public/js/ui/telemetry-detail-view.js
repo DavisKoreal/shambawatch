@@ -3,6 +3,8 @@
  * Adheres to Rules 1 (SRP), 6 (Low Cyclomatic Complexity), and 34 (Interface Adapters).
  */
 
+import { Icons } from './icons.js';
+
 export class TelemetryDetailView {
   /**
    * @param {Object} dependencies
@@ -47,7 +49,7 @@ export class TelemetryDetailView {
       if (metricGridEl) {
         metricGridEl.innerHTML = `
           <div style="grid-column: 1 / -1; padding: 24px 18px; text-align: center; color: var(--ink-faint); font-family: var(--font-mono); font-size: 11px; border: 1px dashed var(--hairline); border-radius: 8px; background: var(--panel-raised);">
-            📡 No active stations online. When field sensor readings arrive at Firestore (/sensors), station metrics will populate automatically.
+            ${Icons.radio({ size: 16 })} No active stations online. When field sensor readings arrive at Firestore (/sensors), station metrics will populate automatically.
           </div>`;
       }
       if (coreSampleEl) coreSampleEl.innerHTML = '<div class="skeleton-shimmer skeleton-box" style="border-radius:4px; opacity:0.35;"></div>';
@@ -85,14 +87,14 @@ export class TelemetryDetailView {
               </div>
               <div class="metric-hw-row">
                 <span class="sensor-hw-id">#${c.hardwareId}</span>
-                ${c.batteryPct != null ? `<span class="sensor-battery-pill">🔋 ${c.batteryPct}%</span>` : ''}
+                ${c.batteryPct != null ? `<span class="sensor-battery-pill">${Icons.battery({ size: 12 })} ${c.batteryPct}%</span>` : ''}
               </div>
               <div class="metric-value">${c.value}<span class="metric-unit"> ${c.unit}</span></div>
               <div class="metric-card-footer">
                 <div class="metric-delta ${c.deltaDirectionClass}">${c.deltaFormatted} vs prev</div>
                 <div class="sensor-card-actions">
-                  <button type="button" class="btn-sensor-inspect" data-sensor-id="${c.id}" title="Deep-Dive Timeseries & Custom Time Range">📈 Graph</button>
-                  <button type="button" class="btn-sensor-ask-ai" data-sensor-id="${c.id}" title="Ask AI Agronomist about this sensor">✦ AI</button>
+                  <button type="button" class="btn-sensor-inspect" data-sensor-id="${c.id}" title="Deep-Dive Timeseries & Custom Time Range">${Icons.barChart({ size: 12 })} Graph</button>
+                  <button type="button" class="btn-sensor-ask-ai" data-sensor-id="${c.id}" title="Ask AI Agronomist about this sensor">${Icons.sparkles({ size: 12 })} AI</button>
                 </div>
               </div>
             </div>
@@ -151,7 +153,7 @@ export class TelemetryDetailView {
             <div class="skeleton-shimmer skeleton-text" style="width: 40%; height: 9px; margin-bottom: 0;"></div>
           </div>
           <div style="grid-column: 1 / -1; padding: 16px; text-align: center; color: var(--ink-faint); font-family: var(--font-mono); font-size: 11px; border: 1px dashed var(--hairline); border-radius: 8px; background: rgba(35,32,26,0.35);">
-            🌱 Station registered · Awaiting hardware telemetry stream (/sensors)...
+            ${Icons.sprout({ size: 14 })} Station registered · Awaiting hardware telemetry stream (/sensors)...
           </div>`;
       }
     }

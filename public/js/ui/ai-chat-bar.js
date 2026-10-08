@@ -5,6 +5,8 @@
  * Adheres to SWE Principle 1 (SRP), Principle 2 (Separation of Concerns), and Principle 3.
  */
 
+import { Icons } from './icons.js';
+
 export class AiChatBar {
   /**
    * @param {Object} options
@@ -29,7 +31,7 @@ export class AiChatBar {
   _initWelcomeMessage() {
     this._addMessage({
       role: 'assistant',
-      content: "Habari! I am the **Shamba Watch Field AI Agent**, your conversational agronomic partner.\n\nAsk me how the platform works, check real-time sensor telemetry, or get advice on irrigation, soil nutrients, and crop health across the Rift Valley basin.",
+      content: "Habari! I am the **Shamba Watch Field AI Agent**, your conversational agronomic partner.\n\nAsk me how the platform works, check real-time sensor telemetry, or get advice on irrigation, soil nutrients, and crop health across agricultural stations in Kenya.",
       time: this._getTimeString()
     });
   }
@@ -43,7 +45,7 @@ export class AiChatBar {
         <div class="ai-popover-inner">
           <div class="ai-popover-header">
             <div class="ai-header-brand">
-              <span class="ai-sparkle">✦</span>
+              <span class="ai-sparkle">${Icons.sparkles({ size: 14 })}</span>
               <span class="ai-header-title">Shamba Watch Field AI</span>
               <span class="ai-header-status">
                 <span class="ai-status-dot"></span>
@@ -51,7 +53,7 @@ export class AiChatBar {
               </span>
             </div>
             <div class="ai-header-actions">
-              <button class="ai-btn-expand" id="aiExpandBtn" type="button" title="Fit chat to full screen" aria-label="Toggle Fullscreen">⛶ Fit Screen</button>
+              <button class="ai-btn-expand" id="aiExpandBtn" type="button" title="Fit chat to full screen" aria-label="Toggle Fullscreen">Fit Screen</button>
               <button class="ai-btn-clear" id="aiClearBtn" type="button" title="Clear conversation history">↺ Clear</button>
               <button class="ai-popover-close" id="aiCloseBtn" type="button" aria-label="Minimize">&times;</button>
             </div>
@@ -73,7 +75,7 @@ export class AiChatBar {
             <div class="ai-dialog-glow-wrap">
               <div class="ai-dialog-glow-track"></div>
               <div class="ai-dialog-inner">
-                <span class="ai-dialog-sparkle">✦</span>
+                <span class="ai-dialog-sparkle">${Icons.sparkles({ size: 14 })}</span>
                 <input 
                   type="text" 
                   id="aiDialogInput" 
@@ -99,7 +101,7 @@ export class AiChatBar {
       <div class="ai-pill-glow-wrap" id="aiPillGlowWrap">
         <div class="ai-pill-glow-track"></div>
         <form class="ai-bar-pill" id="aiBarForm">
-          <span class="ai-pill-sparkle">✦</span>
+          <span class="ai-pill-sparkle">${Icons.sparkles({ size: 14 })}</span>
           <input 
             type="text" 
             id="aiInput" 
@@ -428,7 +430,7 @@ export class AiChatBar {
       this._hideLoading();
       this._addMessage({
         role: 'assistant',
-        content: `⚠️ Sorry, I encountered an issue: ${error.message}`,
+        content: `Sorry, I encountered an issue: ${error.message}`,
         time: this._getTimeString(),
         isError: true
       });
@@ -446,7 +448,7 @@ export class AiChatBar {
     if (role === 'assistant') {
       const formattedContent = this._formatMarkdown(content);
       msgEl.innerHTML = `
-        <div class="ai-msg-avatar">✦</div>
+        <div class="ai-msg-avatar">${Icons.bot({ size: 14 })}</div>
         <div class="ai-msg-bubble">
           <div class="ai-msg-body">${formattedContent}</div>
           <div class="ai-msg-time">${time}</div>
@@ -474,7 +476,7 @@ export class AiChatBar {
     loadEl.id = 'aiLoadingIndicator';
     loadEl.className = 'ai-message ai-message-assistant ai-loading-item';
     loadEl.innerHTML = `
-      <div class="ai-msg-avatar">✦</div>
+      <div class="ai-msg-avatar">${Icons.bot({ size: 14 })}</div>
       <div class="ai-msg-bubble ai-msg-skeleton">
         <div class="skeleton-shimmer skeleton-text" style="width: 90%; height: 11px; margin-bottom: 7px;"></div>
         <div class="skeleton-shimmer skeleton-text" style="width: 76%; height: 11px; margin-bottom: 7px;"></div>
@@ -545,7 +547,7 @@ export class AiChatBar {
       popover.classList.toggle('ai-fullscreen', this._isFullscreen);
     }
     if (expandBtn) {
-      expandBtn.innerHTML = this._isFullscreen ? '🗗 Compact' : '⛶ Fit Screen';
+      expandBtn.innerHTML = this._isFullscreen ? 'Compact' : 'Fit Screen';
       expandBtn.title = this._isFullscreen ? 'Restore compact size' : 'Fit to full screen';
     }
     this._scrollToBottom();

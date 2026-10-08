@@ -15,7 +15,7 @@ import { SensorMetadata } from '../domain/sensor-metadata.js';
 import { MetricDefinition } from '../domain/metric-definition.js';
 
 /**
- * Known baseline geographical masts across the Rift Valley Basin.
+ * Known baseline geographical masts across the Agricultural Basin.
  * Used strictly for enriching stations when active sensors are registered for their ID.
  * Stations with 0 sensors are never returned in public station listings.
  */

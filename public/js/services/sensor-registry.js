@@ -280,7 +280,7 @@ export class SensorRegistry {
   }
 
   /**
-   * Factory method to seed the 6 canonical Shamba Watch Rift Valley stations
+   * Factory method to seed the 6 canonical Shamba Watch agricultural stations
    * with discrete, individual logical sensors (User Approved Decision).
    * 
    * @param {Array<Object>} stationSpecs

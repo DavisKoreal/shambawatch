@@ -3,6 +3,8 @@
  * Adheres to Rules 1 (SRP), 6 (Low Cyclomatic Complexity), and 34 (Interface Adapters).
  */
 
+import { Icons } from './icons.js';
+
 export class StationListView {
   /**
    * @param {Object} dependencies
@@ -33,7 +35,7 @@ export class StationListView {
     if (allStations.length === 0) {
       this._containerEl.innerHTML = `
         <div style="padding: 24px 18px; text-align: center; color: var(--ink-faint); font-family: var(--font-mono); font-size: 11px;">
-          <div style="font-size: 24px; margin-bottom: 8px;">📡</div>
+          <div style="font-size: 24px; margin-bottom: 8px; color: var(--moss); display: inline-flex;">${Icons.radio({ size: 28 })}</div>
           <div style="color: var(--ink); font-weight: 600; font-family: var(--font-body); font-size: 13px; margin-bottom: 4px;">No Active Stations</div>
           <div style="line-height: 1.5; font-size: 10px; color: var(--ink-dim);">Awaiting field telemetry in Firestore (/sensors). Stations with reporting sensors will appear here automatically.</div>
         </div>

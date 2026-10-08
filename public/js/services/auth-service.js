@@ -65,13 +65,21 @@ export class AuthService {
 
     return new Promise((resolve) => {
       this._authListenerUnsubscribe = fb.auth().onAuthStateChanged(async (user) => {
-        this._currentUser = user;
         if (user) {
-          this._logger.info(`User authenticated: ${user.email} (${user.uid})`);
-          await this._syncUserProfile(user);
+          try {
+            await this._syncUserProfile(user);
+            this._currentUser = user;
+            this._logger.info(`User authenticated: ${user.email} (${this._currentProfile?.role})`);
+          } catch (roleErr) {
+            this._logger.warn(`User ${user.email} has no assigned role in the system. Revoking session.`);
+            this._currentUser = null;
+            this._currentProfile = null;
+            await fb.auth().signOut().catch(() => {});
+          }
         } else {
-          this._logger.info('No active user session. Running in guest/observer mode.');
+          this._currentUser = null;
           this._currentProfile = null;
+          this._logger.info('No active user session. Running in guest/observer mode.');
         }
 
         this._isInitialized = true;
@@ -193,7 +201,7 @@ export class AuthService {
 
   /**
    * Fetches or initializes user profile in Firestore (/users/{uid}),
-   * strictly adhering to the /roles/roles document mappings.
+   * strictly enforcing that the user must have an assigned role in the system.
    * @private
    * @param {Object} user Firebase Auth User
    */
@@ -207,38 +215,49 @@ export class AuthService {
 
     const fb = getFirebase();
     if (!fb?.firestore) {
-      const isAdminEmail = mappedRole === UserRole.ADMIN || (user?.email && (user.email.includes('admin') || user.email === 'admin@shambawatch.org'));
-      const effectiveRole = mappedRole || (isAdminEmail ? UserRole.ADMIN : UserRole.FARMER);
+      if (!mappedRole) {
+        throw new Error('Access denied: Your account does not have an assigned role in the system. Please contact your system administrator.');
+      }
       this._currentProfile = {
         uid: user?.uid || 'offline-uid',
         email: user?.email || '',
-        displayName: user?.displayName || (effectiveRole === UserRole.ADMIN ? 'System Admin' : 'Field Farmer'),
-        role: effectiveRole,
+        displayName: user?.displayName || (mappedRole === UserRole.ADMIN ? 'System Admin' : 'Field Farmer'),
+        role: mappedRole,
         assignedStationId: null
       };
       return;
     }
     const db = fb.firestore();
 
-    try {
-      const docRef = db.collection('users').doc(user.uid);
-      const snapshot = await docRef.get();
+    const docRef = db.collection('users').doc(user.uid);
+    const snapshot = await docRef.get();
 
+    // Determine assigned role: priority is /roles/roles mapping, fallback is established /users/{uid} role
+    let effectiveRole = mappedRole;
+    if (!effectiveRole && snapshot.exists) {
+      const existingData = snapshot.data();
+      if (existingData?.role === UserRole.ADMIN || existingData?.role === UserRole.FARMER) {
+        effectiveRole = existingData.role;
+      }
+    }
+
+    // STRICT ROLE ENFORCEMENT: If no assigned role exists in the system, reject access
+    if (!effectiveRole) {
+      throw new Error('Access denied: Your account does not have an assigned role in the system. Please contact your system administrator.');
+    }
+
+    try {
       if (snapshot.exists) {
         const existingData = snapshot.data();
-        // If the roles mapping document dictates a role, enforce that role
-        if (mappedRole && existingData.role !== mappedRole) {
-          existingData.role = mappedRole;
+        if (existingData.role !== effectiveRole) {
+          existingData.role = effectiveRole;
           existingData.updatedAt = new Date().toISOString();
           await docRef.set(existingData, { merge: true });
-          this._logger.info(`Synchronized user role for ${user.email} from /roles/roles: ${mappedRole}`);
+          this._logger.info(`Synchronized user role for ${user.email} from /roles/roles: ${effectiveRole}`);
         }
         this._currentProfile = existingData;
       } else {
-        // First time login - use mappedRole if available, otherwise check admin email pattern
-        const isAdminEmail = mappedRole === UserRole.ADMIN || (user.email && (user.email.includes('admin') || user.email === 'admin@shambawatch.org'));
-        const effectiveRole = mappedRole || (isAdminEmail ? UserRole.ADMIN : UserRole.FARMER);
-
+        // First-time login for pre-approved email with assigned role
         const defaultProfile = {
           uid: user.uid,
           email: user.email || '',
@@ -251,13 +270,10 @@ export class AuthService {
 
         await docRef.set(defaultProfile);
         this._currentProfile = defaultProfile;
-        this._logger.info(`Provisioned new Firestore user profile: ${user.email} as ${defaultProfile.role} (mapped: ${!!mappedRole})`);
+        this._logger.info(`Provisioned authorized Firestore user profile: ${user.email} as ${defaultProfile.role}`);
       }
     } catch (err) {
       this._logger.error('Failed to sync user profile from Firestore:', err);
-      // Fallback in-memory profile if Firestore write is blocked
-      const isAdminEmail = mappedRole === UserRole.ADMIN || (user.email && (user.email.includes('admin') || user.email === 'admin@shambawatch.org'));
-      const effectiveRole = mappedRole || (isAdminEmail ? UserRole.ADMIN : UserRole.FARMER);
       this._currentProfile = {
         uid: user.uid,
         email: user.email || '',
@@ -269,7 +285,7 @@ export class AuthService {
   }
 
   /**
-   * Signs in a user with email and password.
+   * Signs in a user with email and password, enforcing role assignment.
    * @param {string} email
    * @param {string} password
    * @returns {Promise<Object>} Service Envelope
@@ -282,7 +298,18 @@ export class AuthService {
       }
 
       const cred = await fb.auth().signInWithEmailAndPassword(email, password);
-      await this._syncUserProfile(cred.user);
+      try {
+        await this._syncUserProfile(cred.user);
+      } catch (roleErr) {
+        // Immediately revoke and sign out unassigned users
+        await fb.auth().signOut().catch(() => {});
+        this._currentUser = null;
+        this._currentProfile = null;
+        await this._publishAuthState();
+        return createErrorEnvelope(ServiceErrorCode.UNAUTHORIZED, roleErr.message);
+      }
+
+      this._currentUser = cred.user;
       await this._publishAuthState();
       return createSuccessEnvelope({ user: cred.user, profile: this._currentProfile });
     } catch (err) {
@@ -292,7 +319,7 @@ export class AuthService {
   }
 
   /**
-   * Registers a new user with email, password, and chosen role.
+   * Registers a new user with email and password, verifying assigned role.
    * @param {string} email
    * @param {string} password
    * @param {Object} details
@@ -301,8 +328,20 @@ export class AuthService {
    * @param {string|null} [details.assignedStationId]
    * @returns {Promise<Object>} Service Envelope
    */
-  async signUp(email, password, { displayName, role = UserRole.FARMER, assignedStationId = null } = {}) {
+  async signUp(email, password, { displayName, role = null, assignedStationId = null } = {}) {
     try {
+      // 1. Check role mapping pre-assignment: must have an assigned role to register
+      const emailLower = (email || '').trim().toLowerCase();
+      const roleMapping = await this.fetchRoleMappingDocument().catch(() => ({}));
+      const assignedRole = roleMapping[emailLower] || null;
+
+      if (!assignedRole) {
+        return createErrorEnvelope(
+          ServiceErrorCode.UNAUTHORIZED,
+          'Access denied: This email has not been assigned a role in the system. Please contact your system administrator.'
+        );
+      }
+
       const fb = getFirebase();
       if (!fb?.auth) {
         throw new Error('Firebase Auth is not available.');
@@ -318,8 +357,8 @@ export class AuthService {
       const profile = {
         uid: user.uid,
         email: user.email,
-        displayName: displayName || (role === UserRole.ADMIN ? 'Administrator' : 'Farmer'),
-        role: role === UserRole.ADMIN ? UserRole.ADMIN : UserRole.FARMER,
+        displayName: displayName || (assignedRole === UserRole.ADMIN ? 'Administrator' : 'Farmer'),
+        role: assignedRole === UserRole.ADMIN ? UserRole.ADMIN : UserRole.FARMER,
         assignedStationId: assignedStationId || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -330,6 +369,7 @@ export class AuthService {
         await db.collection('users').doc(user.uid).set(profile);
       }
 
+      this._currentUser = user;
       this._currentProfile = profile;
       await this._publishAuthState();
       return createSuccessEnvelope({ user, profile });

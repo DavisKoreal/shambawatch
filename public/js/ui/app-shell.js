@@ -20,6 +20,7 @@ import { AdminPortalView } from './admin-portal-view.js';
 import { SensorDetailModal } from './sensor-detail-modal.js';
 import { MarketingPageView } from './marketing-page-view.js';
 import { UserRole } from '../services/auth-service.js';
+import { Icons } from './icons.js';
 
 export class AppShell {
   /**
@@ -396,7 +397,7 @@ export class AppShell {
       // Guest observer state
       authSlot.innerHTML = `
         <button class="header-auth-btn signin-btn" id="headerSignInBtn" type="button" title="Sign In or Register with Email/Password">
-          <span class="auth-btn-icon">🔐</span>
+          <span class="auth-btn-icon">${Icons.lock({ size: 14 })}</span>
           <span>Sign In</span>
         </button>
       `;
@@ -421,7 +422,7 @@ export class AppShell {
         <span class="user-role-tag role-${role}">${role.toUpperCase()}</span>
         <span class="user-display-name" title="${user.email}">${displayName}</span>
         ${isFarmer && assignedStationId ? `
-          <span class="farmer-station-chip" title="Subscribed Station: ${assignedStationId}">🌾 ${assignedStationId}</span>
+          <span class="farmer-station-chip" title="Subscribed Station: ${assignedStationId}">${Icons.sprout({ size: 12 })} ${assignedStationId}</span>
         ` : ''}
         <button class="header-signout-btn" id="headerSignOutBtn" type="button" title="Sign Out">Sign Out</button>
       </div>

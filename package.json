@@ -1,7 +1,7 @@
 {
   "name": "shambawatch",
   "version": "1.0.0",
-  "description": "Rift Valley Basin Environmental & Agricultural IoT Telemetry Platform",
+  "description": "Environmental & Agricultural IoT Telemetry Platform",
   "type": "module",
   "scripts": {
     "start": "node scripts/serve.js",

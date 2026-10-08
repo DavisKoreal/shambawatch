@@ -3,7 +3,7 @@
  * @fileoverview Physical Hardware Sensor Ingestion Gateway Script for Shamba Watch.
  * 
  * Simulates edge field gateways (e.g. ESP32 / Pycom / SIM7600 4G LTE-M) deployed across
- * the Rift Valley Basin reading Modbus RS-485 NPK probes, ultrasonic water level sensors,
+ * agricultural basins reading Modbus RS-485 NPK probes, ultrasonic water level sensors,
  * and radiometric thermal IR sensors.
  * 
  * Demonstrates:

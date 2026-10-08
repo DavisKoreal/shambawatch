@@ -5,6 +5,7 @@
  */
 
 import { UserRole } from '../services/auth-service.js';
+import { Icons } from './icons.js';
 
 export class AuthModal {
   /**
@@ -134,14 +135,14 @@ export class AuthModal {
 
           <div class="auth-demo-buttons">
             <button class="btn-demo demo-admin-btn" type="button" id="demoAdminBtn">
-              <span class="demo-icon">👑</span>
+              <span class="demo-icon">${Icons.crown({ size: 18 })}</span>
               <div class="demo-btn-text">
                 <strong>Sign in as Admin</strong>
                 <small>admin@shambawatch.org (All Stations & Management)</small>
               </div>
             </button>
             <button class="btn-demo demo-farmer-btn" type="button" id="demoFarmerBtn">
-              <span class="demo-icon">🌾</span>
+              <span class="demo-icon">${Icons.sprout({ size: 18 })}</span>
               <div class="demo-btn-text">
                 <strong>Sign in as Farmer</strong>
                 <small>farmer@shambawatch.org (Single Station Subscriber)</small>

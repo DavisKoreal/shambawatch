@@ -113,3 +113,15 @@ html, body {
     background: rgba(45, 41, 34, 0.85) !important;
   }
 }
+
+/* Premium Vector Icons */
+.shamba-icon {
+  display: inline-block;
+  vertical-align: -0.15em;
+  stroke-width: 1.75;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  color: currentColor;
+}
+

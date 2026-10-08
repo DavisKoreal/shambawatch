@@ -7,6 +7,7 @@
 
 import { APP_CONFIG } from '../config/app-config.js';
 import { StructuredLogger } from '../core/structured-logger.js';
+import { Icons } from './icons.js';
 
 export class SensorDetailModal {
   /**
@@ -242,7 +243,7 @@ export class SensorDetailModal {
         <div class="sensor-header-top">
           <span class="status-pill status-${state.status}">${state.status.toUpperCase()}</span>
           <span class="sensor-id-tag">ID: ${hardwareId}</span>
-          <span class="station-tag">📍 Station: ${sensor.stationId}</span>
+          <span class="station-tag">${Icons.mapPin({ size: 12 })} Station: ${sensor.stationId}</span>
         </div>
         <h3 class="sensor-modal-title">${meta.name}</h3>
         <p class="sensor-modal-desc">
@@ -582,9 +583,9 @@ export class SensorDetailModal {
       if (status === 'nominal') {
         adviceText = `Soil moisture is at a healthy ${val}${unit}. Root zone hydration is optimal for ${crop} growth. Evapotranspiration is stable and no supplementary irrigation is recommended today.`;
       } else if (val < sensor.metricDefinition.minSafe) {
-        adviceText = `⚠️ Soil moisture has dropped to ${val}${unit}, below the minimum safe threshold of ${sensor.metricDefinition.minSafe}${unit}. To prevent crop stress in your ${crop}, schedule drip irrigation within the next 4–6 hours.`;
+        adviceText = `Soil moisture has dropped to ${val}${unit}, below the minimum safe threshold of ${sensor.metricDefinition.minSafe}${unit}. To prevent crop stress in your ${crop}, schedule drip irrigation within the next 4–6 hours.`;
       } else {
-        adviceText = `⚠️ Moisture is elevated at ${val}${unit}. Check field drainage channels to avoid root waterlogging and hypoxia.`;
+        adviceText = `Moisture is elevated at ${val}${unit}. Check field drainage channels to avoid root waterlogging and hypoxia.`;
       }
     } else if (type === 'temp') {
       adviceText = `Thermal reading is ${val}${unit}. Soil temperatures remain within standard metabolic ranges for ${crop}.`;
@@ -596,7 +597,7 @@ export class SensorDetailModal {
 
     aiEl.innerHTML = `
       <div class="ai-advisor-header">
-        <span class="ai-sparkle">✦</span>
+        <span class="ai-sparkle">${Icons.sparkles({ size: 14 })}</span>
         <strong>Shamba AI Agronomic Insight for Farmer</strong>
       </div>
       <p class="ai-advisor-body">${adviceText}</p>

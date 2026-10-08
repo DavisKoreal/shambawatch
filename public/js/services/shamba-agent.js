@@ -349,7 +349,7 @@ CONVERSATIONAL & OPERATIONAL DIRECTIVES:
       diagnostics = `Critical Alerts (${alertSensors.length}): ${criticalList || 'None'}\nWatchlist (${watchSensors.length}): ${watchList || 'None'}`;
     }
 
-    return `You are the Shamba Watch Field AI Agent, an autonomous agronomic intelligence assistant monitoring agricultural stations in Kenya's Rift Valley basin.
+    return `You are the Shamba Watch Field AI Agent, an autonomous agronomic intelligence assistant monitoring agricultural stations across Kenya.
 
 SYSTEM STATE PROOF (VERIFIED):
 • Database Collection: /${stateProof.collection}
@@ -428,7 +428,7 @@ OPERATIONAL DIRECTIVES:
   _reasonLocally(query) {
     const allSensors = this._registry.getAllSensors();
     const stateProof = this._registry.getSystemStateProof();
-    const offlineNotice = "⚠️ **Offline Mode**: The remote intelligence network is currently offline. Operating with local platform diagnostics.";
+    const offlineNotice = "[Offline Mode]: The remote intelligence network is currently offline. Operating with local platform diagnostics.";
 
     // 0. Zero-Sensor Guard: strictly report that no sensors are present
     if (allSensors.length === 0 || stateProof.isEmpty) {
@@ -443,12 +443,12 @@ OPERATIONAL DIRECTIVES:
       const cleanTerm = query.replace(/^(search|find|locate|where is|lookup|search for|look for)\s+/i, '').trim();
       const matches = this.search(cleanTerm);
       if (matches.length > 0) {
-        let text = `🔍 **AI Search Results for "${cleanTerm}":** Found **${matches.length}** matching item(s) across the Rift Valley Basin:\n\n`;
+        let text = `**AI Search Results for "${cleanTerm}":** Found **${matches.length}** matching item(s) across monitored stations:\n\n`;
         matches.forEach(m => {
           if (m.type === 'STATION') {
-            text += `• 📍 **${m.title}** (\`${m.id}\`): ${m.subtitle}\n`;
+            text += `• **${m.title}** (\`${m.id}\`): ${m.subtitle}\n`;
           } else {
-            text += `• ⚡ **${m.title}** [\`${m.badge}\`]: ${m.subtitle}\n`;
+            text += `• **${m.title}** [\`${m.badge}\`]: ${m.subtitle}\n`;
           }
         });
         const first = matches[0];
@@ -500,7 +500,7 @@ OPERATIONAL DIRECTIVES:
         const ts = testSensors[0];
         const val = ts.currentState?.latestValue != null ? `${ts.currentState.latestValue}${ts.metricDefinition.unitSymbol}` : '46.2%';
         return {
-          text: `${offlineNotice}\n\n🔍 **Test Sensor Detected:**\n• **Sensor Name**: ${ts.metadata.name} (\`${ts.id}\`)\n• **Label**: **test sensor**\n• **Purpose**: Test sensors are sensors connected to just test the system.\n• **Current Reading**: **${val}** (Quality: ${ts.currentState?.quality || 'GOOD'}, Status: ${ts.currentState?.status || 'nominal'})\n• **Station**: ${ts.metadata.location?.stationName || ts.stationId} (Elevation: ${ts.metadata.altitudeMeters || 1890}m ASL)\n\nThis unit is transmitting real-time telemetry from the diagnostic rig to verify end-to-end hardware-to-cloud connectivity.`,
+          text: `${offlineNotice}\n\n**Test Sensor Detected:**\n• **Sensor Name**: ${ts.metadata.name} (\`${ts.id}\`)\n• **Label**: **test sensor**\n• **Purpose**: Test sensors are sensors connected to just test the system.\n• **Current Reading**: **${val}** (Quality: ${ts.currentState?.quality || 'GOOD'}, Status: ${ts.currentState?.status || 'nominal'})\n• **Station**: ${ts.metadata.location?.stationName || ts.stationId} (Elevation: ${ts.metadata.altitudeMeters || 1890}m ASL)\n\nThis unit is transmitting real-time telemetry from the diagnostic rig to verify end-to-end hardware-to-cloud connectivity.`,
           suggestions: [
             "What is the test sensor reading?",
             "How does this platform work?",
@@ -544,12 +544,12 @@ OPERATIONAL DIRECTIVES:
         ? `across ${stations.length} active reporting station${stations.length > 1 ? 's' : ''}`
         : 'across the telemetry network';
       return {
-        text: `✅ **All Systems Nominal!** None of the monitored sensors ${stationCountDesc} have critical threshold violations or active warnings.`,
+        text: `**All Systems Nominal!** None of the monitored sensors ${stationCountDesc} have critical threshold violations or active warnings.`,
         suggestions: ["Summarize all stations", "Check soil moisture", "Check soil nutrients"]
       };
     }
 
-    let response = `⚠️ **Active Telemetry Diagnostics (${alertSensors.length} Critical, ${watchSensors.length} Warning):**\n\n`;
+    let response = `**Active Telemetry Diagnostics (${alertSensors.length} Critical, ${watchSensors.length} Warning):**\n\n`;
 
     if (alertSensors.length > 0) {
       response += `**Critical Alerts:**\n`;
@@ -582,7 +582,7 @@ OPERATIONAL DIRECTIVES:
       ? (moistureSensors.reduce((sum, s) => sum + (s.currentState?.latestValue || 0), 0) / moistureSensors.length).toFixed(1)
       : 'N/A';
 
-    let text = `📊 **Shamba Watch Rift Valley Basin Telemetry Overview**\n\n`;
+    let text = `**Shamba Watch Agricultural Network Telemetry Overview**\n\n`;
     const stationCount = stations.length;
     text += `• **Stations Monitored**: ${stationCount} active deployment mast${stationCount === 1 ? '' : 's'}${stationCount > 0 ? ` (${stations.map(s => s.name).join(', ')})` : ' (awaiting telemetry)'}\n`;
     text += `• **Logical Sensor Channels**: ${allSensors.length} online\n`;
@@ -615,19 +615,19 @@ OPERATIONAL DIRECTIVES:
 
     if (moistureSensors.length === 0) {
       return {
-        text: `💧 **Irrigation Diagnostic**: No soil moisture sensors are currently active in Firestore (\`/sensors\`). Waiting for field telemetry to evaluate irrigation needs.`,
+        text: `**Irrigation Diagnostic**: No soil moisture sensors are currently active in Firestore (\`/sensors\`). Waiting for field telemetry to evaluate irrigation needs.`,
         suggestions: ["Summarize all stations", "Check active alerts", "How does this platform work?"]
       };
     }
 
     if (drySensors.length === 0) {
       return {
-        text: `💧 **Irrigation Diagnostic**: Soil moisture levels are adequate across the network (all reporting stations > 30% root zone moisture). No immediate supplementary irrigation required.`,
+        text: `**Irrigation Diagnostic**: Soil moisture levels are adequate across the network (all reporting stations > 30% root zone moisture). No immediate supplementary irrigation required.`,
         suggestions: ["Check soil moisture", "Show ambient humidity", "Any active alerts?"]
       };
     }
 
-    let text = `💧 **Irrigation Recommendations:**\n\nThe following zones indicate root zone soil moisture depletion below optimal agronomic levels:\n\n`;
+    let text = `**Irrigation Recommendations:**\n\nThe following zones indicate root zone soil moisture depletion below optimal agronomic levels:\n\n`;
     drySensors.forEach(s => {
       const st = stations.find(x => x.id === s.stationId);
       text += `• **${st ? st.name : s.stationId}** (${st?.crop || 'Crop'}): Moisture is **${s.currentState.latestValue}%** (Optimal: 40–60%). Recommend starting drip cycle for **45–60 minutes**.\n`;
@@ -643,13 +643,13 @@ OPERATIONAL DIRECTIVES:
     const moistureSensors = this._registry.getSensorsByMetric('moisture');
     if (moistureSensors.length === 0) {
       return {
-        text: `🌱 **Soil Moisture Telemetry**: No soil moisture sensors are currently streaming data in Firestore (\`/sensors\`).`,
+        text: `**Soil Moisture Telemetry**: No soil moisture sensors are currently streaming data in Firestore (\`/sensors\`).`,
         suggestions: ["Summarize all stations", "Check active alerts", "How does this platform work?"]
       };
     }
 
     const stations = this._getStationsList();
-    let text = `🌱 **Volumetric Soil Moisture Readings:**\n\n`;
+    let text = `**Volumetric Soil Moisture Readings:**\n\n`;
     moistureSensors.forEach(s => {
       const st = stations.find(x => x.id === s.stationId);
       const stName = st ? st.name : (s.metadata?.location?.stationName || s.stationId);
@@ -668,7 +668,7 @@ OPERATIONAL DIRECTIVES:
     const stations = this._getStationsList();
     if (stations.length === 0) {
       return {
-        text: `🧪 **Soil Nutrient Profile**: No stations are currently reporting telemetry in Firestore (\`/sensors\`).`,
+        text: `**Soil Nutrient Profile**: No stations are currently reporting telemetry in Firestore (\`/sensors\`).`,
         suggestions: ["Summarize all stations", "Any active alerts?", "How does this platform work?"]
       };
     }
@@ -686,7 +686,7 @@ OPERATIONAL DIRECTIVES:
     const p = sSensors.find(x => x.metricDefinition.metricType === 'phosphorus')?.currentState?.latestValue ?? targetStation.nutrient?.p ?? 'N/A';
     const k = sSensors.find(x => x.metricDefinition.metricType === 'potassium')?.currentState?.latestValue ?? targetStation.nutrient?.k ?? 'N/A';
 
-    const text = `🧪 **Soil Nutrient Profile (25–40cm Horizon)**\n**Station**: ${targetStation.name} (${targetStation.crop || 'Field'})\n\n` +
+    const text = `**Soil Nutrient Profile (25–40cm Horizon)**\n**Station**: ${targetStation.name} (${targetStation.crop || 'Field'})\n\n` +
       `• **Nitrogen (N)**: **${n}%** ${typeof n === 'number' && n < 35 ? '(Deficient — consider urea / CAN top-dress)' : '(Optimal)'}\n` +
       `• **Phosphorus (P)**: **${p}%** ${typeof p === 'number' && p < 30 ? '(Low — consider DAP incorporation)' : '(Good)'}\n` +
       `• **Potassium (K)**: **${k}%** ${typeof k === 'number' && k < 40 ? '(Marginal)' : '(Sufficient for vegetative vigour)'}\n`;
@@ -706,9 +706,9 @@ OPERATIONAL DIRECTIVES:
 
     const coords = (station.lat != null && station.lng != null)
       ? `${station.lat.toFixed(4)}°, ${station.lng.toFixed(4)}°`
-      : 'Rift Valley Basin';
+      : 'Agricultural Basin';
 
-    const text = `📍 **${station.name} (${station.id}) Telemetry Brief**\n` +
+    const text = `**${station.name} (${station.id}) Telemetry Brief**\n` +
       `• **Target Crop**: ${station.crop || 'Field'}\n` +
       `• **GPS Coordinates**: ${coords}\n` +
       `• **Soil Moisture**: **${m}%**\n` +

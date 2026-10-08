@@ -5,6 +5,7 @@
  */
 
 import { Logger } from '../config/app-config.js';
+import { Icons } from './icons.js';
 
 export class NotificationManager {
   /**
@@ -30,7 +31,7 @@ export class NotificationManager {
     this._showToast({
       id: `sensor-${sensor.id}-${Date.now()}`,
       type: 'discovery',
-      icon: '🌱',
+      icon: Icons.sprout({ size: 18 }),
       title,
       message,
       actionLabel: 'View Sensor',
@@ -55,7 +56,7 @@ export class NotificationManager {
     this._showToast({
       id: `alert-${Date.now()}`,
       type: 'alert',
-      icon: '⚠️',
+      icon: Icons.alertTriangle({ size: 18 }),
       title,
       message,
       durationMs,
@@ -72,7 +73,7 @@ export class NotificationManager {
     this._showToast({
       id: `info-${Date.now()}`,
       type: 'info',
-      icon: 'ℹ️',
+      icon: Icons.info({ size: 18 }),
       title,
       message,
       durationMs,

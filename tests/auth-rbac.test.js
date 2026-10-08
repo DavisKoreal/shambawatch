@@ -255,6 +255,44 @@ test('AuthService: Firestore /roles/roles Document Mapping and Dynamic RBAC', as
     assert.ok(profile);
     assert.equal(profile.role, 'admin');
   });
+
+  await t.test('strict role enforcement: should throw and reject user without an assigned role', async () => {
+    const eventBus = new EventBus();
+    const authService = new AuthService({ eventBus });
+
+    // Mock role mapping document with no role for unauthorized user
+    authService.fetchRoleMappingDocument = async () => ({
+      'admin@shambawatch.org': 'admin',
+      'farmer@shambawatch.org': 'farmer'
+    });
+
+    const unassignedUser = {
+      uid: 'user-random-99',
+      email: 'stranger@example.com',
+      displayName: 'Random Person'
+    };
+
+    await assert.rejects(
+      async () => {
+        await authService._syncUserProfile(unassignedUser);
+      },
+      /Access denied: Your account does not have an assigned role in the system/
+    );
+  });
+
+  await t.test('strict role enforcement: signUp should reject registration if email has no assigned role', async () => {
+    const eventBus = new EventBus();
+    const authService = new AuthService({ eventBus });
+
+    authService.fetchRoleMappingDocument = async () => ({
+      'admin@shambawatch.org': 'admin'
+    });
+
+    const result = await authService.signUp('unmapped@external.org', 'Secret123!');
+    assert.equal(result.success, false);
+    assert.equal(result.error?.code, 'UNAUTHORIZED');
+    assert.match(result.error?.message, /Access denied: This email has not been assigned a role in the system/);
+  });
 });
 
 

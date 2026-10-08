@@ -141,7 +141,7 @@ def build_docx(filename):
     # Subtitle
     p_sub = doc.add_paragraph()
     p_sub.paragraph_format.space_after = Pt(10)
-    run_sub = p_sub.add_run("Turnkey Deployment of 6-Station Environmental & Agricultural Telemetry Network across the Rift Valley Basin, Kenya\n"
+    run_sub = p_sub.add_run("Turnkey Deployment of 6-Station Environmental & Agricultural Telemetry Network across the Agricultural Basin, Kenya\n"
                              "Naivasha · Ol Kalou · Nakuru Basin · Molo · Elementaita · Gilgil | Exchange Rate: 1 USD ≈ 130 KES")
     run_sub.font.name = "Calibri"
     run_sub.font.size = Pt(10)
@@ -172,7 +172,7 @@ def build_docx(filename):
     
     doc.add_paragraph(
         "Shamba Watch monitors hydrological, soil chemical, and microclimatic dynamics across 6 sentinel stations in the Kenyan "
-        "Rift Valley basin. Each station operates autonomously off-grid, transmitting real-time telemetry over cellular LTE-M / NB-IoT to a cloud dashboard."
+        "agricultural basin. Each station operates autonomously off-grid, transmitting real-time telemetry over cellular LTE-M / NB-IoT to a cloud dashboard."
     )
 
     p_bullets = doc.add_paragraph()
@@ -285,7 +285,7 @@ def build_docx(filename):
     log_widths = [1.5, 2.7, 0.75, 0.65, 0.85, 0.75]
     log_data = [
         ["Vehicle Hire & Fuel", "4WD vehicle across Nairobi – Naivasha – Nakuru – Molo – Ol Kalou circuit", "$120/day", "7 days", "109,200", "$840.00"],
-        ["Field Per Diem & Stays", "3-person deployment team field allowances in Rift Valley", "$150/day", "6 days", "117,000", "$900.00"],
+        ["Field Per Diem & Stays", "3-person deployment team field allowances in Agricultural Basin", "$150/day", "6 days", "117,000", "$900.00"],
         ["Permits & Wayleaves", "County permissions & Water Resources Authority (WARMA) coordination", "Lump sum", "1", "45,500", "$350.00"],
         ["Subtotal", "Logistics, Field Travel & Regional Permits", "-", "-", "KES 271,700", "$2,090.00"]
     ]
@@ -321,7 +321,7 @@ def build_docx(filename):
         ["2. Power & Edge Gateways", "6 stations x Solar panels, MPPT controllers, Li-ion batteries, LTE-M boards", "249,000", "$1,915.38", "15.9%"],
         ["3. Civil Works & Security", "6 stations x 3.5m masts, earth grounding, anti-theft cages, concrete footings", "201,000", "$1,546.15", "12.9%"],
         ["4. Engineering & Field Labor", "288 billable hours across firmware, cloud, UI, agronomy, installation @ KES 1,700/hr", "489,600", "$3,766.15", "31.3%"],
-        ["5. Logistics & Travel", "7-day 4WD vehicle hire, technician per diems across Rift Valley, WARMA permits", "271,700", "$2,090.00", "17.4%"],
+        ["5. Logistics & Travel", "7-day 4WD vehicle hire, technician per diems across Agricultural Basin, WARMA permits", "271,700", "$2,090.00", "17.4%"],
         ["Contingency Buffer (8%)", "Unforeseen site modifications, spare cables, hardware replacement reserve", "95,616", "$735.51", "6.1%"],
         ["TOTAL PROJECT CAPEX", "Turnkey Procurement, Engineering, Deployment & Handover", "KES 1,561,916", "$12,014.74", "100.0%"],
         ["ANNUAL OPEX (YEAR 1)", "Cellular IoT SIMs, Cloud Hosting, Quarterly Field Maintenance & Spares", "KES 254,800", "$1,960.00/yr", "-"]
