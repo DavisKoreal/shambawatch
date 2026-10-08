@@ -1,0 +1,201 @@
+/**
+ * Shamba Watch 2.0 — Clockwise Glowing Search Bar & Autocomplete Dropdown
+ */
+
+.search-glow-wrap {
+  position: relative;
+  border-radius: 20px;
+  padding: 1.5px;
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+}
+
+.search-glow-track {
+  position: absolute;
+  inset: -1px;
+  border-radius: 21px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Circulates Clockwise using conic-gradient with Moss (#7A9471), Basin Blue (#4C87A6), and Nutrient Amber (#C9A227) */
+.search-glow-track::before {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 180deg,
+    rgba(76, 135, 166, 0.45) 230deg,
+    rgba(122, 148, 113, 0.95) 275deg,
+    rgba(201, 162, 39, 0.75) 320deg,
+    transparent 360deg
+  );
+  animation: rotateClockwise 3.2s linear infinite;
+}
+
+@keyframes rotateClockwise {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.search-inner {
+  position: relative;
+  z-index: 1;
+  background: var(--panel);
+  border-radius: 19px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border: 1px solid rgba(53, 49, 42, 0.85);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.search-glow-wrap:focus-within .search-inner {
+  background: var(--panel-raised);
+  border-color: rgba(122, 148, 113, 0.6);
+}
+
+.search-icon {
+  color: var(--moss);
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  width: 170px;
+  letter-spacing: 0.2px;
+}
+
+.search-input::placeholder {
+  color: var(--ink-faint);
+}
+
+.search-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  padding: 1px 5px;
+  border-radius: 3px;
+  line-height: 1.2;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Search Dropdown Popup */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: var(--popover-bg);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  box-shadow: var(--popover-shadow);
+  backdrop-filter: blur(8px);
+  z-index: 500;
+  display: none;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.search-dropdown.visible {
+  display: block;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.search-item:hover, .search-item.selected {
+  background: var(--panel-raised);
+}
+
+.search-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.search-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge-station { background: var(--badge-station-bg); color: var(--badge-station-text); border: 1px solid var(--moss); }
+.badge-sensor { background: var(--badge-sensor-bg); color: var(--badge-sensor-text); border: 1px solid var(--water); }
+
+.search-item-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-item-title mark {
+  background: var(--moss-dim);
+  color: var(--ink);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.search-item-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.search-arrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  opacity: 0.5;
+}
+
+.search-empty {
+  padding: 12px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}

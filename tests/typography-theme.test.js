@@ -105,20 +105,26 @@ assert(getContrastRatio(lightMoss, lightBg) >= 4.5, 'Light moss accent must achi
 assert(getContrastRatio(lightEarth, lightBg) >= 4.5, 'Light earth alert accent must achieve WCAG AA');
 console.log('✓ All 3 Universal Text Shades and status accents strictly pass WCAG 2.1 AA/AAA contrast limits!');
 
-// 4. Validate public/index.html Theme Architecture
+// 4. Validate SOA Theme Architecture
 const htmlPath = resolve(__dirname, '../public/index.html');
 const htmlContent = readFileSync(htmlPath, 'utf8');
 
+const tokensPath = resolve(__dirname, '../public/css/tokens.css');
+const tokensContent = readFileSync(tokensPath, 'utf8');
+
+const themeServicePath = resolve(__dirname, '../public/js/services/theme-service.js');
+const themeServiceContent = readFileSync(themeServicePath, 'utf8');
+
 assert(htmlContent.includes('<meta name="color-scheme" content="dark light">'), 'index.html must declare color-scheme meta');
 assert(htmlContent.includes('localStorage.getItem(\'shamba-theme\')'), 'index.html must include synchronous theme hydration script');
-assert(htmlContent.includes('[data-theme="dark"]'), 'index.html must define dark theme CSS tokens');
-assert(htmlContent.includes('[data-theme="light"]'), 'index.html must define light theme CSS tokens');
+assert(tokensContent.includes('[data-theme="dark"]'), 'tokens.css must define dark theme CSS tokens');
+assert(tokensContent.includes('[data-theme="light"]'), 'tokens.css must define light theme CSS tokens');
 assert(htmlContent.includes('id="themeToggleBtn"'), 'index.html must render theme toggle button');
 assert(htmlContent.includes('theme-svg-sun') && htmlContent.includes('theme-svg-moon'), 'Theme toggle button must include sun and moon icons');
-assert(htmlContent.includes('function initThemeController()'), 'index.html must define theme controller logic');
-assert(htmlContent.includes('initThemeController();'), 'bootstrap() must invoke initThemeController()');
+assert(themeServiceContent.includes('class ThemeService'), 'theme-service.js must define ThemeService');
+assert(themeServiceContent.includes('toggleTheme'), 'ThemeService must implement toggleTheme()');
 
-console.log('✓ index.html successfully implements dual-theme tokens, FOUC-prevention hydration, and theme toggler!');
+console.log('✓ index.html and SOA ThemeService successfully implement dual-theme tokens, FOUC-prevention hydration, and theme toggler!');
 console.log('========================================');
 console.log('  ALL THEME & CONTRAST TESTS PASSED!    ');
 console.log('========================================\n');

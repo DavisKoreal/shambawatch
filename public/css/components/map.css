@@ -1,0 +1,50 @@
+/**
+ * Shamba Watch 2.0 — Geospatial GIS Leaflet Map Component
+ */
+
+.map-wrap {
+  position: relative;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  filter: saturate(.85) brightness(.9);
+}
+
+[data-theme="light"] #map {
+  filter: saturate(1.02) contrast(1.02);
+}
+
+#map.ir-mode {
+  filter: sepia(1) hue-rotate(150deg) saturate(4) brightness(.75) contrast(1.2) !important;
+}
+
+.map-legend {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 400;
+  background: var(--legend-bg);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-dim);
+  backdrop-filter: blur(3px);
+  font-variant-numeric: tabular-nums;
+}
+
+.map-legend .lg-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.lg-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}

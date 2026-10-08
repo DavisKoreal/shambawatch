@@ -1,0 +1,100 @@
+/**
+ * Shamba Watch 2.0 — Timeseries Strip & SVG Chart Component
+ */
+
+.strip {
+  height: 130px;
+  border-top: 1px solid var(--hairline);
+  background: var(--panel);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.strip-label {
+  width: 280px;
+  border-right: 1px solid var(--hairline);
+  padding: 14px 18px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.strip-metric-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  font-optical-sizing: auto;
+}
+
+.strip-metric-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+.metric-select {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.ms-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--panel-raised);
+  color: var(--ink-dim);
+  cursor: pointer;
+  border: 1px solid transparent;
+  letter-spacing: 0.04em;
+}
+
+.ms-btn.active {
+  border-color: var(--moss);
+  color: var(--ink);
+}
+
+/* Configurable Windowing Selector (User Approved Decision) */
+.window-select {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.window-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-right: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ws-btn {
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-btn.active {
+  border-color: var(--moss);
+  color: var(--ink);
+  background: var(--moss-dim);
+}
+
+.strip-chart {
+  flex: 1;
+  position: relative;
+  padding: 10px 20px;
+}

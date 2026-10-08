@@ -1,0 +1,303 @@
+/**
+ * Shamba Watch 2.0 — App Shell Layout, Masthead, Navigation, and Media Queries
+ */
+
+/* Contour texture */
+.contour-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .05;
+  background-image: repeating-radial-gradient(circle at 20% 30%, transparent 0 18px, var(--ink) 18px 19px, transparent 19px 40px);
+}
+
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--panel);
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 3px;
+  background: linear-gradient(155deg, var(--moss) 0%, var(--water-dim) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--bg);
+  font-size: 16px;
+}
+.brand-text h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  margin: 0;
+  letter-spacing: -0.01em;
+  font-optical-sizing: auto;
+}
+.brand-text span {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.clock {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+.source-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-dim);
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  padding: 5px 11px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color .2s;
+  font-variant-numeric: tabular-nums;
+}
+.source-pill:hover {
+  border-color: var(--moss);
+}
+.source-pill.production-pill {
+  cursor: default;
+  border-color: var(--hairline);
+  background: var(--panel-raised);
+}
+.source-pill.production-pill:hover {
+  border-color: var(--moss);
+}
+.source-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--water);
+}
+.source-dot.live {
+  background: var(--moss);
+  box-shadow: 0 0 6px var(--moss);
+}
+
+.alert-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--earth-dim);
+  color: var(--ink);
+  border: 1px solid var(--earth);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.alert-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--earth);
+  animation: pulse 1.8s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .3; }
+}
+
+/* Theme Toggle Switcher */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background-color .15s;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+.theme-toggle-btn:hover {
+  border-color: var(--moss);
+  color: var(--ink);
+}
+.theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+[data-theme="dark"] .theme-svg-moon { display: inline-block; color: var(--nutrient); }
+[data-theme="dark"] .theme-svg-sun { display: none; }
+[data-theme="light"] .theme-svg-sun { display: inline-block; color: var(--nutrient); }
+[data-theme="light"] .theme-svg-moon { display: none; }
+
+/* Main Grid Layout */
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 250px 1fr 340px;
+  min-height: 0;
+}
+
+/* Mobile View Tab Switcher */
+.mobile-tab-nav {
+  display: none;
+  background: var(--panel);
+  border-bottom: 1px solid var(--hairline);
+  padding: 6px 12px;
+  gap: 8px;
+  flex-shrink: 0;
+  z-index: 4;
+}
+
+.mobile-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mobile-tab-btn:hover {
+  color: var(--ink);
+  border-color: var(--moss-dim);
+}
+
+.mobile-tab-btn.active {
+  background: rgba(122, 148, 113, 0.22);
+  border-color: var(--moss);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 220px 1fr 290px;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 8px 12px;
+  }
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .brand-text h1 {
+    font-size: 15px;
+  }
+  .brand-text span {
+    display: none;
+  }
+  .clock {
+    display: none;
+  }
+  .header-right {
+    gap: 8px;
+  }
+  .source-pill {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  #telemetryStatusLabel {
+    display: none;
+  }
+  .source-pill::after {
+    content: 'Live';
+    font-size: 10px;
+  }
+  .alert-pill {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  /* Mobile Tab Switching */
+  .mobile-tab-nav {
+    display: flex;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+  }
+  .layout .sidebar,
+  .layout .map-wrap,
+  .layout .detail {
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    min-height: 0;
+    border: none;
+  }
+  .layout.show-map .map-wrap {
+    display: block;
+  }
+  .layout.show-stations .sidebar {
+    display: block;
+  }
+  .layout.show-detail .detail {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-mark {
+    display: none;
+  }
+}
+
+@media (max-height: 680px) {
+  header {
+    padding: 6px 14px;
+  }
+}

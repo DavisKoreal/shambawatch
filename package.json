@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node scripts/serve.js",
-    "test": "node tests/sensor-domain.test.js && node tests/lorawan-decoder.test.js && node tests/rate-limiter.test.js && node tests/typography-theme.test.js",
+    "test": "node tests/sensor-domain.test.js && node tests/lorawan-decoder.test.js && node tests/rate-limiter.test.js && node tests/typography-theme.test.js && node --test tests/soa-architecture.test.js",
     "ingest": "node scripts/ingest_telemetry.js",
     "ingest:dry": "node scripts/ingest_telemetry.js --dry-run",
     "ingest:loop": "node scripts/ingest_telemetry.js --loop --interval 3",

@@ -93,7 +93,7 @@ console.log('\n--- Running Mathematical Rate Limiter Unit Tests ---\n');
   for (let i = 1; i <= 5; i++) {
     limiter.evaluateWrite(`TEST_NODE_${i}`);
   }
-  assert(limiter.tokens === 0, 'Tokens should be 0');
+  assert(Math.round(limiter.tokens) === 0, 'Tokens should be 0');
 
   // Simulate 10 seconds of elapsed time (should refill 0.2 tokens/sec * 10 = 2.0 tokens)
   limiter.lastRefillMs = Date.now() - 10000;

@@ -1,0 +1,14 @@
+/**
+ * Shamba Watch 2.0 — Master Style Bundle (SOA CSS Architecture)
+ */
+
+@import './tokens.css';
+@import './base.css';
+@import './layout.css';
+@import './components/sidebar.css';
+@import './components/map.css';
+@import './components/detail.css';
+@import './components/chart.css';
+@import './components/search.css';
+@import './components/chat.css';
+@import './components/notifications.css';
