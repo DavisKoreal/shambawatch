@@ -11,7 +11,9 @@
     "ingest:loop": "node scripts/ingest_telemetry.js --loop --interval 3",
     "ingest:mqtt": "node scripts/mqtt_ingestion_bridge.js",
     "ingest:mqtt:dry": "node scripts/mqtt_ingestion_bridge.js --dry-run",
-    "ingest:worker": "node scripts/mqtt_ingestion_bridge.js --worker"
+    "ingest:worker": "node scripts/mqtt_ingestion_bridge.js --worker",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "keywords": [
     "iot",
@@ -25,5 +27,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "mqtt": "^5.16.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.148.0"
   }
 }
