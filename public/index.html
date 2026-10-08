@@ -1732,15 +1732,18 @@ import { AiChatBar } from './js/ui/ai-chat-bar.js';
 import { NotificationManager } from './js/ui/notification-manager.js';
 
 // ============================================================================
-// CANONICAL STATIONS SPECIFICATION
 // ============================================================================
-const STATIONS = [
-  {id:'ST-01', name:'Naivasha North Plot', lat:-0.6980, lng:36.4200, crop:'Flower greenhouse', water:62, moisture:41, nutrient:{n:58,p:44,k:71}, humidity:55, temp:26.4},
-  {id:'ST-02', name:'Ol Kalou Maize Block', lat:-0.2760, lng:36.3730, crop:'Maize', water:18, moisture:22, nutrient:{n:31,p:29,k:40}, humidity:38, temp:29.1},
-  {id:'ST-03', name:'Nakuru Basin Wetland', lat:-0.3670, lng:36.0800, crop:'Wetland buffer', water:91, moisture:88, nutrient:{n:64,p:50,k:66}, humidity:80, temp:22.7},
-  {id:'ST-04', name:'Molo Highland Terrace', lat:-0.2470, lng:35.7330, crop:'Tea', water:54, moisture:63, nutrient:{n:70,p:61,k:58}, humidity:72, temp:18.9},
-  {id:'ST-05', name:'Elementaita Rangeland', lat:-0.4550, lng:36.2500, crop:'Grazing / rangeland', water:12, moisture:15, nutrient:{n:24,p:20,k:33}, humidity:29, temp:31.6},
-  {id:'ST-06', name:'Gilgil River Intake', lat:-0.5020, lng:36.3190, crop:'Irrigation intake', water:74, moisture:69, nutrient:{n:47,p:39,k:52}, humidity:64, temp:24.2},
+// DYNAMIC STATION MANAGEMENT (Zero-Sensor Stations Removed)
+// ============================================================================
+// Stations are dynamically discovered strictly from registered active sensors.
+// Stations with 0 sensors are never displayed.
+const STATION_METADATA_CATALOG = [
+  {id:'ST-01', name:'Naivasha North Plot', lat:-0.6980, lng:36.4200, crop:'Flower greenhouse'},
+  {id:'ST-02', name:'Ol Kalou Maize Block', lat:-0.2760, lng:36.3730, crop:'Maize'},
+  {id:'ST-03', name:'Nakuru Basin Wetland', lat:-0.3670, lng:36.0800, crop:'Wetland buffer'},
+  {id:'ST-04', name:'Molo Highland Terrace', lat:-0.2470, lng:35.7330, crop:'Tea'},
+  {id:'ST-05', name:'Elementaita Rangeland', lat:-0.4550, lng:36.2500, crop:'Grazing / rangeland'},
+  {id:'ST-06', name:'Gilgil River Intake', lat:-0.5020, lng:36.3190, crop:'Irrigation intake'},
 ];
 
 // ============================================================================
@@ -1751,7 +1754,7 @@ const registry = new SensorRegistry(initialRepository);
 const presenter = new DashboardPresenter(registry);
 
 // Application State
-let activeStationId = STATIONS[0].id;
+let activeStationId = null;
 let activeMetricType = 'moisture';
 let activeWindowMs = APP_CONFIG.TIME_WINDOWS.TWENTY_FOUR_HOURS;
 let activeLayer = 'terrain';
@@ -1769,16 +1772,38 @@ terrainLayer.addTo(map);
 const markers = {};
 
 function initMapMarkers() {
-  STATIONS.forEach((s) => {
-    const icon = L.divIcon({
-      className: '',
-      html: `<div id="marker-${s.id}" style="width:14px;height:14px;border-radius:50%;background:#7A9471;border:2px solid var(--panel);box-shadow:0 0 0 3px rgba(122,148,113,0.35);"></div>`,
-      iconSize: [14, 14],
-      iconAnchor: [7, 7]
-    });
-    const m = L.marker([s.lat, s.lng], {icon}).addTo(map);
-    m.on('click', () => selectStation(s.id));
-    markers[s.id] = m;
+  // Map markers are rendered dynamically only for stations that have reporting sensors
+  syncMapMarkers();
+}
+
+function syncMapMarkers() {
+  const allStations = getAllStations();
+  const currentIds = new Set(allStations.map((s) => s.id));
+
+  // Remove markers for stations that have no reporting sensors
+  Object.keys(markers).forEach((stId) => {
+    if (!currentIds.has(stId)) {
+      if (markers[stId]) map.removeLayer(markers[stId]);
+      delete markers[stId];
+    }
+  });
+
+  // Place markers strictly for stations with active reporting sensors
+  allStations.forEach((s) => {
+    if (s.lat != null && s.lng != null && !markers[s.id] && map) {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div id="marker-${s.id}" style="width:14px;height:14px;border-radius:50%;background:#7A9471;border:2px solid var(--panel);box-shadow:0 0 0 3px rgba(122,148,113,0.35);"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+      const m = L.marker([s.lat, s.lng], {icon}).addTo(map);
+      m.on('click', () => {
+        userManuallySelectedStation = true;
+        selectStation(s.id);
+      });
+      markers[s.id] = m;
+    }
   });
 }
 
@@ -1808,17 +1833,10 @@ document.querySelectorAll('.toggle-btn').forEach((btn) => {
 // ============================================================================
 
 function getAllStations() {
-  const discovered = registry.getStations(STATIONS);
-  const stationsMap = new Map();
-  // Discovered stations with reporting sensors appear first
-  discovered.forEach((s) => stationsMap.set(s.id, s));
-  // Canonical template stations
-  STATIONS.forEach((s) => {
-    if (!stationsMap.has(s.id)) {
-      stationsMap.set(s.id, { ...s, sensorCount: 0 });
-    }
-  });
-  return Array.from(stationsMap.values());
+  // Only return stations that actually have registered reporting sensors.
+  // Template stations with 0 sensors are strictly excluded.
+  const discovered = registry.getStations(STATION_METADATA_CATALOG);
+  return discovered.filter((s) => s.sensorCount > 0);
 }
 
 let userManuallySelectedStation = false;
@@ -1827,13 +1845,22 @@ function renderSidebar() {
   const listEl = document.getElementById('stationList');
   const allStations = getAllStations();
 
-  // If active station has 0 sensors but there are stations with active sensors, auto-switch to active one
-  if (!userManuallySelectedStation) {
-    const activeWithSensors = allStations.find(s => s.sensorCount > 0);
-    const current = allStations.find(s => s.id === activeStationId);
-    if (activeWithSensors && (!current || current.sensorCount === 0)) {
-      activeStationId = activeWithSensors.id;
-    }
+  // If no station selected or current station has 0 sensors, select first station with sensors
+  if (!userManuallySelectedStation || !allStations.some((s) => s.id === activeStationId)) {
+    activeStationId = allStations.length > 0 ? allStations[0].id : null;
+  }
+
+  syncMapMarkers();
+
+  if (allStations.length === 0) {
+    listEl.innerHTML = `
+      <div style="padding: 24px 18px; text-align: center; color: var(--ink-faint); font-family: var(--font-mono); font-size: 11px;">
+        <div style="font-size: 24px; margin-bottom: 8px;">📡</div>
+        <div style="color: var(--ink); font-weight: 600; font-family: var(--font-body); font-size: 13px; margin-bottom: 4px;">No Active Stations</div>
+        <div style="line-height: 1.5; font-size: 10px; color: var(--ink-dim);">Awaiting field telemetry in Firestore (/sensors). Stations with reporting sensors will appear here automatically.</div>
+      </div>
+    `;
+    return;
   }
 
   const viewModels = presenter.getStationListViewModels(allStations, activeStationId);
@@ -1855,24 +1882,6 @@ function renderSidebar() {
     });
   });
 
-  // Ensure map markers exist for all stations
-  allStations.forEach((s) => {
-    if (s.lat != null && s.lng != null && !markers[s.id] && map) {
-      const icon = L.divIcon({
-        className: '',
-        html: `<div id="marker-${s.id}" style="width:14px;height:14px;border-radius:50%;background:#7A9471;border:2px solid var(--panel);box-shadow:0 0 0 3px rgba(122,148,113,0.35);"></div>`,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7]
-      });
-      const m = L.marker([s.lat, s.lng], {icon}).addTo(map);
-      m.on('click', () => {
-        userManuallySelectedStation = true;
-        selectStation(s.id);
-      });
-      markers[s.id] = m;
-    }
-  });
-
   // Update map marker colors
   viewModels.forEach((vm) => {
     const el = document.getElementById(`marker-${vm.id}`);
@@ -1886,7 +1895,23 @@ function renderSidebar() {
 function renderDetail() {
   const allStations = getAllStations();
   let stationSpec = allStations.find((s) => s.id === activeStationId) || allStations[0];
-  if (!stationSpec) return;
+  if (!stationSpec) {
+    document.getElementById('detTitle').textContent = 'Awaiting Telemetry';
+    document.getElementById('detCoords').textContent = 'No field sensors currently reporting · Ready for hardware stream';
+    document.getElementById('metricGrid').innerHTML = `
+      <div style="grid-column: 1 / -1; padding: 24px 18px; text-align: center; color: var(--ink-faint); font-family: var(--font-mono); font-size: 11px; border: 1px dashed var(--hairline); border-radius: 8px; background: var(--panel-raised);">
+        📡 No active stations online. When field sensor readings arrive at Firestore (/sensors), station metrics will populate automatically.
+      </div>`;
+    document.getElementById('coreSample').innerHTML = '<div class="skeleton-shimmer skeleton-box" style="border-radius:4px; opacity:0.35;"></div>';
+    document.getElementById('coreReadouts').innerHTML = `
+      <div style="padding: 8px 0; color: var(--ink-faint); font-family: var(--font-mono); font-size: 11px;">
+        Awaiting soil probe data...
+      </div>`;
+    document.getElementById('camTemp').textContent = '—°C';
+    document.getElementById('camId').textContent = 'STANDBY';
+    document.getElementById('alertCount').textContent = '0 active alerts';
+    return;
+  }
 
   document.getElementById('detTitle').textContent = stationSpec.name;
   const latStr = stationSpec.lat != null ? `${stationSpec.lat.toFixed(4)}°` : '—';
@@ -2188,7 +2213,7 @@ const searchBar = new SearchBar({
 // ============================================================================
 const shambaAgent = new ShambaAgent({
   registry,
-  stations: STATIONS,
+  stations: getAllStations,
   presenter,
 });
 

@@ -25,6 +25,25 @@ export class ShambaAgent {
   }
 
   /**
+   * Resolves the current station list whether passed as an array, dynamic function, or registry discovery.
+   * @returns {Array<Object>}
+   */
+  _getStationsList() {
+    if (typeof this._stations === 'function') {
+      try {
+        const res = this._stations();
+        if (Array.isArray(res)) return res;
+      } catch (err) {
+        Logger.error('ShambaAgent', 'Error invoking stations function:', err);
+      }
+    }
+    if (Array.isArray(this._stations) && this._stations.length > 0) {
+      return this._stations;
+    }
+    return this._registry.getStations();
+  }
+
+  /**
    * Enable or disable the remote intelligence gateway.
    * @param {boolean} enabled
    */
@@ -238,7 +257,7 @@ CONVERSATIONAL & OPERATIONAL DIRECTIVES:
     const alertSensors = allSensors.filter(s => s.currentState?.status === APP_CONFIG.HEALTH_STATUS.ALERT);
     const watchSensors = allSensors.filter(s => s.currentState?.status === APP_CONFIG.HEALTH_STATUS.WATCH);
 
-    const stationBlocks = (stations.length > 0 ? stations : this._stations).map(st => {
+    const stationBlocks = (stations.length > 0 ? stations : this._getStationsList()).map(st => {
       const sSensors = this._registry.getSensorsByStation(st.id);
       if (sSensors.length === 0) return null;
 
@@ -298,7 +317,7 @@ OPERATIONAL DIRECTIVES:
    */
   _detectStationAction(prompt, responseText) {
     const combined = `${prompt} ${responseText}`.toLowerCase();
-    for (const station of this._stations) {
+    for (const station of this._getStationsList()) {
       const matchName = combined.includes(station.name.toLowerCase());
       const matchCity = combined.includes(station.name.toLowerCase().split(' ')[0]);
       const matchId = combined.includes(station.id.toLowerCase());
@@ -397,9 +416,7 @@ OPERATIONAL DIRECTIVES:
     }
 
     // 6. Station-specific queries
-    const candidateStations = (this._stations && this._stations.length > 0)
-      ? this._stations
-      : this._registry.getStations();
+    const candidateStations = this._getStationsList();
     for (const station of candidateStations) {
       const matchName = query.includes(station.name.toLowerCase());
       const matchCity = query.includes(station.name.toLowerCase().split(' ')[0]);
@@ -425,11 +442,15 @@ OPERATIONAL DIRECTIVES:
     const allSensors = this._registry.getAllSensors();
     const alertSensors = allSensors.filter(s => s.currentState?.status === APP_CONFIG.HEALTH_STATUS.ALERT);
     const watchSensors = allSensors.filter(s => s.currentState?.status === APP_CONFIG.HEALTH_STATUS.WATCH);
+    const stations = this._getStationsList();
 
     if (alertSensors.length === 0 && watchSensors.length === 0) {
+      const stationCountDesc = stations.length > 0
+        ? `across ${stations.length} active reporting station${stations.length > 1 ? 's' : ''}`
+        : 'across the telemetry network';
       return {
-        text: "✅ **All Systems Nominal!** None of the 6 stations have critical threshold violations or active warnings.",
-        suggestions: ["Summarize all stations", "Naivasha moisture", "Check soil nutrients"]
+        text: `✅ **All Systems Nominal!** None of the monitored sensors ${stationCountDesc} have critical threshold violations or active warnings.`,
+        suggestions: ["Summarize all stations", "Check soil moisture", "Check soil nutrients"]
       };
     }
 
@@ -438,7 +459,7 @@ OPERATIONAL DIRECTIVES:
     if (alertSensors.length > 0) {
       response += `**Critical Alerts:**\n`;
       alertSensors.forEach(s => {
-        const st = this._stations.find(x => x.id === s.stationId);
+        const st = stations.find(x => x.id === s.stationId);
         response += `• **${st ? st.name : s.stationId}**: ${s.metadata.name} is **${s.currentState.latestValue}${s.metricDefinition.unitSymbol}** (Exceeds critical limits)\n`;
       });
       response += `\n`;
@@ -447,69 +468,118 @@ OPERATIONAL DIRECTIVES:
     if (watchSensors.length > 0) {
       response += `**Watchlist (Approaching Limits):**\n`;
       watchSensors.slice(0, 4).forEach(s => {
-        const st = this._stations.find(x => x.id === s.stationId);
+        const st = stations.find(x => x.id === s.stationId);
         response += `• **${st ? st.name : s.stationId}**: ${s.metadata.name} is **${s.currentState.latestValue}${s.metricDefinition.unitSymbol}**\n`;
       });
     }
 
     return {
       text: response,
-      suggestions: ["Recommend irrigation schedule", "Focus on Ol Kalou", "Show Naivasha status"]
+      suggestions: ["Recommend irrigation schedule", "Check active alerts", "Network overview"]
     };
   }
 
   _handleNetworkSummaryQuery() {
     const allSensors = this._registry.getAllSensors();
     const moistureSensors = this._registry.getSensorsByMetric('moisture');
+    const stations = this._getStationsList();
     const avgMoisture = moistureSensors.length > 0
       ? (moistureSensors.reduce((sum, s) => sum + (s.currentState?.latestValue || 0), 0) / moistureSensors.length).toFixed(1)
       : 'N/A';
 
     let text = `📊 **Shamba Watch Rift Valley Basin Telemetry Overview**\n\n`;
-    text += `• **Stations Monitored**: 6 active deployment masts (Naivasha, Ol Kalou, Nakuru, Molo, Elementaita, Gilgil)\n`;
+    const stationCount = stations.length;
+    text += `• **Stations Monitored**: ${stationCount} active deployment mast${stationCount === 1 ? '' : 's'}${stationCount > 0 ? ` (${stations.map(s => s.name).join(', ')})` : ' (awaiting telemetry)'}\n`;
     text += `• **Logical Sensor Channels**: ${allSensors.length} online\n`;
-    text += `• **Mean Volumetric Soil Moisture**: **${avgMoisture}%**\n\n`;
-    text += `**Station Quick Scan:**\n`;
+    text += `• **Mean Volumetric Soil Moisture**: **${avgMoisture === 'N/A' ? 'N/A' : avgMoisture + '%'}**\n\n`;
 
-    this._stations.forEach(s => {
-      const sSensors = this._registry.getSensorsByStation(s.id);
-      const m = sSensors.find(x => x.metricDefinition.metricType === 'moisture');
-      const w = sSensors.find(x => x.metricDefinition.metricType === 'water');
-      text += `• **${s.name}** (${s.crop}): Moisture: ${m?.currentState?.latestValue || s.moisture}% | Water: ${w?.currentState?.latestValue || s.water}%\n`;
-    });
+    if (stationCount > 0) {
+      text += `**Station Quick Scan:**\n`;
+      stations.forEach(s => {
+        const sSensors = this._registry.getSensorsByStation(s.id);
+        const m = sSensors.find(x => x.metricDefinition.metricType === 'moisture');
+        const w = sSensors.find(x => x.metricDefinition.metricType === 'water');
+        const mVal = m?.currentState?.latestValue != null ? `${m.currentState.latestValue}%` : (s.moisture != null ? `${s.moisture}%` : 'N/A');
+        const wVal = w?.currentState?.latestValue != null ? `${w.currentState.latestValue}%` : (s.water != null ? `${s.water}%` : 'N/A');
+        text += `• **${s.name}** (${s.crop || 'Field'}): Moisture: ${mVal} | Water: ${wVal}\n`;
+      });
+    } else {
+      text += `*No stations currently active. Reporting sensors connected to /sensors will automatically provision station cards.*\n`;
+    }
 
     return {
       text,
-      suggestions: ["Check active alerts", "Ol Kalou nutrients", "Irrigation advice"]
+      suggestions: ["Check active alerts", "Irrigation advice", "How does this platform work?"]
     };
   }
 
   _handleIrrigationQuery(query) {
     const moistureSensors = this._registry.getSensorsByMetric('moisture');
+    const stations = this._getStationsList();
     const drySensors = moistureSensors.filter(s => (s.currentState?.latestValue || 0) < 30);
+
+    if (moistureSensors.length === 0) {
+      return {
+        text: `💧 **Irrigation Diagnostic**: No soil moisture sensors are currently active in Firestore (\`/sensors\`). Waiting for field telemetry to evaluate irrigation needs.`,
+        suggestions: ["Summarize all stations", "Check active alerts", "How does this platform work?"]
+      };
+    }
 
     if (drySensors.length === 0) {
       return {
-        text: `💧 **Irrigation Diagnostic**: Soil moisture levels are adequate across the network (all stations > 30% root zone moisture). No immediate supplementary irrigation required.`,
-        suggestions: ["Check Ol Kalou", "Show ambient humidity", "Any active alerts?"]
+        text: `💧 **Irrigation Diagnostic**: Soil moisture levels are adequate across the network (all reporting stations > 30% root zone moisture). No immediate supplementary irrigation required.`,
+        suggestions: ["Check soil moisture", "Show ambient humidity", "Any active alerts?"]
       };
     }
 
     let text = `💧 **Irrigation Recommendations:**\n\nThe following zones indicate root zone soil moisture depletion below optimal agronomic levels:\n\n`;
     drySensors.forEach(s => {
-      const st = this._stations.find(x => x.id === s.stationId);
+      const st = stations.find(x => x.id === s.stationId);
       text += `• **${st ? st.name : s.stationId}** (${st?.crop || 'Crop'}): Moisture is **${s.currentState.latestValue}%** (Optimal: 40–60%). Recommend starting drip cycle for **45–60 minutes**.\n`;
     });
 
     return {
       text,
-      suggestions: ["Check water level at intake", "Show Ol Kalou details", "Summary"]
+      suggestions: ["Check water level at intake", "Show details", "Summary"]
+    };
+  }
+
+  _handleMoistureQuery(query) {
+    const moistureSensors = this._registry.getSensorsByMetric('moisture');
+    if (moistureSensors.length === 0) {
+      return {
+        text: `🌱 **Soil Moisture Telemetry**: No soil moisture sensors are currently streaming data in Firestore (\`/sensors\`).`,
+        suggestions: ["Summarize all stations", "Check active alerts", "How does this platform work?"]
+      };
+    }
+
+    const stations = this._getStationsList();
+    let text = `🌱 **Volumetric Soil Moisture Readings:**\n\n`;
+    moistureSensors.forEach(s => {
+      const st = stations.find(x => x.id === s.stationId);
+      const stName = st ? st.name : (s.metadata?.location?.stationName || s.stationId);
+      const val = s.currentState?.latestValue != null ? `${s.currentState.latestValue}${s.metricDefinition.unitSymbol}` : 'N/A';
+      const depth = s.metadata?.location?.depthCm != null ? ` at ${s.metadata.location.depthCm}cm` : '';
+      text += `• **${stName}** (${s.metadata.name}${depth}): **${val}** (Status: ${s.currentState?.status || 'nominal'})\n`;
+    });
+
+    return {
+      text,
+      suggestions: ["Recommend irrigation schedule", "Check active alerts", "Summary"]
     };
   }
 
   _handleNutrientsQuery(query) {
-    let targetStation = this._stations[0];
-    for (const s of this._stations) {
+    const stations = this._getStationsList();
+    if (stations.length === 0) {
+      return {
+        text: `🧪 **Soil Nutrient Profile**: No stations are currently reporting telemetry in Firestore (\`/sensors\`).`,
+        suggestions: ["Summarize all stations", "Any active alerts?", "How does this platform work?"]
+      };
+    }
+
+    let targetStation = stations[0];
+    for (const s of stations) {
       if (query.includes(s.name.toLowerCase().split(' ')[0]) || query.includes(s.id.toLowerCase())) {
         targetStation = s;
         break;
@@ -517,14 +587,14 @@ OPERATIONAL DIRECTIVES:
     }
 
     const sSensors = this._registry.getSensorsByStation(targetStation.id);
-    const n = sSensors.find(x => x.metricDefinition.metricType === 'nitrogen')?.currentState?.latestValue || targetStation.nutrient.n;
-    const p = sSensors.find(x => x.metricDefinition.metricType === 'phosphorus')?.currentState?.latestValue || targetStation.nutrient.p;
-    const k = sSensors.find(x => x.metricDefinition.metricType === 'potassium')?.currentState?.latestValue || targetStation.nutrient.k;
+    const n = sSensors.find(x => x.metricDefinition.metricType === 'nitrogen')?.currentState?.latestValue ?? targetStation.nutrient?.n ?? 'N/A';
+    const p = sSensors.find(x => x.metricDefinition.metricType === 'phosphorus')?.currentState?.latestValue ?? targetStation.nutrient?.p ?? 'N/A';
+    const k = sSensors.find(x => x.metricDefinition.metricType === 'potassium')?.currentState?.latestValue ?? targetStation.nutrient?.k ?? 'N/A';
 
-    const text = `🧪 **Soil Nutrient Profile (25–40cm Horizon)**\n**Station**: ${targetStation.name} (${targetStation.crop})\n\n` +
-      `• **Nitrogen (N)**: **${n}%** ${n < 35 ? '(Deficient — consider urea / CAN top-dress)' : '(Optimal)'}\n` +
-      `• **Phosphorus (P)**: **${p}%** ${p < 30 ? '(Low — consider DAP incorporation)' : '(Good)'}\n` +
-      `• **Potassium (K)**: **${k}%** ${k < 40 ? '(Marginal)' : '(Sufficient for vegetative vigour)'}\n`;
+    const text = `🧪 **Soil Nutrient Profile (25–40cm Horizon)**\n**Station**: ${targetStation.name} (${targetStation.crop || 'Field'})\n\n` +
+      `• **Nitrogen (N)**: **${n}%** ${typeof n === 'number' && n < 35 ? '(Deficient — consider urea / CAN top-dress)' : '(Optimal)'}\n` +
+      `• **Phosphorus (P)**: **${p}%** ${typeof p === 'number' && p < 30 ? '(Low — consider DAP incorporation)' : '(Good)'}\n` +
+      `• **Potassium (K)**: **${k}%** ${typeof k === 'number' && k < 40 ? '(Marginal)' : '(Sufficient for vegetative vigour)'}\n`;
 
     return {
       text,
@@ -534,17 +604,17 @@ OPERATIONAL DIRECTIVES:
 
   _handleStationQuery(station) {
     const sSensors = this._registry.getSensorsByStation(station.id);
-    const m = sSensors.find(x => x.metricDefinition.metricType === 'moisture')?.currentState?.latestValue || station.moisture;
-    const w = sSensors.find(x => x.metricDefinition.metricType === 'water')?.currentState?.latestValue || station.water;
-    const t = sSensors.find(x => x.metricDefinition.metricType === 'temp')?.currentState?.latestValue || station.temp;
-    const h = sSensors.find(x => x.metricDefinition.metricType === 'humidity')?.currentState?.latestValue || station.humidity;
+    const m = sSensors.find(x => x.metricDefinition.metricType === 'moisture')?.currentState?.latestValue ?? station.moisture ?? 'N/A';
+    const w = sSensors.find(x => x.metricDefinition.metricType === 'water')?.currentState?.latestValue ?? station.water ?? 'N/A';
+    const t = sSensors.find(x => x.metricDefinition.metricType === 'temp')?.currentState?.latestValue ?? station.temp ?? 'N/A';
+    const h = sSensors.find(x => x.metricDefinition.metricType === 'humidity')?.currentState?.latestValue ?? station.humidity ?? 'N/A';
 
     const coords = (station.lat != null && station.lng != null)
       ? `${station.lat.toFixed(4)}°, ${station.lng.toFixed(4)}°`
       : 'Rift Valley Basin';
 
     const text = `📍 **${station.name} (${station.id}) Telemetry Brief**\n` +
-      `• **Target Crop**: ${station.crop}\n` +
+      `• **Target Crop**: ${station.crop || 'Field'}\n` +
       `• **GPS Coordinates**: ${coords}\n` +
       `• **Soil Moisture**: **${m}%**\n` +
       `• **Water Availability**: **${w}%**\n` +
@@ -560,8 +630,9 @@ OPERATIONAL DIRECTIVES:
   }
 
   _buildPlatformContext() {
+    const stations = this._getStationsList();
     return {
-      stations: this._stations.map(s => ({
+      stations: stations.map(s => ({
         id: s.id,
         name: s.name,
         crop: s.crop,
@@ -569,9 +640,9 @@ OPERATIONAL DIRECTIVES:
           id: sensor.id,
           name: sensor.metadata.name,
           metric: sensor.metricDefinition.metricType,
-          value: sensor.currentState.latestValue,
-          status: sensor.currentState.status,
-          delta: sensor.currentState.delta,
+          value: sensor.currentState?.latestValue,
+          status: sensor.currentState?.status,
+          delta: sensor.currentState?.delta,
         }))
       }))
     };

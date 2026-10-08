@@ -943,6 +943,83 @@ await testAsync('should resiliently handle unknown future schema without losing 
   assert.equal(decoded.customAttributes.mesh_route_cost, '4');
 });
 
+// ============================================================================
+// 12. DYNAMIC STATION DISCOVERY & ZERO-SENSOR PLACEHOLDER ELIMINATION TESTS
+// ============================================================================
+console.log('\n12. Dynamic Station Discovery & Zero-Sensor Placeholder Elimination Tests:');
+
+await testAsync('should return empty stations when 0 sensors exist in registry (no phantom/placeholder stations)', async () => {
+  const repo = new InMemorySensorRepository();
+  const registry = new SensorRegistry(repo);
+
+  const fallbackCatalog = [
+    { id: 'ST-01', name: 'Naivasha North Plot', lat: -0.6980, lng: 36.4200, crop: 'Flower greenhouse' },
+    { id: 'ST-02', name: 'Ol Kalou Maize Block', lat: -0.2760, lng: 36.3730, crop: 'Maize' },
+    { id: 'ST-03', name: 'Nakuru Basin Wetland', lat: -0.3670, lng: 36.0800, crop: 'Wetland buffer' },
+    { id: 'ST-04', name: 'Molo Highland Terrace', lat: -0.2470, lng: 35.7330, crop: 'Tea' },
+    { id: 'ST-05', name: 'Elementaita Rangeland', lat: -0.4550, lng: 36.2500, crop: 'Grazing / rangeland' },
+    { id: 'ST-06', name: 'Gilgil River Intake', lat: -0.5020, lng: 36.3190, crop: 'Irrigation intake' }
+  ];
+
+  // In the UI, getAllStations returns registry.getStations(fallbackCatalog).filter(s => s.sensorCount > 0)
+  const discoveredStations = registry.getStations(fallbackCatalog).filter(s => s.sensorCount > 0);
+  assert.equal(discoveredStations.length, 0, 'Must have 0 stations when 0 sensors exist in registry');
+
+  // Agent with dynamic stations function
+  const agent = new ShambaAgent({
+    registry,
+    stations: () => discoveredStations,
+    enableRemoteGateway: false
+  });
+
+  const summary = await agent.query('overview summary of all stations');
+  assert.ok(summary.text.includes('0 sensors'));
+  assert.ok(!summary.text.includes('None of the 6 stations'));
+  assert.ok(!summary.text.includes('Naivasha North Plot'));
+
+  const alerts = await agent.query('any active alerts or warnings?');
+  assert.ok(alerts.text.includes('0 sensors'));
+  assert.ok(!alerts.text.includes('None of the 6 stations'));
+});
+
+await testAsync('should dynamically register stations only as sensors are ingested', async () => {
+  const repo = new InMemorySensorRepository();
+  const registry = new SensorRegistry(repo);
+
+  const testCatalog = [
+    { id: 'ST-01', name: 'Naivasha North Plot', lat: -0.6980, lng: 36.4200, crop: 'Flower greenhouse' }
+  ];
+
+  // Ingest a sensor for ST-01
+  const s1 = new Sensor({
+    id: 'sensor-rf-01',
+    stationId: 'ST-01',
+    metadata: new SensorMetadata({
+      name: 'Naivasha Soil Probe',
+      stationId: 'ST-01',
+      location: { lat: -0.6980, lng: 36.4200, altitudeMeters: 1890 }
+    }),
+    metricDefinition: new MetricDefinition(APP_CONFIG.METRIC_TYPES.MOISTURE)
+  });
+  s1.addReading(42.5, Date.now());
+  await registry.registerSensor(s1);
+
+  const activeStations = registry.getStations(testCatalog).filter(s => s.sensorCount > 0);
+  assert.equal(activeStations.length, 1);
+  assert.equal(activeStations[0].id, 'ST-01');
+  assert.equal(activeStations[0].sensorCount, 1);
+  assert.equal(activeStations[0].name, 'Naivasha North Plot');
+
+  const agent = new ShambaAgent({
+    registry,
+    stations: () => activeStations,
+    enableRemoteGateway: false
+  });
+
+  const moistureRes = await agent.query('what is the moisture level?');
+  assert.ok(moistureRes.text.includes('42.5%'));
+});
+
 console.log(`\n========================================`);
 console.log(`  ALL ${passedTests} UNIT TESTS PASSED SUCCESSFULLY!`);
 console.log(`========================================\n`);
