@@ -7,6 +7,7 @@
 import { StructuredLogger } from '../core/structured-logger.js';
 import { EventTypes } from '../contracts/event-types.js';
 import { createSuccessEnvelope, createErrorEnvelope, ServiceErrorCode } from '../contracts/service-envelope.js';
+import { ensureFirebaseApp } from '../config/firebase-config.js';
 
 function getFirebase() {
   if (typeof window !== 'undefined' && window.firebase) return window.firebase;
@@ -44,9 +45,21 @@ export class AuthService {
       return;
     }
 
+    // Ensure Firebase default app exists before calling fb.auth()
     try {
-      if (fb.auth?.Auth?.Persistence?.LOCAL) {
-        await fb.auth().setPersistence(fb.auth.Auth.Persistence.LOCAL);
+      if (!fb.apps || fb.apps.length === 0) {
+        ensureFirebaseApp();
+      }
+    } catch (e) {
+      this._logger.warn('Error verifying Firebase app initialization:', e.message);
+    }
+
+    try {
+      if (typeof fb.auth === 'function') {
+        const authInstance = fb.auth();
+        if (typeof authInstance.setPersistence === 'function') {
+          await authInstance.setPersistence('local');
+        }
       }
     } catch (_) {}
 

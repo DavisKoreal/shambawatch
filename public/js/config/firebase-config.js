@@ -38,6 +38,29 @@ export function isFirebaseConfigured() {
 }
 
 /**
+ * Safely initializes the default Firebase App if not already initialized.
+ * @param {Object} [customConfig]
+ * @returns {Object|null}
+ */
+export function ensureFirebaseApp(customConfig = null) {
+  if (typeof window === 'undefined' || !window.firebase) {
+    return null;
+  }
+  const config = customConfig || FIREBASE_CONFIG;
+  try {
+    if (window.firebase.apps && window.firebase.apps.length > 0) {
+      return window.firebase.apps[0];
+    }
+    const app = window.firebase.initializeApp(config);
+    Logger.info('FirebaseConfig', `Initialized Firebase app for project: ${config.projectId}`);
+    return app;
+  } catch (error) {
+    Logger.error('FirebaseConfig', 'Failed to initialize Firebase app:', error);
+    return null;
+  }
+}
+
+/**
  * Safely initializes Firebase and Firestore if the Firebase SDK is present in window.
  * Supports both production Firebase and local Firestore Emulator.
  * 
@@ -53,14 +76,7 @@ export function initializeFirestoreClient(customConfig = null) {
   const config = customConfig || FIREBASE_CONFIG;
 
   try {
-    // Check if an app is already initialized
-    let app;
-    if (window.firebase.apps && window.firebase.apps.length > 0) {
-      app = window.firebase.apps[0];
-    } else {
-      app = window.firebase.initializeApp(config);
-      Logger.info('FirebaseConfig', `Initialized Firebase app for project: ${config.projectId}`);
-    }
+    ensureFirebaseApp(config);
 
     const db = window.firebase.firestore();
 

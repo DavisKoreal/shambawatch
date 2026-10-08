@@ -22,6 +22,7 @@ import { ThemeService } from './services/theme-service.js';
 import { AlertService } from './services/alert-service.js';
 import { GatewayClient } from './services/gateway-client.js';
 import { AuthService } from './services/auth-service.js';
+import { ensureFirebaseApp } from './config/firebase-config.js';
 
 // UI Orchestration
 import { AppShell } from './ui/app-shell.js';
@@ -34,6 +35,9 @@ const logger = new StructuredLogger('Bootstrap');
 export async function bootstrap() {
   try {
     logger.info('Initializing Shamba Watch 2.0 SOA container...');
+
+    // 0. Ensure Firebase App is initialized if running in browser
+    ensureFirebaseApp();
 
     // 1. Core Event & Service Containers (Rules 36, 46, 49)
     const eventBus = new EventBus();
