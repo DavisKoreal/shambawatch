@@ -12,6 +12,7 @@
     "ingest:mqtt": "node scripts/mqtt_ingestion_bridge.js",
     "ingest:mqtt:dry": "node scripts/mqtt_ingestion_bridge.js --dry-run",
     "ingest:worker": "node scripts/mqtt_ingestion_bridge.js --worker",
+    "bridge:247": "node scripts/mqtt_ingestion_bridge.js",
     "deploy": "wrangler deploy",
     "preview": "wrangler dev"
   },

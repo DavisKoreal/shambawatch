@@ -12,6 +12,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AuthService } from '../public/js/services/auth-service.js';
 import { AnalyticsService } from '../public/js/services/analytics-service.js';
+import { TelemetryService } from '../public/js/services/telemetry-service.js';
+import { SensorRegistry } from '../public/js/services/sensor-registry.js';
+import { InMemorySensorRepository } from '../public/js/infrastructure/in-memory-sensor-repository.js';
 import { Sensor } from '../public/js/domain/sensor.js';
 import { SensorMetadata } from '../public/js/domain/sensor-metadata.js';
 import { MetricDefinition } from '../public/js/domain/metric-definition.js';
@@ -158,3 +161,42 @@ test('AnalyticsService & Sensor Domain: Custom Timeseries Windows & Full History
     assert.equal(timeseries.length, 10);
   });
 });
+
+test('TelemetryService: 3-Minute Resilient Firestore Polling & Lifecycle', async (t) => {
+  await t.test('should configure 3-minute poll interval and start/stop timer cleanly', () => {
+    const eventBus = new EventBus();
+    const repo = new InMemorySensorRepository();
+    const registry = new SensorRegistry(repo);
+    const telemetry = new TelemetryService({ registry, eventBus });
+
+    // Default interval: 3 minutes = 180,000 ms
+    assert.equal(telemetry._pollIntervalMs, 180000);
+    assert.equal(telemetry._pollIntervalTimer, null);
+
+    // Start polling with custom interval
+    telemetry.startPolling(60000);
+    assert.equal(telemetry._pollIntervalMs, 60000);
+    assert.notEqual(telemetry._pollIntervalTimer, null);
+
+    // Stop polling
+    telemetry.stopPolling();
+    assert.equal(telemetry._pollIntervalTimer, null);
+
+    // Dispose cleans up all resources
+    telemetry.startPolling(180000);
+    telemetry.dispose();
+    assert.equal(telemetry._pollIntervalTimer, null);
+  });
+
+  await t.test('should gracefully handle pollFirestoreReadings when not connected to Firebase', async () => {
+    const eventBus = new EventBus();
+    const repo = new InMemorySensorRepository();
+    const registry = new SensorRegistry(repo);
+    const telemetry = new TelemetryService({ registry, eventBus });
+
+    const result = await telemetry.pollFirestoreReadings();
+    assert.equal(result.success, false);
+    assert.equal(result.reason, 'NOT_CONNECTED');
+  });
+});
+

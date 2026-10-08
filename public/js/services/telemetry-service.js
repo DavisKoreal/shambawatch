@@ -30,6 +30,9 @@ export class TelemetryService {
     this._isFirebaseLive = false;
     this._firestoreUnsubscribe = null;
     this._stationUnsubscribe = null;
+    this._pollIntervalTimer = null;
+    this._pollIntervalMs = 180000; // 3 minutes default (180,000 ms)
+    this._lastPollTimestamp = null;
 
     // Attach registry onChange listener to forward domain events to the EventBus
     this._registryUnsubscribe = this._registry.onChange(async (event, sensor) => {
@@ -55,9 +58,14 @@ export class TelemetryService {
     return this._registry;
   }
 
+  get lastPollTimestamp() {
+    return this._lastPollTimestamp;
+  }
+
   /**
    * Connects to Google Cloud Firestore in production mode.
    * Falls back to local in-memory repository if Firebase credentials are unavailable.
+   * Sets up both reactive onSnapshot streams and a 3-minute resilient polling loop.
    * @returns {Promise<Object>} ServiceEnvelope
    */
   async connectPipeline() {
@@ -73,10 +81,13 @@ export class TelemetryService {
         await this._eventBus.publish(EventTypes.STREAM_STATUS_CHANGED, {
           isLive: true,
           mode: 'FIRESTORE_LIVE',
-          label: 'Production Telemetry · Firestore Live'
+          label: 'Production Telemetry · Firestore Live (Polling 3m)'
         }, { sourceService: 'TelemetryService' });
 
-        // Subscribe to canonical /sensors collection
+        // 1. Immediate initial poll to hydrate all stations and sensors without delay
+        await this.pollFirestoreReadings();
+
+        // 2. Subscribe to canonical /sensors collection for real-time reactivity
         this._firestoreUnsubscribe = this._firestoreRepo.subscribeAllSensors(async (remoteSensors) => {
           this._registry.syncFromRemoteSensors(remoteSensors);
           await this._eventBus.publish(EventTypes.TELEMETRY_INGESTED, {
@@ -84,6 +95,9 @@ export class TelemetryService {
             timestamp: Date.now()
           }, { sourceService: 'TelemetryService' });
         });
+
+        // 3. Start 3-minute recurring polling timer (Rule 15, User Requirement)
+        this.startPolling(this._pollIntervalMs);
 
         return createSuccessEnvelope({ mode: 'FIRESTORE_LIVE', isLive: true });
       }
@@ -141,6 +155,8 @@ export class TelemetryService {
         });
       }
     });
+  }
+
   /**
    * Fetches full historical readings for a specific sensor on demand.
    * @param {string} sensorId
@@ -172,9 +188,80 @@ export class TelemetryService {
   }
 
   /**
+   * Performs an explicit polling cycle against Firestore /sensors collection.
+   * Pulls fresh document states and synchronizes them into the SensorRegistry.
+   * Fulfills user requirement: "The site should refresh readings say every 3 minutes. Polling the firestore."
+   * @returns {Promise<Object>}
+   */
+  async pollFirestoreReadings() {
+    if (!this._isFirebaseLive || !this._firestoreRepo) {
+      return { success: false, reason: 'NOT_CONNECTED' };
+    }
+
+    try {
+      this._logger.debug('Polling Firestore /sensors for fresh readings...');
+      const remoteSensors = await this._firestoreRepo.getAllSensors();
+
+      if (remoteSensors && remoteSensors.length > 0) {
+        this._registry.syncFromRemoteSensors(remoteSensors);
+        this._lastPollTimestamp = Date.now();
+
+        await this._eventBus.publish(EventTypes.TELEMETRY_INGESTED, {
+          source: 'FIRESTORE_POLL',
+          count: remoteSensors.length,
+          timestamp: this._lastPollTimestamp
+        }, { sourceService: 'TelemetryService' });
+
+        const timeStr = new Date(this._lastPollTimestamp).toLocaleTimeString();
+        await this._eventBus.publish(EventTypes.STREAM_STATUS_CHANGED, {
+          isLive: true,
+          mode: 'FIRESTORE_LIVE',
+          label: `Production Telemetry · Firestore Live (Polled ${timeStr} · 3m cycle)`
+        }, { sourceService: 'TelemetryService' });
+
+        this._logger.info(`Firestore poll completed: refreshed ${remoteSensors.length} sensors.`);
+        return { success: true, count: remoteSensors.length, timestamp: this._lastPollTimestamp };
+      }
+
+      return { success: true, count: 0, timestamp: Date.now() };
+    } catch (err) {
+      this._logger.warn('Error during Firestore periodic poll:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Starts continuous periodic polling of Firestore readings every N milliseconds.
+   * Default is 3 minutes (180,000 ms).
+   * @param {number} [intervalMs=180000]
+   */
+  startPolling(intervalMs = 180000) {
+    this.stopPolling();
+    this._pollIntervalMs = intervalMs;
+    this._logger.info(`Starting Firestore polling timer (Every ${intervalMs / 1000}s / 3m).`);
+
+    this._pollIntervalTimer = setInterval(() => {
+      this.pollFirestoreReadings().catch((err) => {
+        this._logger.warn('Periodic poll execution failed:', err);
+      });
+    }, intervalMs);
+  }
+
+  /**
+   * Stops the recurring polling timer.
+   */
+  stopPolling() {
+    if (this._pollIntervalTimer) {
+      clearInterval(this._pollIntervalTimer);
+      this._pollIntervalTimer = null;
+    }
+  }
+
+  /**
    * Resource cleanup (Rule 15).
    */
   dispose() {
+    this.stopPolling();
     if (this._firestoreUnsubscribe) {
       this._firestoreUnsubscribe();
       this._firestoreUnsubscribe = null;

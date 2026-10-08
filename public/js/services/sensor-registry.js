@@ -220,8 +220,17 @@ export class SensorRegistry {
       const existing = this._sensors.get(sensor.id);
       if (existing) {
         const latest = sensor.getLatestReading();
-        if (latest && latest.timestampMs > (existing.getLatestReading()?.timestampMs || 0)) {
-          existing.addReading(latest.value, latest.timestampMs, latest.quality);
+        const currentLatest = existing.getLatestReading();
+        if (latest) {
+          if (!currentLatest || latest.timestampMs > currentLatest.timestampMs || (latest.value !== currentLatest.value && latest.timestampMs >= currentLatest.timestampMs)) {
+            existing.addReading(latest.value, latest.timestampMs, latest.quality);
+          }
+        }
+        if (sensor.currentState) {
+          existing.currentState = { ...existing.currentState, ...sensor.currentState };
+        }
+        if (sensor.metadata) {
+          existing.metadata = sensor.metadata;
         }
       } else {
         this._sensors.set(sensor.id, sensor);

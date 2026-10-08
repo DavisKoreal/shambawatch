@@ -1,29 +1,51 @@
-name: Telemetry Ingestion Bridge
+name: Shamba Watch 24/7 Telemetry Relay Bridge
 
 on:
   schedule:
-    # Run periodically every 15 minutes to sync uplinks
-    - cron: '*/15 * * * *'
+    # Redundant cron safety net: triggers every 30 minutes
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
+# Enforce single active relay runner at a time
+concurrency:
+  group: telemetry-bridge-relay
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
+
 jobs:
-  ingest:
+  telemetry-relay:
+    name: LoRaWAN Telemetry Relay Ingestion
     runs-on: ubuntu-latest
+    timeout-minutes: 35
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js Runtime
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'npm'
 
-      - name: Install Dependencies
+      - name: Install Production Dependencies
         run: npm ci --only=production
 
-      - name: Run Telemetry Bridge (100 Uplinks)
-        run: node scripts/mqtt_ingestion_bridge.js --limit 100
+      - name: Run Telemetry Bridge (28-Minute Continuous Relay Session)
+        run: node scripts/mqtt_ingestion_bridge.js --duration 28
         env:
           FIREBASE_PROJECT_ID: shambawatch
           MQTT_BROKER_URL: mqtt://backend.teleops.io
           MQTT_TOPIC: lorawan-server-uplink/#
+          WORKER_INGEST_URL: https://shamba-watch-proxy.lawyerai.workers.dev/api/telemetry/ingest
+
+      - name: Dispatch Next Relay Runner (Continuous 24/7 Hand-off)
+        if: always()
+        run: |
+          echo "Triggering next relay runner for continuous 24/7 ingestion..."
+          gh workflow run telemetry-bridge.yml || echo "Dispatch triggered or throttled by rate limit."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

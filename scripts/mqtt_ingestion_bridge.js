@@ -37,7 +37,8 @@ const options = {
   projectId: process.env.FIREBASE_PROJECT_ID || FIREBASE_CONFIG.projectId || 'shambawatch',
   brokerUrl: process.env.MQTT_BROKER_URL || APP_CONFIG.MQTT_INGESTION?.BROKER_URL || 'mqtt://backend.teleops.io',
   topic: process.env.MQTT_TOPIC || APP_CONFIG.MQTT_INGESTION?.TOPIC || 'lorawan-server-uplink/#',
-  worker: false,
+  durationMinutes: 0, // 0 = unlimited continuous daemon
+  worker: true, // Default to true: updates Firebase from Cloudflare Worker gateway
   workerUrl: process.env.WORKER_INGEST_URL || 'https://shamba-watch-proxy.lawyerai.workers.dev/api/telemetry/ingest',
 };
 
@@ -46,23 +47,25 @@ for (let i = 0; i < args.length; i++) {
   if (arg === '--dry-run') options.dryRun = true;
   else if (arg === '--verbose') options.verbose = true;
   else if (arg === '--limit' && args[i + 1]) options.limit = parseInt(args[++i], 10);
+  else if (arg === '--duration' && args[i + 1]) options.durationMinutes = parseFloat(args[++i]);
   else if (arg === '--devaddr' && args[i + 1]) options.filterDevaddr = args[++i].toUpperCase();
   else if (arg === '--emulator') options.emulator = true;
   else if (arg === '--project' && args[i + 1]) options.projectId = args[++i];
   else if (arg === '--broker' && args[i + 1]) options.brokerUrl = args[++i];
   else if (arg === '--topic' && args[i + 1]) options.topic = args[++i];
   else if (arg === '--worker') options.worker = true;
+  else if (arg === '--direct') options.worker = false;
   else if (arg === '--worker-url' && args[i + 1]) options.workerUrl = args[++i];
 }
 
 console.log('\n============================================================');
-console.log('  SHAMBA WATCH — LORAWAN LIVE TELEMETRY INGESTION BRIDGE');
+console.log('  SHAMBA WATCH — LORAWAN LIVE TELEMETRY INGESTION BRIDGE (24/7)');
 console.log('============================================================');
 console.log(`• Broker URL:     ${options.brokerUrl}`);
 console.log(`• Topic Filter:   ${options.topic}`);
 console.log(`• Target Project: ${options.projectId} (${options.emulator ? 'EMULATOR' : 'PRODUCTION'})`);
-console.log(`• Mode:           ${options.dryRun ? 'DRY-RUN (No Database Writes)' : (options.worker ? 'CLOUDFLARE WORKER GATEWAY' : 'LIVE DIRECT FIRESTORE')}`);
-if (options.worker) console.log(`• Worker Ingest:  ${options.workerUrl}`);
+console.log(`• Mode:           ${options.dryRun ? 'DRY-RUN (No Database Writes)' : (options.worker ? 'CLOUDFLARE WORKER GATEWAY (24/7 updates to Firebase)' : 'LIVE DIRECT FIRESTORE')}`);
+if (options.worker) console.log(`• Worker Gateway: ${options.workerUrl}`);
 if (options.limit > 0) console.log(`• Message Limit:  ${options.limit} message(s) then exit`);
 if (options.filterDevaddr) console.log(`• DevAddr Filter: ${options.filterDevaddr}`);
 console.log('============================================================\n');
@@ -392,6 +395,17 @@ client.on('connect', () => {
     console.log(`📡 Subscribed to topic: ${options.topic}`);
     console.log('Listening for live LoRaWAN uplinks...\n');
   });
+
+  if (options.durationMinutes > 0) {
+    console.log(`⏱️ Duration session limit set: will automatically conclude after ${options.durationMinutes} minute(s).`);
+    setTimeout(() => {
+      console.log(`\n⏱️ Duration limit (${options.durationMinutes}m) reached. Gracefully concluding session...`);
+      client.end(false, () => {
+        console.log('Ingestion session cleanly concluded.');
+        process.exit(0);
+      });
+    }, options.durationMinutes * 60 * 1000);
+  }
 });
 
 client.on('message', async (topic, messageBuffer) => {
