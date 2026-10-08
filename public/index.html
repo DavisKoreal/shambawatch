@@ -218,33 +218,38 @@
   <!-- TIMESERIES STRIP -->
   <div class="strip">
     <div class="strip-label">
-      <div>
+      <div class="strip-meta-block">
         <div class="strip-metric-name" id="stripName"><div class="skeleton-shimmer skeleton-title" style="width:110px; height:15px; margin-bottom:4px;"></div></div>
         <div class="strip-metric-sub" id="stripSub"><div class="skeleton-shimmer skeleton-text" style="width:150px; height:9px; margin:0;"></div></div>
       </div>
-
-      <!-- Configurable Windowing Selector -->
-      <div class="window-select" id="windowSelect">
-        <span class="window-label">Window:</span>
-        <button class="ws-btn" data-window="1h">1h</button>
-        <button class="ws-btn" data-window="6h">6h</button>
-        <button class="ws-btn active" data-window="24h">24h</button>
-        <button class="ws-btn" data-window="7d">7d</button>
-        <button class="ws-btn" data-window="30d">30d</button>
-        <button class="ws-btn" data-window="all">All</button>
-        <button class="ws-btn ws-btn-custom" id="customWindowBtn" title="Set Custom Time Period or Inspect Sensor">Custom...</button>
-      </div>
-
-      <div class="metric-select" id="metricSelect">
-        <div class="ms-btn active" data-metric="moisture">Moisture</div>
-        <div class="ms-btn" data-metric="water">Water Lvl</div>
-        <div class="ms-btn" data-metric="nitrogen">Nitrogen</div>
-        <div class="ms-btn" data-metric="humidity">Humidity</div>
-        <div class="ms-btn" data-metric="temp">Temp</div>
-      </div>
     </div>
+
     <div class="strip-chart">
-      <svg id="chartSvg" width="100%" height="100%" preserveAspectRatio="none"></svg>
+      <div class="strip-chart-toolbar" id="stripChartToolbar">
+        <div class="metric-select" id="metricSelect">
+          <div class="ms-btn active" data-metric="moisture">Moisture</div>
+          <div class="ms-btn" data-metric="water">Water Lvl</div>
+          <div class="ms-btn" data-metric="nitrogen">Nitrogen</div>
+          <div class="ms-btn" data-metric="humidity">Humidity</div>
+          <div class="ms-btn" data-metric="temp">Temp</div>
+        </div>
+
+        <!-- Configurable Windowing Selector -->
+        <div class="window-select" id="windowSelect">
+          <span class="window-label">Window:</span>
+          <button class="ws-btn" data-window="1h">1h</button>
+          <button class="ws-btn" data-window="6h">6h</button>
+          <button class="ws-btn active" data-window="24h">24h</button>
+          <button class="ws-btn" data-window="7d">7d</button>
+          <button class="ws-btn" data-window="30d">30d</button>
+          <button class="ws-btn" data-window="all">All</button>
+          <button class="ws-btn ws-btn-custom" id="customWindowBtn" title="Set Custom Time Period or Inspect Sensor">Custom...</button>
+        </div>
+      </div>
+
+      <div class="strip-svg-wrap">
+        <svg id="chartSvg" width="100%" height="100%" preserveAspectRatio="none"></svg>
+      </div>
     </div>
   </div>
 

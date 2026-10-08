@@ -4,9 +4,9 @@
  */
 
 .strip {
-  height: clamp(105px, 15vh, 135px);
-  min-height: 95px;
-  max-height: 140px;
+  height: clamp(120px, 16vh, 145px);
+  min-height: 110px;
+  max-height: 155px;
   border-top: 1px solid var(--hairline);
   background: var(--panel);
   display: flex;
@@ -16,30 +16,46 @@
 }
 
 .strip-label {
-  width: clamp(210px, 24vw, 280px);
+  width: clamp(240px, 24vw, 310px);
   border-right: 1px solid var(--hairline);
-  padding: 10px 16px;
+  padding: 10px 14px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 6px;
   overflow: hidden;
   box-sizing: border-box;
 }
 
+.strip-meta-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
 .strip-metric-name {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 600;
-  font-optical-sizing: auto;
+  width: 100%;
+}
+
+.strip-header-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  width: 100%;
 }
 
 .strip-sensor-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .strip-hw-tag {
@@ -50,6 +66,7 @@
   padding: 1px 5px;
   border-radius: 3px;
   border: 1px solid var(--hairline);
+  flex-shrink: 0;
 }
 
 .btn-strip-deep-dive {
@@ -63,7 +80,8 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
-  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .btn-strip-deep-dive:hover {
@@ -73,19 +91,30 @@
 }
 
 .strip-metric-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.strip-sub-info {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--ink-faint);
-  margin-top: 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .strip-stats-chips {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .stat-chip {
@@ -98,17 +127,40 @@
   font-weight: 600;
 }
 
+/* Strip Chart & Top Toolbar */
+.strip-chart {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 12px 4px 6px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.strip-chart-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4px 4px 4px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
 .metric-select {
   display: flex;
+  align-items: center;
   gap: 4px;
-  margin-top: 5px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .ms-btn {
   font-family: var(--font-mono);
   font-size: 10px;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   background: var(--panel-raised);
   color: var(--ink-dim);
@@ -116,6 +168,7 @@
   border: 1px solid transparent;
   letter-spacing: 0.03em;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .ms-btn:hover {
@@ -126,25 +179,24 @@
 .ms-btn.active {
   border-color: var(--moss);
   color: var(--ink);
-  background: rgba(122, 148, 113, 0.18);
+  background: rgba(122, 148, 113, 0.22);
 }
 
-/* Configurable Windowing Selector */
 .window-select {
   display: flex;
   align-items: center;
   gap: 3px;
-  margin-top: 4px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .window-label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   color: var(--ink-faint);
   margin-right: 2px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .ws-btn {
@@ -152,12 +204,13 @@
   border: 1px solid var(--hairline);
   color: var(--ink-dim);
   font-family: var(--font-mono);
-  font-size: 9px;
-  padding: 2px 5px;
+  font-size: 10px;
+  padding: 2px 6px;
   border-radius: 3px;
   cursor: pointer;
   font-variant-numeric: tabular-nums;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .ws-btn:hover {
@@ -175,13 +228,11 @@
   border-style: dashed;
 }
 
-.strip-chart {
+.strip-svg-wrap {
   flex: 1;
-  min-width: 0;
+  min-height: 0;
   position: relative;
-  padding: 4px 14px 4px 6px;
-  overflow: hidden;
-  box-sizing: border-box;
+  width: 100%;
 }
 
 #chartSvg {
@@ -241,41 +292,55 @@
 /* Responsive Breakpoints */
 @media (max-width: 900px) {
   .strip-label {
-    width: clamp(170px, 26vw, 220px);
-    padding: 8px 12px;
+    width: clamp(200px, 28vw, 250px);
+    padding: 8px 10px;
+  }
+  .strip-chart-toolbar {
+    gap: 8px;
   }
 }
 
 @media (max-width: 768px) {
   .strip {
-    height: clamp(90px, 16vh, 115px);
+    height: clamp(105px, 18vh, 130px);
   }
   .strip-label {
-    width: clamp(140px, 34vw, 190px);
-    padding: 6px 10px;
+    width: clamp(160px, 34vw, 210px);
+    padding: 6px 8px;
   }
-  .strip-metric-name {
-    font-size: 13px;
+  .strip-sensor-title {
+    font-size: 11px;
+  }
+  .strip-sub-info {
+    font-size: 9px;
+  }
+  .stat-chip {
+    font-size: 9px;
   }
   .btn-strip-deep-dive {
     padding: 1px 5px;
     font-size: 9px;
   }
-  .window-select {
-    display: none;
+  .strip-chart-toolbar {
+    gap: 6px;
+    padding-bottom: 2px;
   }
   .ms-btn {
-    padding: 2px 4px;
+    padding: 1px 5px;
+    font-size: 9px;
+  }
+  .ws-btn {
+    padding: 1px 4px;
     font-size: 9px;
   }
 }
 
 @media (max-height: 700px) {
   .strip {
-    height: 98px;
-    min-height: 90px;
+    height: clamp(105px, 16vh, 125px);
+    min-height: 100px;
   }
   .strip-label {
-    padding: 6px 12px;
+    padding: 6px 10px;
   }
 }

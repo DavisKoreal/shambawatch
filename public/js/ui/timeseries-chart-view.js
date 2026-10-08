@@ -398,9 +398,11 @@ export class TimeseriesChartView {
     const hwShort = targetSensor.id.replace(/^urn:shamba:station:[^:]+:sensor:/, '').replace(/^lora_/, '');
     if (stripNameEl) {
       stripNameEl.innerHTML = `
-        <span class="strip-sensor-title">${targetSensor.metadata.name}</span>
-        <span class="strip-hw-tag">#${hwShort}</span>
-        <button type="button" class="btn-strip-deep-dive" id="btnStripDeepDive" title="Open Interactive Timeseries Inspector">Deep Dive ↗</button>
+        <div class="strip-header-row">
+          <span class="strip-sensor-title" title="${targetSensor.metadata.name}">${targetSensor.metadata.name}</span>
+          <span class="strip-hw-tag">#${hwShort}</span>
+          <button type="button" class="btn-strip-deep-dive" id="btnStripDeepDive" title="Open Interactive Timeseries Inspector">Deep Dive ↗</button>
+        </div>
       `;
       const deepDiveBtn = stripNameEl.querySelector('#btnStripDeepDive');
       deepDiveBtn?.addEventListener('click', (e) => {
@@ -418,15 +420,15 @@ export class TimeseriesChartView {
 
       if (sampleCount > 0) {
         stripSubEl.innerHTML = `
-          <span>${label} · ${sampleCount} sample${sampleCount !== 1 ? 's' : ''}</span>
-          <span class="strip-stats-chips">
+          <div class="strip-sub-info">${label} · ${sampleCount} sample${sampleCount !== 1 ? 's' : ''}</div>
+          <div class="strip-stats-chips">
             <span class="stat-chip">Min: <strong>${stats.min}${unit}</strong></span>
             <span class="stat-chip">Avg: <strong>${stats.avg}${unit}</strong></span>
             <span class="stat-chip">Max: <strong>${stats.max}${unit}</strong></span>
-          </span>
+          </div>
         `;
       } else {
-        stripSubEl.textContent = `${label} · 0 samples recorded`;
+        stripSubEl.innerHTML = `<div class="strip-sub-info">${label} · 0 samples recorded</div>`;
       }
     }
   }
