@@ -27,6 +27,7 @@ export class TimeseriesChartView {
     this._telemetryService = telemetryService;
     this._presenter = presenter;
     this._onOpenSensorModal = onOpenSensorModal;
+    this._historyFetchedSensors = new Set();
 
     this._bindControls();
   }
@@ -150,6 +151,17 @@ export class TimeseriesChartView {
 
     const w = svg.clientWidth || 600;
     const h = svg.clientHeight || 100;
+
+    // Automatically retrieve old recorded history from Firestore for this sensor
+    if (this._telemetryService && !this._historyFetchedSensors.has(targetSensor.id)) {
+      this._historyFetchedSensors.add(targetSensor.id);
+      this._telemetryService.fetchSensorHistory(targetSensor.id, 100).then((readings) => {
+        if (readings && readings.length > 0) {
+          this.render();
+        }
+      });
+    }
+
     const geom = this._presenter.getSparklineGeometry(targetSensor.id, activeWindowMs, w, h);
 
     svg.innerHTML = `

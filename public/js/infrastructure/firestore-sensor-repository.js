@@ -349,17 +349,44 @@ export class FirestoreSensorRepository extends ISensorRepository {
       .collection(APP_CONFIG.FIRESTORE_PATHS.READINGS_SUBCOLLECTION);
   }
 
-  async _fetchRecentReadingsFromSensorDoc(sensorId, limit = 50) {
+  async _fetchRecentReadingsFromSensorDoc(sensorId, limit = 100) {
     try {
       const readingsCol = this._getReadingsCollectionRoot(sensorId);
-      const snapshot = await readingsCol
-        .orderBy('timestampMs', 'desc')
-        .limit(limit)
-        .get();
+      let docs = [];
+      try {
+        const snapshot = await readingsCol
+          .orderBy('timestampMs', 'desc')
+          .limit(limit)
+          .get();
+        if (snapshot && !snapshot.empty) {
+          docs = snapshot.docs;
+        }
+      } catch (orderErr) {
+        // Fallback without orderBy if composite index or field ordering fails
+        const fallbackSnap = await readingsCol.limit(limit).get();
+        if (fallbackSnap && !fallbackSnap.empty) {
+          docs = fallbackSnap.docs;
+        }
+      }
 
-      return snapshot.docs
-        .map((d) => d.data())
-        .reverse();
+      if (!docs || docs.length === 0) return [];
+
+      const readings = docs.map((d) => {
+        const data = d.data();
+        return {
+          id: data.id || d.id,
+          sensorId: data.sensorId || sensorId,
+          value: Number(data.value ?? data.latestValue ?? data.val ?? 0),
+          timestampMs: Number(data.timestampMs || data.timestamp || data.lastSampledMs || Date.now()),
+          quality: data.quality || 'GOOD',
+          delta: Number(data.delta || 0),
+          batteryPct: data.batteryPct ?? null
+        };
+      });
+
+      // Sort chronologically ascending for timeseries graphing
+      readings.sort((a, b) => a.timestampMs - b.timestampMs);
+      return readings;
     } catch (err) {
       Logger.warn('FirestoreSensorRepository', `Readings query issue on /sensors/${sensorId}: ${err.message}`);
       return [];

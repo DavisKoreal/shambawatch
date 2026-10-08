@@ -102,6 +102,7 @@ export class AppShell {
       analyticsService,
       presenter,
       onSelectSensor: (sensorId) => {
+        telemetryService.fetchSensorHistory(sensorId, 100);
         this._timeseriesChartView.render();
       },
       onOpenSensorModal: (sensorId, windowMs) => {
@@ -207,6 +208,14 @@ export class AppShell {
     // 12. Connect Real-Time Telemetry Pipeline
     await telemetryService.connectPipeline();
 
+    // 13. Proactively load recorded history from Firestore for initial active station
+    const activeStations = stationService.getActiveStations();
+    if (activeStations.length > 0) {
+      telemetryService.fetchStationSensorsHistory(activeStations[0].id).then(() => {
+        this._timeseriesChartView.render();
+      });
+    }
+
     // Window resize chart re-render
     window.addEventListener('resize', () => {
       this._timeseriesChartView.render();
@@ -236,6 +245,9 @@ export class AppShell {
         }
         if (stationId) {
           telemetryService.subscribeStationMast(stationId);
+          telemetryService.fetchStationSensorsHistory(stationId).then(() => {
+            this._timeseriesChartView.render();
+          });
         }
 
         this._stationListView.render();

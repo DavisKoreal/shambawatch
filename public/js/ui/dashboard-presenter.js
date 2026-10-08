@@ -164,6 +164,10 @@ export class DashboardPresenter {
       return { linePath: '', areaPath: '', points: [], color };
     }
 
+    const min = sensor.metricDefinition.minValid;
+    const max = sensor.metricDefinition.maxValid;
+    const range = max - min || 1;
+
     if (readings.length === 1) {
       const normalizedY = (readings[0].value - min) / range;
       const y = height - (normalizedY * (height - 10)) - 5;
@@ -175,9 +179,6 @@ export class DashboardPresenter {
       };
     }
 
-    const min = sensor.metricDefinition.minValid;
-    const max = sensor.metricDefinition.maxValid;
-    const range = max - min || 1;
     const stepX = width / (readings.length - 1);
 
     const points = readings.map((r, idx) => {

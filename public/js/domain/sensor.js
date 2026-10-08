@@ -196,7 +196,11 @@ export class Sensor {
       return [...this._readings];
     }
     const cutoffMs = Date.now() - windowDurationMs;
-    return this._readings.filter((r) => r.timestampMs >= cutoffMs);
+    const windowed = this._readings.filter((r) => r.timestampMs >= cutoffMs);
+    if (windowed.length > 0) {
+      return windowed;
+    }
+    return [...this._readings];
   }
 
   /**

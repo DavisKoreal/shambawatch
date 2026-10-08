@@ -172,11 +172,43 @@ export class TelemetryService {
         readings.forEach((r) => {
           sensor.addReading(r.value, r.timestampMs, r.quality);
         });
+
+        await this._eventBus.publish(EventTypes.TELEMETRY_INGESTED, {
+          sensorId,
+          count: readings.length,
+          historyLoaded: true,
+          timestamp: Date.now()
+        }, { sourceService: 'TelemetryService' });
       }
       return readings;
     } catch (err) {
       this._logger.warn(`Failed to fetch history for sensor ${sensorId}:`, err);
       return [];
+    }
+  }
+
+  /**
+   * Fetches historical readings for all sensors under a specific station from Firestore.
+   * Ensures the main timeseries graph and sparklines display complete recorded history.
+   * @param {string} stationId
+   * @param {number} [limit=100]
+   * @returns {Promise<number>} Total readings retrieved
+   */
+  async fetchStationSensorsHistory(stationId, limit = 100) {
+    if (!this._isFirebaseLive || !this._firestoreRepo || !stationId) return 0;
+    try {
+      const sensors = this._registry.getSensorsByStation(stationId);
+      if (!sensors || sensors.length === 0) return 0;
+
+      const results = await Promise.all(
+        sensors.map((s) => this.fetchSensorHistory(s.id, limit))
+      );
+      const totalLoaded = results.reduce((sum, arr) => sum + (arr?.length || 0), 0);
+      this._logger.info(`Loaded ${totalLoaded} historical readings across ${sensors.length} sensors for station ${stationId}.`);
+      return totalLoaded;
+    } catch (err) {
+      this._logger.warn(`Failed to fetch history for station ${stationId}:`, err);
+      return 0;
     }
   }
 
