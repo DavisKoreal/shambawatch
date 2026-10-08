@@ -491,6 +491,15 @@ client.on('offline', () => {
   console.warn('⚠️ MQTT client went offline.');
 });
 
+// Unhandled error resilience for 24/7 continuous operation
+process.on('uncaughtException', (err) => {
+  console.error('[UNCAUGHT EXCEPTION] Recovered from exception:', err?.message || err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[UNHANDLED REJECTION] Recovered from promise rejection:', reason?.message || reason);
+});
+
 // Graceful termination handling
 process.on('SIGINT', () => {
   console.log('\nStopping MQTT ingestion bridge...');

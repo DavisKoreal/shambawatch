@@ -124,6 +124,9 @@ export class StationService {
    * @returns {string|null}
    */
   getActiveStationId() {
+    if (!this._activeStationId) {
+      this.syncActiveSelection();
+    }
     return this._activeStationId;
   }
 

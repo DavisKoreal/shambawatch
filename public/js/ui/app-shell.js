@@ -156,14 +156,22 @@ export class AppShell {
   _wireEventSubscriptions() {
     const stationService = this._serviceRegistry.get('stationService');
     const mapService = this._serviceRegistry.get('mapService');
+    const telemetryService = this._serviceRegistry.get('telemetryService');
 
     // On Station Selected
     this._subscriptions.push(
       this._eventBus.subscribe(EventTypes.STATION_SELECTED, (event) => {
-        const { station } = event.payload;
+        const payload = event?.payload || event || {};
+        const station = payload.station;
+        const stationId = payload.stationId || station?.id;
+
         if (station && station.lat != null && station.lng != null) {
           mapService.panTo(station.lat, station.lng);
         }
+        if (stationId) {
+          telemetryService.subscribeStationMast(stationId);
+        }
+
         this._stationListView.render();
         this._telemetryDetailView.render();
         this._timeseriesChartView.render();
@@ -184,18 +192,23 @@ export class AppShell {
     // On Sensor Discovered
     this._subscriptions.push(
       this._eventBus.subscribe(EventTypes.SENSOR_DISCOVERED, (event) => {
-        const { sensor } = event.payload;
-        const allStations = stationService.getActiveStations();
-        const station = allStations.find((s) => s.id === sensor.stationId);
-        this._notificationManager.notifyNewSensor(sensor, station ? station.name : sensor.stationId);
-        this.renderAll();
+        const payload = event?.payload || event || {};
+        const sensor = payload.sensor;
+        if (sensor) {
+          const allStations = stationService.getActiveStations();
+          const station = allStations.find((s) => s.id === sensor.stationId);
+          this._notificationManager.notifyNewSensor(sensor, station ? station.name : sensor.stationId);
+          this.renderAll();
+        }
       })
     );
 
     // On Stream Status Changed (Header Live Dot)
     this._subscriptions.push(
       this._eventBus.subscribe(EventTypes.STREAM_STATUS_CHANGED, (event) => {
-        const { isLive, label } = event.payload;
+        const payload = event?.payload || event || {};
+        const isLive = payload.isLive;
+        const label = payload.label;
         const statusDot = document.getElementById('telemetryStatusDot');
         const statusLabel = document.getElementById('telemetryStatusLabel');
         if (statusDot) {
@@ -223,7 +236,8 @@ export class AppShell {
     // On Theme Changed
     this._subscriptions.push(
       this._eventBus.subscribe(EventTypes.THEME_CHANGED, (event) => {
-        this._themeToggleView.updateUI(event.payload.theme);
+        const payload = event?.payload || event || {};
+        this._themeToggleView.updateUI(payload.theme);
         this._timeseriesChartView.render();
       })
     );

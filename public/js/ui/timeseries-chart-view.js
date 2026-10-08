@@ -68,7 +68,8 @@ export class TimeseriesChartView {
     const svg = document.getElementById('chartSvg');
     if (!svg) return;
 
-    const activeStationId = this._stationService.getActiveStationId();
+    const allStations = this._stationService.getActiveStations();
+    const activeStationId = this._stationService.getActiveStationId() || (allStations[0]?.id ?? null);
     const activeMetricType = this._analyticsService.activeMetricType;
     const activeWindowMs = this._analyticsService.activeWindowMs;
 

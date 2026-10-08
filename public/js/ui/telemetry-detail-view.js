@@ -20,8 +20,8 @@ export class TelemetryDetailView {
    * Renders the telemetry detail pane.
    */
   render() {
-    const activeStationId = this._stationService.getActiveStationId();
     const allStations = this._stationService.getActiveStations();
+    const activeStationId = this._stationService.getActiveStationId() || (allStations[0]?.id ?? null);
     const stationSpec = allStations.find((s) => s.id === activeStationId) || allStations[0];
 
     const detTitleEl = document.getElementById('detTitle');
