@@ -145,7 +145,10 @@ export class AnalyticsService {
     }
 
     const points = sensor.getTimeseries(windowMs);
-    const color = APP_CONFIG.STATUS_COLORS[sensor.currentState.status] || '#7A9471';
+    const statusKey = sensor.currentState?.status || 'nominal';
+    const color = APP_CONFIG.STATUS_COLORS?.[statusKey] ||
+                  APP_CONFIG.THEME_COLORS?.[statusKey.toUpperCase()] ||
+                  '#7A9471';
 
     if (points.length === 0) {
       return { linePath: '', areaPath: '', points: [], color };

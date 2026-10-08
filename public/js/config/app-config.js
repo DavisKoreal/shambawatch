@@ -45,6 +45,15 @@ export const APP_CONFIG = Object.freeze({
     FAULT: 'FAULT',
   }),
 
+  // Sensor Health Status Colors (Rule 41: Externalized Semantic Tokens)
+  STATUS_COLORS: Object.freeze({
+    nominal: '#7A9471',      // Moss Green
+    watch: '#C9A227',        // Nutrient Amber
+    alert: '#C1622C',        // Earth Terracotta
+    offline: '#726B5C',      // Ink Faint
+    calibrating: '#4C87A6',  // Basin Blue
+  }),
+
   // UI Semantic Color Tokens
   THEME_COLORS: Object.freeze({
     NOMINAL: '#7A9471',      // Moss Green

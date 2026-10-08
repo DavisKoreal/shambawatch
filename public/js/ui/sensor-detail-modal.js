@@ -63,6 +63,13 @@ export class SensorDetailModal {
 
     this.renderContent();
 
+    // Re-render after browser frame paint to measure exact client dimensions
+    requestAnimationFrame(() => {
+      if (this._isOpen && this._sensorId === sensorId) {
+        this.renderContent();
+      }
+    });
+
     if (this._telemetryService) {
       await this._telemetryService.fetchSensorHistory(sensorId, 100);
       if (this._isOpen && this._sensorId === sensorId) {
@@ -322,8 +329,11 @@ export class SensorDetailModal {
     const svg = this._mountEl.querySelector('#sensorModalSvg');
     if (!svg) return;
 
-    const w = svg.clientWidth || svg.parentElement?.clientWidth || 700;
-    const h = svg.clientHeight || 220;
+    const w = Math.max(300, svg.clientWidth || svg.parentElement?.clientWidth || 700);
+    const h = Math.max(160, svg.clientHeight || 220);
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+
     const metric = sensor.metricDefinition;
     const unit = metric.unitSymbol || '';
 
@@ -345,14 +355,18 @@ export class SensorDetailModal {
     const min = metric.minValid ?? 0;
     const max = metric.maxValid ?? 100;
     const range = (max - min) || 1;
-    const color = APP_CONFIG.STATUS_COLORS[sensor.currentState.status] || '#7A9471';
+    const statusKey = sensor.currentState?.status || 'nominal';
+    const color = APP_CONFIG.STATUS_COLORS?.[statusKey] ||
+                  APP_CONFIG.THEME_COLORS?.[statusKey.toUpperCase()] ||
+                  '#7A9471';
 
     // 5 Y-Axis reference levels
     const yLevels = [1.0, 0.75, 0.5, 0.25, 0.0];
     const yTicks = yLevels.map((lvl) => {
       const y = padTop + plotH * (1 - lvl);
       const val = min + lvl * range;
-      const label = `${val.toFixed(metric.precision > 0 ? 1 : 0)}${unit}`;
+      const precision = metric.precision ?? 1;
+      const label = `${val.toFixed(precision > 0 ? 1 : 0)}${unit}`;
       return { y, val, label, isBase: lvl === 0 };
     });
 
@@ -374,12 +388,13 @@ export class SensorDetailModal {
 
     if (readings.length === 1) {
       const r = readings[0];
-      const normY = Math.min(1, Math.max(0, (r.value - min) / range));
+      const rVal = isNaN(Number(r.value)) ? min : Number(r.value);
+      const normY = Math.min(1, Math.max(0, (rVal - min) / range));
       const y = padTop + plotH - (normY * plotH);
       points = [{
         x: padLeft + plotW / 2,
         y,
-        value: r.value,
+        value: rVal,
         timestampMs: r.timestampMs,
         quality: r.quality || 'GOOD',
         delta: r.delta ?? 0,
@@ -391,12 +406,13 @@ export class SensorDetailModal {
       const stepX = plotW / (readings.length - 1);
       points = readings.map((r, i) => {
         const x = padLeft + i * stepX;
-        const normY = Math.min(1, Math.max(0, (r.value - min) / range));
+        const rVal = isNaN(Number(r.value)) ? min : Number(r.value);
+        const normY = Math.min(1, Math.max(0, (rVal - min) / range));
         const y = padTop + plotH - (normY * plotH);
         return {
           x,
           y,
-          value: r.value,
+          value: rVal,
           timestampMs: r.timestampMs,
           quality: r.quality || 'GOOD',
           delta: r.delta ?? 0,
@@ -409,20 +425,30 @@ export class SensorDetailModal {
     }
 
     // 5 X-Axis Time Ticks
-    const tStart = readings[0].timestampMs;
-    const tEnd = readings[readings.length - 1].timestampMs;
+    const rawStart = Number(readings[0]?.timestampMs);
+    const rawEnd = Number(readings[readings.length - 1]?.timestampMs);
+    const tStart = (!isNaN(rawStart) && rawStart > 0) ? rawStart : Date.now();
+    const tEnd = (!isNaN(rawEnd) && rawEnd >= tStart) ? rawEnd : tStart;
     const isMultiDay = (tEnd - tStart) > 86400000;
     const xTickRatios = [0, 0.25, 0.5, 0.75, 1];
     const xTicks = xTickRatios.map((ratio) => {
       const tickX = padLeft + ratio * plotW;
       const tickTime = tStart + ratio * (tEnd - tStart || 1);
-      const timeStr = isMultiDay
-        ? `${new Date(tickTime).toLocaleDateString([], { month: 'numeric', day: 'numeric' })} ${new Date(tickTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-        : new Date(tickTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      let timeStr = '';
+      try {
+        const d = new Date(tickTime);
+        timeStr = isMultiDay
+          ? `${d.toLocaleDateString([], { month: 'numeric', day: 'numeric' })} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+          : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch (e) {
+        timeStr = '';
+      }
       return { x: tickX, timeStr, ratio };
     });
 
     const baselineY = padTop + plotH;
+    const ptRadius = readings.length > 80 ? 1.8 : (readings.length > 40 ? 2.5 : 3.5);
+    const ptStroke = readings.length > 80 ? 1.0 : 1.5;
 
     svg.innerHTML = `
       <defs>
@@ -466,8 +492,8 @@ export class SensorDetailModal {
 
       <!-- Interactive Data Points -->
       ${points.map((p, i) => `
-        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${color}" stroke="var(--bg)" stroke-width="1.5" class="modal-chart-point" data-idx="${i}" />
-        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="16" fill="transparent" class="modal-chart-hitbox" data-idx="${i}" style="cursor:pointer;" />
+        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${ptRadius}" fill="${color}" stroke="var(--bg)" stroke-width="${ptStroke}" class="modal-chart-point" data-idx="${i}" />
+        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="14" fill="transparent" class="modal-chart-hitbox" data-idx="${i}" style="cursor:pointer;" />
       `).join('')}
 
       <!-- Interactive Point Inspector Overlays -->

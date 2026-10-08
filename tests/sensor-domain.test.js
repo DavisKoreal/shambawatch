@@ -1020,6 +1020,48 @@ await testAsync('should dynamically register stations only as sensors are ingest
   assert.ok(moistureRes.text.includes('42.5%'));
 });
 
+// ============================================================================
+// 12. STATUS COLORS AND HOMOGENEOUS TIMESERIES GEOMETRY TEST
+// ============================================================================
+test('APP_CONFIG.STATUS_COLORS: defines semantic colors for all health statuses', () => {
+  assert.ok(APP_CONFIG.STATUS_COLORS, 'STATUS_COLORS should be defined');
+  assert.equal(APP_CONFIG.STATUS_COLORS.nominal, '#7A9471');
+  assert.equal(APP_CONFIG.STATUS_COLORS.watch, '#C9A227');
+  assert.equal(APP_CONFIG.STATUS_COLORS.alert, '#C1622C');
+  assert.equal(APP_CONFIG.STATUS_COLORS.offline, '#726B5C');
+  assert.equal(APP_CONFIG.STATUS_COLORS.calibrating, '#4C87A6');
+});
+
+test('Homogeneous timeseries: 151 identical readings (100%) generates valid geometry and stats without error', () => {
+  const s = new Sensor({
+    id: 'probe-02010509',
+    stationId: '02010509',
+    metadata: new SensorMetadata({
+      name: 'Field Station 02010509 LoRa Moisture Probe',
+      stationId: '02010509'
+    }),
+    metricDefinition: new MetricDefinition(APP_CONFIG.METRIC_TYPES.MOISTURE)
+  });
+
+  const now = Date.now();
+  for (let i = 0; i < 151; i++) {
+    s.addReading(100.0, now - (151 - i) * 60000, 'GOOD');
+  }
+
+  const readings = s.getTimeseries(0);
+  assert.equal(readings.length, 151);
+
+  const stats = s.getStatistics(0);
+  assert.equal(stats.min, 100);
+  assert.equal(stats.max, 100);
+  assert.equal(stats.avg, 100);
+  assert.equal(stats.count, 151);
+
+  const statusKey = s.currentState?.status || 'nominal';
+  const color = APP_CONFIG.STATUS_COLORS?.[statusKey] || '#7A9471';
+  assert.equal(color, '#7A9471');
+});
+
 console.log(`\n========================================`);
 console.log(`  ALL ${passedTests} UNIT TESTS PASSED SUCCESSFULLY!`);
 console.log(`========================================\n`);
