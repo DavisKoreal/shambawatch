@@ -111,6 +111,9 @@ export class TelemetryDetailView {
             if (this._onSelectSensor) {
               this._onSelectSensor(sensorId);
             }
+            if (this._onOpenSensorModal) {
+              this._onOpenSensorModal(sensorId);
+            }
           });
         });
 

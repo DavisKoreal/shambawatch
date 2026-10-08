@@ -167,10 +167,12 @@ header {
 
 /* Main Grid Layout */
 .layout {
-  flex: 1;
+  flex: 1 1 auto;
   display: grid;
   grid-template-columns: 250px 1fr 340px;
   min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Mobile View Tab Switcher */
@@ -265,9 +267,11 @@ header {
   .layout {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
+    height: 100%;
     position: relative;
+    overflow: hidden;
   }
   .layout .sidebar,
   .layout .map-wrap,
@@ -275,18 +279,22 @@ header {
     display: none;
     width: 100%;
     height: 100%;
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
     border: none;
+    overflow-y: auto;
   }
   .layout.show-map .map-wrap {
     display: block;
+    overflow: hidden;
   }
   .layout.show-stations .sidebar {
     display: block;
+    overflow-y: auto;
   }
   .layout.show-detail .detail {
     display: block;
+    overflow-y: auto;
   }
 }
 

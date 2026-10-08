@@ -32,9 +32,17 @@ export class SensorDetailModal {
     this._customStartMs = null;
     this._customEndMs = null;
     this._isOpen = false;
+    this._resizeTimeout = null;
 
     this._render();
     this._bindEvents();
+
+    window.addEventListener('resize', () => {
+      if (this._isOpen && this._sensorId) {
+        if (this._resizeTimeout) clearTimeout(this._resizeTimeout);
+        this._resizeTimeout = setTimeout(() => this.renderContent(), 120);
+      }
+    });
   }
 
   /**
@@ -305,84 +313,254 @@ export class SensorDetailModal {
   }
 
   /**
-   * Renders the timeseries SVG graph for the sensor.
+   * Renders the timeseries SVG graph for the sensor with complete Y/X axis labels,
+   * safe range guidelines, timestamp ticks, and interactive click point inspector.
    * @private
    */
   _renderSvgChart(sensor, readings) {
     const svg = this._mountEl.querySelector('#sensorModalSvg');
     if (!svg) return;
 
-    const w = svg.clientWidth || 700;
+    const w = svg.clientWidth || svg.parentElement?.clientWidth || 700;
     const h = svg.clientHeight || 220;
     const metric = sensor.metricDefinition;
+    const unit = metric.unitSymbol || '';
 
     if (readings.length === 0) {
       svg.innerHTML = `
         <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="var(--ink-faint)" font-family="var(--font-mono)" font-size="12">
-          No readings recorded in selected time window.
+          No telemetry readings recorded in selected time period.
         </text>`;
       return;
     }
 
-    const min = metric.minValid;
-    const max = metric.maxValid;
+    const padLeft = 56;
+    const padRight = 28;
+    const padTop = 22;
+    const padBottom = 34;
+    const plotW = Math.max(20, w - padLeft - padRight);
+    const plotH = Math.max(20, h - padTop - padBottom);
+
+    const min = metric.minValid ?? 0;
+    const max = metric.maxValid ?? 100;
     const range = (max - min) || 1;
     const color = APP_CONFIG.STATUS_COLORS[sensor.currentState.status] || '#7A9471';
 
-    let linePath = '';
-    let areaPath = '';
-    let points = [];
+    // 5 Y-Axis reference levels
+    const yLevels = [1.0, 0.75, 0.5, 0.25, 0.0];
+    const yTicks = yLevels.map((lvl) => {
+      const y = padTop + plotH * (1 - lvl);
+      const val = min + lvl * range;
+      const label = `${val.toFixed(metric.precision > 0 ? 1 : 0)}${unit}`;
+      return { y, val, label, isBase: lvl === 0 };
+    });
 
-    if (readings.length === 1) {
-      const normalizedY = (readings[0].value - min) / range;
-      const y = h - (normalizedY * (h - 30)) - 15;
-      linePath = `M 0,${y.toFixed(1)} L ${w},${y.toFixed(1)}`;
-      areaPath = `M 0,${y.toFixed(1)} L ${w},${y.toFixed(1)} L ${w},${h} L 0,${h} Z`;
-      points = [[w / 2, y]];
-    } else {
-      const stepX = w / (readings.length - 1);
-      points = readings.map((r, i) => {
-        const x = i * stepX;
-        const normalizedY = (r.value - min) / range;
-        const y = h - (normalizedY * (h - 30)) - 15;
-        return [Number(x.toFixed(1)), Number(y.toFixed(1))];
-      });
-
-      linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + `${p[0]},${p[1]}`).join(' ');
-      areaPath = `${linePath} L${w},${h} L0,${h} Z`;
+    // Safe Range Guidelines
+    const hasSafeRange = metric.minSafe != null && metric.maxSafe != null;
+    let safeMaxY = null;
+    let safeMinY = null;
+    if (hasSafeRange) {
+      const normSafeMax = Math.min(1, Math.max(0, (metric.maxSafe - min) / range));
+      const normSafeMin = Math.min(1, Math.max(0, (metric.minSafe - min) / range));
+      safeMaxY = padTop + plotH * (1 - normSafeMax);
+      safeMinY = padTop + plotH * (1 - normSafeMin);
     }
 
-    // Grid lines for reference thresholds
-    const safeMinY = h - (((metric.minSafe - min) / range) * (h - 30)) - 15;
-    const safeMaxY = h - (((metric.maxSafe - min) / range) * (h - 30)) - 15;
+    // Compute coordinate points
+    let points = [];
+    let linePath = '';
+    let areaPath = '';
+
+    if (readings.length === 1) {
+      const r = readings[0];
+      const normY = Math.min(1, Math.max(0, (r.value - min) / range));
+      const y = padTop + plotH - (normY * plotH);
+      points = [{
+        x: padLeft + plotW / 2,
+        y,
+        value: r.value,
+        timestampMs: r.timestampMs,
+        quality: r.quality || 'GOOD',
+        delta: r.delta ?? 0,
+        batteryPct: r.batteryPct ?? sensor.currentState.batteryPct,
+      }];
+      linePath = `M ${padLeft},${y.toFixed(1)} L ${(padLeft + plotW).toFixed(1)},${y.toFixed(1)}`;
+      areaPath = `M ${padLeft},${y.toFixed(1)} L ${(padLeft + plotW).toFixed(1)},${y.toFixed(1)} L ${(padLeft + plotW).toFixed(1)},${(padTop + plotH).toFixed(1)} L ${padLeft},${(padTop + plotH).toFixed(1)} Z`;
+    } else {
+      const stepX = plotW / (readings.length - 1);
+      points = readings.map((r, i) => {
+        const x = padLeft + i * stepX;
+        const normY = Math.min(1, Math.max(0, (r.value - min) / range));
+        const y = padTop + plotH - (normY * plotH);
+        return {
+          x,
+          y,
+          value: r.value,
+          timestampMs: r.timestampMs,
+          quality: r.quality || 'GOOD',
+          delta: r.delta ?? 0,
+          batteryPct: r.batteryPct ?? sensor.currentState.batteryPct,
+        };
+      });
+
+      linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + ` ${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+      areaPath = `${linePath} L ${(padLeft + plotW).toFixed(1)},${(padTop + plotH).toFixed(1)} L ${padLeft},${(padTop + plotH).toFixed(1)} Z`;
+    }
+
+    // 5 X-Axis Time Ticks
+    const tStart = readings[0].timestampMs;
+    const tEnd = readings[readings.length - 1].timestampMs;
+    const isMultiDay = (tEnd - tStart) > 86400000;
+    const xTickRatios = [0, 0.25, 0.5, 0.75, 1];
+    const xTicks = xTickRatios.map((ratio) => {
+      const tickX = padLeft + ratio * plotW;
+      const tickTime = tStart + ratio * (tEnd - tStart || 1);
+      const timeStr = isMultiDay
+        ? `${new Date(tickTime).toLocaleDateString([], { month: 'numeric', day: 'numeric' })} ${new Date(tickTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+        : new Date(tickTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return { x: tickX, timeStr, ratio };
+    });
+
+    const baselineY = padTop + plotH;
 
     svg.innerHTML = `
       <defs>
         <linearGradient id="modalGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${color}" stop-opacity="0.4"/>
-          <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0.02"/>
         </linearGradient>
       </defs>
 
+      <!-- Safe Range Background Band -->
+      ${hasSafeRange && safeMaxY !== null && safeMinY !== null ? `
+        <rect x="${padLeft}" y="${Math.min(safeMaxY, safeMinY)}" width="${plotW}" height="${Math.abs(safeMinY - safeMaxY)}" fill="var(--moss)" fill-opacity="0.07" rx="2" />
+      ` : ''}
+
+      <!-- Y-Axis Gridlines & Ticks -->
+      ${yTicks.map((t) => `
+        <line x1="${padLeft}" y1="${t.y.toFixed(1)}" x2="${(padLeft + plotW).toFixed(1)}" y2="${t.y.toFixed(1)}" stroke="var(--hairline)" stroke-dasharray="${t.isBase ? 'none' : '3,3'}" opacity="${t.isBase ? '1' : '0.6'}" />
+        <text x="${(padLeft - 8).toFixed(1)}" y="${(t.y + 3).toFixed(1)}" text-anchor="end" fill="var(--ink-faint)" font-family="var(--font-mono)" font-size="10">${t.label}</text>
+      `).join('')}
+
       <!-- Safe Threshold Guidelines -->
-      <line x1="0" y1="${safeMaxY.toFixed(1)}" x2="${w}" y2="${safeMaxY.toFixed(1)}" stroke="var(--nutrient)" stroke-dasharray="3,3" opacity="0.4"/>
-      <text x="8" y="${(safeMaxY - 4).toFixed(1)}" fill="var(--nutrient)" font-size="9" font-family="var(--font-mono)" opacity="0.7">Safe Max (${metric.maxSafe}${metric.unitSymbol})</text>
-      
-      <line x1="0" y1="${safeMinY.toFixed(1)}" x2="${w}" y2="${safeMinY.toFixed(1)}" stroke="var(--nutrient)" stroke-dasharray="3,3" opacity="0.4"/>
-      <text x="8" y="${(safeMinY + 11).toFixed(1)}" fill="var(--nutrient)" font-size="9" font-family="var(--font-mono)" opacity="0.7">Safe Min (${metric.minSafe}${metric.unitSymbol})</text>
+      ${safeMaxY !== null ? `
+        <line x1="${padLeft}" y1="${safeMaxY.toFixed(1)}" x2="${(padLeft + plotW).toFixed(1)}" y2="${safeMaxY.toFixed(1)}" stroke="var(--nutrient)" stroke-dasharray="4,4" opacity="0.85"/>
+        <text x="${padLeft + 8}" y="${(safeMaxY - 4).toFixed(1)}" fill="var(--nutrient)" font-size="9" font-family="var(--font-mono)" opacity="0.9">Safe Max (${metric.maxSafe}${unit})</text>
+      ` : ''}
+      ${safeMinY !== null ? `
+        <line x1="${padLeft}" y1="${safeMinY.toFixed(1)}" x2="${(padLeft + plotW).toFixed(1)}" y2="${safeMinY.toFixed(1)}" stroke="var(--nutrient)" stroke-dasharray="4,4" opacity="0.85"/>
+        <text x="${padLeft + 8}" y="${(safeMinY + 11).toFixed(1)}" fill="var(--nutrient)" font-size="9" font-family="var(--font-mono)" opacity="0.9">Safe Min (${metric.minSafe}${unit})</text>
+      ` : ''}
+
+      <!-- X-Axis Baseline & Notches -->
+      <line x1="${padLeft}" y1="${baselineY}" x2="${padLeft + plotW}" y2="${baselineY}" stroke="var(--hairline)" stroke-width="1" />
+      ${xTicks.map((xt) => `
+        <line x1="${xt.x.toFixed(1)}" y1="${baselineY}" x2="${xt.x.toFixed(1)}" y2="${baselineY + 5}" stroke="var(--hairline)" stroke-width="1" />
+        <text x="${xt.x.toFixed(1)}" y="${baselineY + 18}" text-anchor="${xt.ratio === 0 ? 'start' : xt.ratio === 1 ? 'end' : 'middle'}" fill="var(--ink-faint)" font-family="var(--font-mono)" font-size="10">${xt.timeStr}</text>
+      `).join('')}
 
       <!-- Timeseries Area & Line -->
-      <path d="${areaPath}" fill="url(#modalGrad)"/>
-      <path d="${linePath}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      ${areaPath ? `<path d="${areaPath}" fill="url(#modalGrad)"/>` : ''}
+      ${linePath ? `<path d="${linePath}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
 
-      <!-- Data point markers -->
-      ${points.map((p, i) => {
-        const r = readings[i];
-        return `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${color}" stroke="var(--bg)" stroke-width="1.5">
-          <title>${r ? `${new Date(r.timestampMs).toLocaleTimeString()}: ${r.value}${metric.unitSymbol}` : ''}</title>
-        </circle>`;
-      }).join('')}
+      <!-- Interactive Data Points -->
+      ${points.map((p, i) => `
+        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${color}" stroke="var(--bg)" stroke-width="1.5" class="modal-chart-point" data-idx="${i}" />
+        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="16" fill="transparent" class="modal-chart-hitbox" data-idx="${i}" style="cursor:pointer;" />
+      `).join('')}
+
+      <!-- Interactive Point Inspector Overlays -->
+      <g id="modalInspectorOverlay" style="display:none; pointer-events:none;">
+        <line id="inspCrosshair" x1="0" y1="${padTop}" x2="0" y2="${baselineY}" stroke="${color}" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.8" />
+        <circle id="inspHalo" cx="0" cy="0" r="7" fill="none" stroke="${color}" stroke-width="2">
+          <animate attributeName="r" values="5;9;5" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <g id="inspCardGroup">
+          <rect id="inspCardBg" rx="6" fill="var(--panel-raised)" stroke="var(--hairline)" stroke-width="1" filter="drop-shadow(0 6px 16px rgba(0,0,0,0.65))" />
+          <text id="inspLine1" x="0" y="0" fill="var(--ink-dim)" font-family="var(--font-mono)" font-size="9"></text>
+          <text id="inspLine2" x="0" y="0" fill="var(--ink)" font-family="var(--font-mono)" font-size="12" font-weight="700"></text>
+          <text id="inspLine3" x="0" y="0" fill="var(--ink-dim)" font-family="var(--font-mono)" font-size="9"></text>
+        </g>
+      </g>
     `;
+
+    // Bind interactive inspection handlers
+    const overlay = svg.querySelector('#modalInspectorOverlay');
+    const crosshair = svg.querySelector('#inspCrosshair');
+    const halo = svg.querySelector('#inspHalo');
+    const cardBg = svg.querySelector('#inspCardBg');
+    const line1 = svg.querySelector('#inspLine1');
+    const line2 = svg.querySelector('#inspLine2');
+    const line3 = svg.querySelector('#inspLine3');
+
+    const inspectPoint = (idx) => {
+      const p = points[idx];
+      if (!p || !overlay) return;
+
+      const dateStr = new Date(p.timestampMs).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const fullDate = new Date(p.timestampMs).toLocaleDateString('en-KE', { month: 'short', day: 'numeric', year: 'numeric' });
+      const valStr = `${p.value}${unit} (${sensor.metadata.name})`;
+      const detailStr = `Quality: ${p.quality} · Delta: ${p.delta >= 0 ? '+' : ''}${p.delta} · Batt: ${p.batteryPct != null ? `${Math.round(p.batteryPct)}%` : '—'}`;
+
+      crosshair.setAttribute('x1', p.x);
+      crosshair.setAttribute('x2', p.x);
+
+      halo.setAttribute('cx', p.x);
+      halo.setAttribute('cy', p.y);
+
+      line1.textContent = `${fullDate} ${dateStr} EAT`;
+      line2.textContent = valStr;
+      line3.textContent = detailStr;
+
+      const cardW = Math.max(180, Math.max(valStr.length * 7.5, detailStr.length * 5.8));
+      const cardH = 54;
+      const cardX = Math.max(padLeft, Math.min(w - cardW - 10, p.x - cardW / 2));
+      const cardY = Math.max(6, p.y - cardH - 12);
+
+      cardBg.setAttribute('x', cardX);
+      cardBg.setAttribute('y', cardY);
+      cardBg.setAttribute('width', cardW);
+      cardBg.setAttribute('height', cardH);
+
+      line1.setAttribute('x', cardX + 10);
+      line1.setAttribute('y', cardY + 16);
+
+      line2.setAttribute('x', cardX + 10);
+      line2.setAttribute('y', cardY + 32);
+
+      line3.setAttribute('x', cardX + 10);
+      line3.setAttribute('y', cardY + 46);
+
+      overlay.style.display = 'block';
+
+      // Highlight matching row in the table below
+      const tableRows = this._mountEl.querySelectorAll('#sensorLogTbody tr');
+      tableRows.forEach((tr) => tr.style.backgroundColor = '');
+      const matchingRow = this._mountEl.querySelector(`#sensorLogTbody tr[data-timestamp="${p.timestampMs}"]`);
+      if (matchingRow) {
+        matchingRow.style.backgroundColor = 'rgba(122, 148, 113, 0.22)';
+        matchingRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+
+    const clearInspection = () => {
+      if (overlay) overlay.style.display = 'none';
+      const tableRows = this._mountEl.querySelectorAll('#sensorLogTbody tr');
+      tableRows.forEach((tr) => tr.style.backgroundColor = '');
+    };
+
+    svg.querySelectorAll('.modal-chart-hitbox').forEach((hitbox) => {
+      hitbox.addEventListener('mouseenter', (e) => {
+        const idx = Number(e.target.dataset.idx);
+        inspectPoint(idx);
+      });
+      hitbox.addEventListener('mouseleave', clearInspection);
+      hitbox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = Number(e.target.dataset.idx);
+        inspectPoint(idx);
+      });
+    });
   }
 
   /**
@@ -440,7 +618,7 @@ export class SensorDetailModal {
   }
 
   /**
-   * Renders the recent readings table.
+   * Renders the recent readings table with data-timestamp attributes for bi-directional linking.
    * @private
    */
   _renderReadingsTable(sensor, readings) {
@@ -452,8 +630,8 @@ export class SensorDetailModal {
       return;
     }
 
-    // Show up to 15 most recent readings in reverse chronological order
-    const slice = [...readings].reverse().slice(0, 15);
+    // Show up to 20 most recent readings in reverse chronological order
+    const slice = [...readings].reverse().slice(0, 20);
     tbody.innerHTML = slice.map((r) => {
       const timeStr = new Date(r.timestampMs).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const dateStr = new Date(r.timestampMs).toLocaleDateString('en-KE', { month: 'short', day: 'numeric' });
@@ -461,7 +639,7 @@ export class SensorDetailModal {
       const batteryStr = r.batteryPct != null ? `${Math.round(r.batteryPct)}%` : '—';
 
       return `
-        <tr>
+        <tr data-timestamp="${r.timestampMs}">
           <td>${dateStr} ${timeStr}</td>
           <td><strong>${r.value}</strong> <span style="font-size:10px; opacity:0.6;">${sensor.metricDefinition.unitSymbol}</span></td>
           <td style="color:${r.delta >= 0 ? 'var(--moss)' : 'var(--earth)'}; font-family:var(--font-mono); font-size:11px;">${deltaStr}</td>
