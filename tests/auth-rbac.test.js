@@ -200,3 +200,50 @@ test('TelemetryService: 3-Minute Resilient Firestore Polling & Lifecycle', async
   });
 });
 
+test('AuthService: Firestore /roles/roles Document Mapping and Dynamic RBAC', async (t) => {
+  await t.test('fetchRoleMappingDocument should return default fallback mappings when Firestore is unavailable', async () => {
+    const eventBus = new EventBus();
+    const authService = new AuthService({ eventBus });
+
+    const mappings = await authService.fetchRoleMappingDocument();
+    assert.ok(mappings);
+    assert.equal(typeof mappings, 'object');
+    assert.equal(mappings['admin@shambawatch.org'], 'admin');
+    assert.equal(mappings['farmer@shambawatch.org'], 'farmer');
+  });
+
+  await t.test('setRoleMapping should handle missing Firestore gracefully and return envelope', async () => {
+    const eventBus = new EventBus();
+    const authService = new AuthService({ eventBus });
+
+    const result = await authService.setRoleMapping('supervisor@shambawatch.org', 'admin');
+    assert.ok(result);
+    // When Firebase is not mocked, returns SERVICE_UNAVAILABLE or dependency failure envelope
+    assert.equal(result.data ? result.data.role : result.error?.code, result.data ? 'admin' : 'SERVICE_UNAVAILABLE');
+  });
+
+  await t.test('_syncUserProfile should prioritize /roles/roles mapping over email naming conventions', async () => {
+    const eventBus = new EventBus();
+    const authService = new AuthService({ eventBus });
+
+    // Mock fetchRoleMappingDocument to map non-admin email to admin
+    authService.fetchRoleMappingDocument = async () => ({
+      'chief@shambawatch.org': 'admin',
+      'regular-admin-name@shambawatch.org': 'farmer'
+    });
+
+    // Simulated user without Firebase SDK
+    const mockUser = {
+      uid: 'user-chief-01',
+      email: 'chief@shambawatch.org',
+      displayName: 'Chief Officer'
+    };
+
+    await authService._syncUserProfile(mockUser);
+    const profile = authService.getCurrentProfile();
+    assert.ok(profile);
+    assert.equal(profile.role, 'admin');
+  });
+});
+
+

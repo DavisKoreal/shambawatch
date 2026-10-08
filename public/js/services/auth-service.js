@@ -82,13 +82,142 @@ export class AuthService {
   }
 
   /**
-   * Fetches or initializes user profile in Firestore (/users/{uid}).
+   * Fetches the role mapping document from Firestore (/roles/roles or /config/roles).
+   * Maps user emails (lowercase) to their assigned role ('admin' or 'farmer').
+   * @returns {Promise<Object<string, string>>}
+   */
+  async fetchRoleMappingDocument() {
+    const defaultRoles = {
+      'admin@shambawatch.org': UserRole.ADMIN,
+      'farmer@shambawatch.org': UserRole.FARMER,
+      'farmer1@shambawatch.org': UserRole.FARMER
+    };
+
+    const fb = getFirebase();
+    if (!fb?.firestore) return defaultRoles;
+    const db = fb.firestore();
+
+    try {
+      // 1. Try primary /roles/roles
+      let snapshot = await db.collection('roles').doc('roles').get();
+      if (!snapshot.exists) {
+        // Fallback /config/roles
+        snapshot = await db.collection('config').doc('roles').get();
+      }
+      if (!snapshot.exists) {
+        // Fallback /roles/mapping
+        snapshot = await db.collection('roles').doc('mapping').get();
+      }
+
+      if (!snapshot.exists) {
+        // If not created yet in Firestore, seed initial document
+        const initialRoles = {
+          'admin@shambawatch.org': UserRole.ADMIN,
+          'farmer@shambawatch.org': UserRole.FARMER,
+          'farmer1@shambawatch.org': UserRole.FARMER
+        };
+        try {
+          await db.collection('roles').doc('roles').set(initialRoles, { merge: true });
+          this._logger.info('Initialized seed /roles/roles mapping document in Firestore.');
+          return initialRoles;
+        } catch (_) {
+          return initialRoles;
+        }
+      }
+
+      const data = snapshot.data() || {};
+      const mapping = {};
+
+      // Parse fields: direct email properties or nested under roles/emails/users
+      const source = data.roles || data.emails || data.users || data;
+      for (const [key, val] of Object.entries(source)) {
+        if (!key) continue;
+        const normalizedKey = key.trim().toLowerCase();
+        let role = typeof val === 'string'
+          ? val.toLowerCase().trim()
+          : (val?.role?.toLowerCase()?.trim() || UserRole.FARMER);
+
+        if (role !== UserRole.ADMIN && role !== UserRole.FARMER) {
+          role = role.includes('admin') ? UserRole.ADMIN : UserRole.FARMER;
+        }
+        mapping[normalizedKey] = role;
+      }
+
+      return mapping;
+    } catch (err) {
+      this._logger.warn('Failed to fetch role mapping document from Firestore:', err.message);
+      return defaultRoles;
+    }
+  }
+
+  /**
+   * Sets or updates an email-to-role mapping in the Firestore /roles/roles document.
+   * @param {string} email
+   * @param {string} role 'admin' | 'farmer'
+   * @returns {Promise<Object>} Service Envelope
+   */
+  async setRoleMapping(email, role) {
+    const fb = getFirebase();
+    if (!fb?.firestore) return createErrorEnvelope(ServiceErrorCode.SERVICE_UNAVAILABLE, 'Firestore unavailable');
+    const db = fb.firestore();
+
+    try {
+      const emailKey = email.trim().toLowerCase();
+      const validRole = role === UserRole.ADMIN ? UserRole.ADMIN : UserRole.FARMER;
+
+      await db.collection('roles').doc('roles').set({
+        [emailKey]: validRole
+      }, { merge: true });
+
+      this._logger.info(`Updated /roles/roles mapping in Firestore: ${emailKey} -> ${validRole}`);
+
+      // If user profile currently exists with that email in /users, sync profile as well
+      try {
+        const usersSnap = await db.collection('users').where('email', '==', emailKey).get();
+        if (!usersSnap.empty) {
+          for (const userDoc of usersSnap.docs) {
+            await userDoc.ref.update({
+              role: validRole,
+              updatedAt: new Date().toISOString()
+            });
+          }
+        }
+      } catch (_) {}
+
+      return createSuccessEnvelope({ email: emailKey, role: validRole });
+    } catch (err) {
+      this._logger.error('Failed to set role mapping:', err);
+      return createErrorEnvelope(ServiceErrorCode.INTERNAL_ERROR, err.message);
+    }
+  }
+
+  /**
+   * Fetches or initializes user profile in Firestore (/users/{uid}),
+   * strictly adhering to the /roles/roles document mappings.
    * @private
    * @param {Object} user Firebase Auth User
    */
   async _syncUserProfile(user) {
+    const emailLower = (user?.email || '').trim().toLowerCase();
+    let roleMapping = {};
+    try {
+      roleMapping = await this.fetchRoleMappingDocument();
+    } catch (_) {}
+    const mappedRole = roleMapping[emailLower] || null;
+
     const fb = getFirebase();
-    if (!fb?.firestore) return;
+    if (!fb?.firestore) {
+      const isAdminEmail = mappedRole === UserRole.ADMIN || (user?.email && (user.email.includes('admin') || user.email === 'admin@shambawatch.org'));
+      const effectiveRole = mappedRole || (isAdminEmail ? UserRole.ADMIN : UserRole.FARMER);
+      this._currentProfile = {
+        uid: user?.uid || 'offline-uid',
+        email: user?.email || '',
+        displayName: user?.displayName || (effectiveRole === UserRole.ADMIN ? 'System Admin' : 'Field Farmer'),
+        role: effectiveRole,
+        assignedStationId: null
+      };
+      return;
+    }
     const db = fb.firestore();
 
     try {
@@ -96,15 +225,25 @@ export class AuthService {
       const snapshot = await docRef.get();
 
       if (snapshot.exists) {
-        this._currentProfile = snapshot.data();
+        const existingData = snapshot.data();
+        // If the roles mapping document dictates a role, enforce that role
+        if (mappedRole && existingData.role !== mappedRole) {
+          existingData.role = mappedRole;
+          existingData.updatedAt = new Date().toISOString();
+          await docRef.set(existingData, { merge: true });
+          this._logger.info(`Synchronized user role for ${user.email} from /roles/roles: ${mappedRole}`);
+        }
+        this._currentProfile = existingData;
       } else {
-        // First time login - derive default role based on email or default to admin
-        const isAdminEmail = user.email && (user.email.includes('admin') || user.email === 'admin@shambawatch.org');
+        // First time login - use mappedRole if available, otherwise check admin email pattern
+        const isAdminEmail = mappedRole === UserRole.ADMIN || (user.email && (user.email.includes('admin') || user.email === 'admin@shambawatch.org'));
+        const effectiveRole = mappedRole || (isAdminEmail ? UserRole.ADMIN : UserRole.FARMER);
+
         const defaultProfile = {
           uid: user.uid,
           email: user.email || '',
-          displayName: user.displayName || (isAdminEmail ? 'System Admin' : 'Field Farmer'),
-          role: isAdminEmail ? UserRole.ADMIN : UserRole.FARMER,
+          displayName: user.displayName || (effectiveRole === UserRole.ADMIN ? 'System Admin' : 'Field Farmer'),
+          role: effectiveRole,
           assignedStationId: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -112,16 +251,18 @@ export class AuthService {
 
         await docRef.set(defaultProfile);
         this._currentProfile = defaultProfile;
-        this._logger.info(`Provisioned new Firestore user profile: ${user.email} as ${defaultProfile.role}`);
+        this._logger.info(`Provisioned new Firestore user profile: ${user.email} as ${defaultProfile.role} (mapped: ${!!mappedRole})`);
       }
     } catch (err) {
       this._logger.error('Failed to sync user profile from Firestore:', err);
       // Fallback in-memory profile if Firestore write is blocked
+      const isAdminEmail = mappedRole === UserRole.ADMIN || (user.email && (user.email.includes('admin') || user.email === 'admin@shambawatch.org'));
+      const effectiveRole = mappedRole || (isAdminEmail ? UserRole.ADMIN : UserRole.FARMER);
       this._currentProfile = {
         uid: user.uid,
         email: user.email || '',
         displayName: user.displayName || 'Field User',
-        role: user.email?.includes('admin') ? UserRole.ADMIN : UserRole.FARMER,
+        role: effectiveRole,
         assignedStationId: null
       };
     }

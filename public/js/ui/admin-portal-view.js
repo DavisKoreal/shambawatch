@@ -60,6 +60,7 @@ export class AdminPortalView {
       this._renderOverviewStats();
       this._renderFarmerTable();
       this._renderUnassignedStations();
+      await this._renderRoleMappingTable();
     } catch (err) {
       this._logger.error('Failed to load admin data:', err);
     } finally {
@@ -164,6 +165,43 @@ export class AdminPortalView {
             </form>
           </div>
 
+          <!-- SECTION 5: EMAIL-TO-ROLE MAPPINGS (/roles/roles) -->
+          <div class="admin-section">
+            <div class="admin-section-header">
+              <h3>🔐 Email-to-Role Mappings (Firestore <code>/roles/roles</code>)</h3>
+              <span class="admin-section-meta" id="roleMappingMeta">Firestore Access Control Matrix</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+              Users signing in with matching emails are automatically assigned their declared role (Admin or Farmer).
+            </p>
+            <div class="admin-table-container">
+              <table class="admin-table" id="roleMappingTable">
+                <thead>
+                  <tr>
+                    <th>User Email</th>
+                    <th>Configured Role</th>
+                    <th>Quick Change</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="roleMappingTableBody">
+                  <tr><td colspan="4" class="table-empty">Loading role mappings...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <form class="admin-add-farmer-form" id="adminAddRoleForm" style="margin-top: 14px;">
+              <div class="form-row">
+                <input type="email" id="newRoleEmail" placeholder="User Email (e.g. supervisor@shambawatch.org)" required style="flex: 2;">
+                <select id="newRoleSelect" style="flex: 1;">
+                  <option value="farmer">Farmer</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button type="submit" class="btn-primary" id="newRoleSubmitBtn">Save Mapping</button>
+              </div>
+            </form>
+          </div>
+
         </div>
       </div>
     `;
@@ -221,6 +259,35 @@ export class AdminPortalView {
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Create & Assign';
+      }
+    });
+
+    // Add role mapping submission
+    const addRoleForm = this._mountEl.querySelector('#adminAddRoleForm');
+    addRoleForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = this._mountEl.querySelector('#newRoleEmail')?.value.trim();
+      const role = this._mountEl.querySelector('#newRoleSelect')?.value;
+      const submitBtn = this._mountEl.querySelector('#newRoleSubmitBtn');
+
+      if (!email) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+      try {
+        const res = await this._authService.setRoleMapping(email, role);
+        if (res.error) {
+          this._showFeedback(res.error.message, 'error');
+        } else {
+          this._showFeedback(`✓ Role mapped: ${email} ➔ ${role.toUpperCase()}`, 'success');
+          addRoleForm.reset();
+          await this._renderRoleMappingTable();
+        }
+      } catch (err) {
+        this._showFeedback(err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Mapping';
       }
     });
   }
@@ -446,6 +513,84 @@ export class AdminPortalView {
         }
       });
     });
+  }
+
+  /**
+   * Renders the email-to-role mappings table from /roles/roles in Firestore.
+   * @private
+   */
+  async _renderRoleMappingTable() {
+    const tbody = this._mountEl.querySelector('#roleMappingTableBody');
+    const meta = this._mountEl.querySelector('#roleMappingMeta');
+    if (!tbody) return;
+
+    try {
+      const mapping = await this._authService.fetchRoleMappingDocument();
+      const entries = Object.entries(mapping || {});
+
+      if (meta) {
+        meta.textContent = `${entries.length} role mapping(s) configured`;
+      }
+
+      if (entries.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="table-empty">
+              No email mappings found in <code>/roles/roles</code>. Add one using the form below.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      // Sort alphabetically by email
+      entries.sort((a, b) => a[0].localeCompare(b[0]));
+
+      tbody.innerHTML = entries.map(([email, role]) => {
+        const roleStr = String(role).toLowerCase();
+        const roleBadge = roleStr === 'admin'
+          ? '<span class="status-badge" style="background:rgba(217,79,4,0.15); color:var(--crimson); border:1px solid rgba(217,79,4,0.3); font-weight:700;">ADMIN</span>'
+          : '<span class="status-badge" style="background:rgba(44,122,82,0.15); color:var(--moss); border:1px solid rgba(44,122,82,0.3); font-weight:700;">FARMER</span>';
+
+        return `
+          <tr data-role-email="${email}">
+            <td><strong>${email}</strong></td>
+            <td>${roleBadge}</td>
+            <td>
+              <select class="role-switch-select" data-email="${email}">
+                <option value="farmer" ${roleStr === 'farmer' ? 'selected' : ''}>Farmer</option>
+                <option value="admin" ${roleStr === 'admin' ? 'selected' : ''}>Admin</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn-primary btn-xs btn-update-role" data-email="${email}" type="button">Update</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.btn-update-role').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const email = btn.dataset.email;
+          const select = tbody.querySelector(`.role-switch-select[data-email="${email}"]`);
+          const newRole = select ? select.value : 'farmer';
+
+          btn.disabled = true;
+          btn.textContent = 'Saving...';
+          const res = await this._authService.setRoleMapping(email, newRole);
+          btn.disabled = false;
+          btn.textContent = 'Update';
+
+          if (res.error) {
+            this._showFeedback(res.error.message, 'error');
+          } else {
+            this._showFeedback(`✓ Role updated: ${email} ➔ ${newRole.toUpperCase()}`, 'success');
+            await this._renderRoleMappingTable();
+          }
+        });
+      });
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="4" class="table-empty" style="color:var(--crimson);">Error loading roles: ${err.message}</td></tr>`;
+    }
   }
 
   /**

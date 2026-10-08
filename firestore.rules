@@ -98,6 +98,14 @@ service cloud.firestore {
     //   - createdAt: string/int (optional, <= 64 chars or int)
     //   - updatedAt: string/int (optional, <= 64 chars or int)
     //
+    // Collection: /roles/{docId}
+    // Document ID: docId (e.g. 'roles')
+    // Description: Role mapping document collection (maps user emails to roles)
+    //
+    // Collection: /config/{docId}
+    // Document ID: docId (e.g. 'roles')
+    // Description: Global system configuration document collection
+    //
     // ===============================================================
 
     // ===============================================================
@@ -389,6 +397,22 @@ service cloud.firestore {
       allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin()) && isValidUserProfile(request.resource.data, userId);
       allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin()) && isValidUserProfile(request.resource.data, userId);
       allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Role mapping collection: /roles/{docId}
+    // Stores documents like /roles/roles that map user emails to roles (admin or farmer).
+    // Publicly readable so unauthenticated or newly authenticating clients can look up email-to-role mappings on sign-in.
+    match /roles/{docId} {
+      allow read: if true;
+      allow create, update: if isAuthenticated() && (isAdmin() || request.auth.token.role == 'admin');
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // System configuration collection: /config/{docId}
+    // Stores system configuration documents (like /config/roles).
+    match /config/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated() && isAdmin();
     }
   }
 }
