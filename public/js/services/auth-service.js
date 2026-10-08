@@ -44,6 +44,12 @@ export class AuthService {
       return;
     }
 
+    try {
+      if (fb.auth?.Auth?.Persistence?.LOCAL) {
+        await fb.auth().setPersistence(fb.auth.Auth.Persistence.LOCAL);
+      }
+    } catch (_) {}
+
     return new Promise((resolve) => {
       this._authListenerUnsubscribe = fb.auth().onAuthStateChanged(async (user) => {
         this._currentUser = user;

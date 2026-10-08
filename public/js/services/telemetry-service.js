@@ -141,6 +141,27 @@ export class TelemetryService {
         });
       }
     });
+  /**
+   * Fetches full historical readings for a specific sensor on demand.
+   * @param {string} sensorId
+   * @param {number} [limit=100]
+   * @returns {Promise<Array<Object>>}
+   */
+  async fetchSensorHistory(sensorId, limit = 100) {
+    if (!this._firestoreRepo) return [];
+    try {
+      const readings = await this._firestoreRepo.fetchReadingsForSensor(sensorId, limit);
+      const sensor = this._registry.getSensor(sensorId);
+      if (sensor && readings && readings.length > 0) {
+        readings.forEach((r) => {
+          sensor.addReading(r.value, r.timestampMs, r.quality);
+        });
+      }
+      return readings;
+    } catch (err) {
+      this._logger.warn(`Failed to fetch history for sensor ${sensorId}:`, err);
+      return [];
+    }
   }
 
   /**

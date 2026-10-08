@@ -13,13 +13,15 @@ export class SensorDetailModal {
    * @param {Object} dependencies
    * @param {import('../services/sensor-registry.js').SensorRegistry} dependencies.registry
    * @param {import('../services/analytics-service.js').AnalyticsService} dependencies.analyticsService
+   * @param {import('../services/telemetry-service.js').TelemetryService} [dependencies.telemetryService]
    * @param {import('./dashboard-presenter.js').DashboardPresenter} dependencies.presenter
    * @param {HTMLElement} dependencies.mountEl
    * @param {(query: string) => void} [dependencies.onOpenAiWithPrompt]
    */
-  constructor({ registry, analyticsService, presenter, mountEl, onOpenAiWithPrompt }) {
+  constructor({ registry, analyticsService, telemetryService = null, presenter, mountEl, onOpenAiWithPrompt }) {
     this._registry = registry;
     this._analyticsService = analyticsService;
+    this._telemetryService = telemetryService;
     this._presenter = presenter;
     this._mountEl = mountEl;
     this._onOpenAiWithPrompt = onOpenAiWithPrompt;
@@ -40,7 +42,7 @@ export class SensorDetailModal {
    * @param {string} sensorId
    * @param {number} [windowMs]
    */
-  open(sensorId, windowMs = null) {
+  async open(sensorId, windowMs = null) {
     this._sensorId = sensorId;
     if (windowMs !== null) {
       this._activeWindowMs = windowMs;
@@ -51,6 +53,13 @@ export class SensorDetailModal {
     if (overlay) overlay.classList.add('open');
 
     this.renderContent();
+
+    if (this._telemetryService) {
+      await this._telemetryService.fetchSensorHistory(sensorId, 100);
+      if (this._isOpen && this._sensorId === sensorId) {
+        this.renderContent();
+      }
+    }
   }
 
   /**

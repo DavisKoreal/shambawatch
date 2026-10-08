@@ -1,0 +1,16 @@
+services:
+  - type: worker
+    name: shambawatch-mqtt-bridge
+    env: node
+    plan: free
+    buildCommand: npm ci --only=production
+    startCommand: node scripts/mqtt_ingestion_bridge.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FIREBASE_PROJECT_ID
+        value: shambawatch
+      - key: MQTT_BROKER_URL
+        value: mqtt://backend.teleops.io
+      - key: MQTT_TOPIC
+        value: lorawan-server-uplink/#

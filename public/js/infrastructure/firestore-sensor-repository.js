@@ -36,15 +36,9 @@ export class FirestoreSensorRepository extends ISensorRepository {
     try {
       const sensorsRef = this._getSensorsRootCollection();
       const snapshot = await sensorsRef.get();
-      const sensors = [];
+      if (snapshot.empty) return [];
 
-      for (const doc of snapshot.docs) {
-        const sensorData = doc.data();
-        const readings = await this._fetchRecentReadingsFromSensorDoc(doc.id);
-        sensors.push(Sensor.fromJSON(sensorData, readings));
-      }
-
-      return sensors;
+      return snapshot.docs.map((doc) => Sensor.fromJSON(doc.data(), []));
     } catch (error) {
       Logger.error('FirestoreSensorRepository', 'Failed to fetch sensors from /sensors collection:', error);
       throw new Error(`Firestore read failure on /sensors: ${error.message}`);
@@ -223,7 +217,7 @@ export class FirestoreSensorRepository extends ISensorRepository {
     const sensorsRef = this._getSensorsRootCollection();
 
     const unsubscribe = sensorsRef.onSnapshot(
-      async (snapshot) => {
+      (snapshot) => {
         try {
           if (snapshot.empty) {
             Logger.info('FirestoreSensorRepository', 'Reactive snapshot received: 0 sensor documents found in /sensors.');
@@ -231,12 +225,7 @@ export class FirestoreSensorRepository extends ISensorRepository {
             return;
           }
 
-          const sensors = [];
-          for (const doc of snapshot.docs) {
-            const data = doc.data();
-            const readings = await this._fetchRecentReadingsFromSensorDoc(doc.id);
-            sensors.push(Sensor.fromJSON(data, readings));
-          }
+          const sensors = snapshot.docs.map((doc) => Sensor.fromJSON(doc.data(), []));
           Logger.info('FirestoreSensorRepository', `Reactive snapshot received: ${sensors.length} active sensor(s) verified in /sensors.`);
           onUpdate(sensors);
         } catch (err) {
@@ -249,6 +238,16 @@ export class FirestoreSensorRepository extends ISensorRepository {
     );
 
     return unsubscribe;
+  }
+
+  /**
+   * Fetches recent readings on demand for a specific sensor.
+   * @param {string} sensorId
+   * @param {number} [limit=100]
+   * @returns {Promise<Array<Object>>}
+   */
+  async fetchReadingsForSensor(sensorId, limit = 100) {
+    return this._fetchRecentReadingsFromSensorDoc(sensorId, limit);
   }
 
   /**

@@ -80,6 +80,7 @@ export class AppShell {
     this._sensorDetailModal = new SensorDetailModal({
       registry: telemetryService.registry,
       analyticsService,
+      telemetryService,
       presenter,
       mountEl: document.getElementById('sensorModalMount'),
       onOpenAiWithPrompt: (prompt) => {
@@ -191,6 +192,10 @@ export class AppShell {
     // 9. Initialize Authentication
     if (authService) {
       await authService.init();
+      if (!authService.isAuthenticated) {
+        // Explicitly prompt the user to sign in or pick a demo role
+        this._authModal.open('signin');
+      }
     }
 
     // 10. Start Live Clock

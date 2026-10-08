@@ -1,0 +1,29 @@
+name: Telemetry Ingestion Bridge
+
+on:
+  schedule:
+    # Run periodically every 15 minutes to sync uplinks
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm ci --only=production
+
+      - name: Run Telemetry Bridge (100 Uplinks)
+        run: node scripts/mqtt_ingestion_bridge.js --limit 100
+        env:
+          FIREBASE_PROJECT_ID: shambawatch
+          MQTT_BROKER_URL: mqtt://backend.teleops.io
+          MQTT_TOPIC: lorawan-server-uplink/#

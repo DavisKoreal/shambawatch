@@ -325,7 +325,7 @@ export class Sensor {
 
     const stationId = data.stationId || data.metadata?.location?.stationId || data.metadata?.stationId || 'ST-FIELD';
 
-    return new Sensor({
+    const sensor = new Sensor({
       id: data.id,
       stationId,
       metadata: SensorMetadata.fromJSON(data.metadata),
@@ -335,6 +335,16 @@ export class Sensor {
       windowDurationMs: data.windowDurationMs || APP_CONFIG.TIME_WINDOWS.TWENTY_FOUR_HOURS,
       initialReadings: readings.map((r) => SensorReading.fromJSON(r)),
     });
+
+    if (readings.length === 0 && data.currentState && typeof data.currentState.latestValue === 'number') {
+      sensor.addReading(
+        data.currentState.latestValue,
+        data.currentState.lastSampledMs || data.currentState.timestampMs || Date.now(),
+        data.currentState.status || APP_CONFIG.QUALITY_CODES.GOOD
+      );
+    }
+
+    return sensor;
   }
 
   /**
