@@ -38,6 +38,12 @@ import { StationService } from '../public/js/services/station-service.js';
 import { AnalyticsService } from '../public/js/services/analytics-service.js';
 import { GatewayClient } from '../public/js/services/gateway-client.js';
 import { ThemeService } from '../public/js/services/theme-service.js';
+import { ShambaAgent } from '../public/js/services/shamba-agent.js';
+import { SensorRegistry } from '../public/js/services/sensor-registry.js';
+import { InMemorySensorRepository } from '../public/js/infrastructure/in-memory-sensor-repository.js';
+import { Sensor } from '../public/js/domain/sensor.js';
+import { SensorMetadata } from '../public/js/domain/sensor-metadata.js';
+import { MetricDefinition } from '../public/js/domain/metric-definition.js';
 
 describe('SOA Rule 13, 19, 20, 58: Standardized Service Envelopes & Tracing', () => {
   it('should generate valid UUID/hex trace and correlation IDs', () => {
@@ -456,3 +462,95 @@ describe('SOA Theme Service & Contrast System', () => {
     assert.equal(savedTheme, 'dark');
   });
 });
+
+describe('SOA Merged AI Search & Field Intelligence', () => {
+  it('should search across active stations and return formatted search results', () => {
+    const repo = new InMemorySensorRepository();
+    const registry = new SensorRegistry(repo);
+    const stations = [
+      { id: 'ST-01', name: 'Naivasha Flower Block', crop: 'Cut Roses', sensorCount: 2, lat: -0.71, lng: 36.43 },
+      { id: 'ST-04', name: 'Molo Highland Terrace', crop: 'Highland Tea', sensorCount: 1, lat: -0.25, lng: 35.73 }
+    ];
+
+    const agent = new ShambaAgent({
+      registry,
+      stations: () => stations
+    });
+
+    const results = agent.search('naivasha');
+    assert.equal(results.length, 1);
+    assert.equal(results[0].type, 'STATION');
+    assert.equal(results[0].id, 'ST-01');
+    assert.equal(results[0].title, 'Naivasha Flower Block');
+    assert.equal(results[0].badge, 'STATION');
+    assert.equal(results[0].badgeClass, 'badge-station');
+  });
+
+  it('should search registered sensors by metric type, name, and hardware ID', async () => {
+    const repo = new InMemorySensorRepository();
+    const registry = new SensorRegistry(repo);
+
+    const s1 = new Sensor({
+      id: 'sensor-naivasha-moist-01',
+      stationId: 'ST-01',
+      metadata: new SensorMetadata({ name: 'Root Zone Moisture Probe', hardwareId: 'MB-101', depthCm: 30 }),
+      metricDefinition: new MetricDefinition({ metricType: 'moisture', unitSymbol: '%' })
+    });
+    s1.addReading(38.5);
+    await registry.registerSensor(s1);
+
+    const stations = [
+      { id: 'ST-01', name: 'Naivasha Flower Block', crop: 'Roses', sensorCount: 1, lat: -0.71, lng: 36.43 }
+    ];
+
+    const agent = new ShambaAgent({
+      registry,
+      stations: () => stations
+    });
+
+    // Search by metric
+    const resultsByMetric = agent.search('moisture');
+    assert.equal(resultsByMetric.length, 1);
+    assert.equal(resultsByMetric[0].type, 'SENSOR');
+    assert.equal(resultsByMetric[0].id, 'sensor-naivasha-moist-01');
+    assert.equal(resultsByMetric[0].metricType, 'moisture');
+    assert.equal(resultsByMetric[0].badge, 'MOISTURE');
+
+    // Search by hardware ID
+    const resultsByHw = agent.search('MB-101');
+    assert.equal(resultsByHw.length, 1);
+    assert.equal(resultsByHw[0].id, 'sensor-naivasha-moist-01');
+  });
+
+  it('should handle search queries in query reasoning and emit SELECT_STATION action with metric', async () => {
+    const repo = new InMemorySensorRepository();
+    const registry = new SensorRegistry(repo);
+
+    const s1 = new Sensor({
+      id: 'sensor-naivasha-temp-01',
+      stationId: 'ST-01',
+      metadata: new SensorMetadata({ name: 'Canopy Ambient Temp', hardwareId: 'MB-102' }),
+      metricDefinition: new MetricDefinition({ metricType: 'temp', unitSymbol: '°C' })
+    });
+    s1.addReading(24.2);
+    await registry.registerSensor(s1);
+
+    const stations = [
+      { id: 'ST-01', name: 'Naivasha Flower Block', crop: 'Roses', sensorCount: 1, lat: -0.71, lng: 36.43 }
+    ];
+
+    const agent = new ShambaAgent({
+      registry,
+      stations: () => stations
+    });
+
+    const response = await agent.query('search temp');
+    assert.ok(response.text.includes('AI Search Results'));
+    assert.ok(response.text.includes('Canopy Ambient Temp'));
+    assert.ok(response.action);
+    assert.equal(response.action.type, 'SELECT_STATION');
+    assert.equal(response.action.stationId, 'ST-01');
+    assert.equal(response.action.metricType, 'temp');
+  });
+});
+

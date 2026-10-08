@@ -60,6 +60,70 @@ export class ShambaAgent {
   }
 
   /**
+   * Performs an instant search across active stations, registered sensors, and metrics.
+   * Merges search directly into the AI agent capabilities.
+   * @param {string} rawQuery
+   * @returns {Array<Object>}
+   */
+  search(rawQuery) {
+    const query = (rawQuery || '').trim().toLowerCase();
+    if (!query) return [];
+
+    const results = [];
+    const stationsList = this._getStationsList();
+
+    // 1. Search stations
+    stationsList.forEach((s) => {
+      const matchName = s.name.toLowerCase().includes(query);
+      const matchId = s.id.toLowerCase().includes(query);
+      const matchCrop = (s.crop || '').toLowerCase().includes(query);
+
+      if (matchName || matchId || matchCrop) {
+        results.push({
+          type: 'STATION',
+          id: s.id,
+          title: s.name,
+          subtitle: `${s.id} · ${s.crop || 'Field'} · ${s.sensorCount || 0} active sensors`,
+          stationId: s.id,
+          badge: 'STATION',
+          badgeClass: 'badge-station',
+        });
+      }
+    });
+
+    // 2. Search sensors
+    const allSensors = this._registry.getAllSensors();
+    allSensors.forEach((sensor) => {
+      const matchName = sensor.metadata.name.toLowerCase().includes(query);
+      const matchMetric = (sensor.metricDefinition?.metricType?.toLowerCase().includes(query)) ||
+                          (sensor.metricDefinition?.name?.toLowerCase().includes(query));
+      const matchHardware = sensor.metadata?.hardwareId?.toLowerCase().includes(query);
+      const matchCrop = sensor.metadata?.getAttribute?.('crop', '')?.toLowerCase().includes(query);
+
+      if (matchName || matchMetric || matchHardware || matchCrop) {
+        const val = sensor.currentState?.latestValue != null
+          ? `${sensor.currentState.latestValue}${sensor.metricDefinition.unitSymbol}`
+          : '';
+        const station = stationsList.find(s => s.id === sensor.stationId);
+
+        results.push({
+          type: 'SENSOR',
+          id: sensor.id,
+          title: sensor.metadata.name,
+          subtitle: `${station ? station.name : sensor.stationId} · ${val} · ${sensor.currentState?.status || 'nominal'}`,
+          stationId: sensor.stationId,
+          sensorId: sensor.id,
+          metricType: sensor.metricDefinition.metricType,
+          badge: sensor.metricDefinition.metricType.toUpperCase(),
+          badgeClass: 'badge-sensor',
+        });
+      }
+    });
+
+    return results.slice(0, 8);
+  }
+
+  /**
    * Processes a user question or instruction and returns a structured response.
    * Supports multi-turn conversational dialogue threads.
    * @param {string} rawPrompt
@@ -317,12 +381,21 @@ OPERATIONAL DIRECTIVES:
    */
   _detectStationAction(prompt, responseText) {
     const combined = `${prompt} ${responseText}`.toLowerCase();
+    let detectedMetric = null;
+    const metrics = ['moisture', 'water', 'nitrogen', 'humidity', 'temp', 'phosphorus', 'potassium'];
+    for (const m of metrics) {
+      if (combined.includes(m)) {
+        detectedMetric = m;
+        break;
+      }
+    }
+
     for (const station of this._getStationsList()) {
       const matchName = combined.includes(station.name.toLowerCase());
       const matchCity = combined.includes(station.name.toLowerCase().split(' ')[0]);
       const matchId = combined.includes(station.id.toLowerCase());
       if (matchName || matchCity || matchId) {
-        return { type: 'SELECT_STATION', stationId: station.id };
+        return { type: 'SELECT_STATION', stationId: station.id, metricType: detectedMetric };
       }
     }
     return null;
@@ -363,6 +436,28 @@ OPERATIONAL DIRECTIVES:
         text: `${offlineNotice}\n\nCurrently, there are **0 sensors** connected in the Firestore database (\`/sensors\`). The system is verified and awaiting field hardware to start streaming telemetry.`,
         suggestions: ["How do I connect a sensor?", "Show database schema", "Check database status"]
       };
+    }
+
+    // 0b. AI Search & Lookup Queries
+    if (query.startsWith('search') || query.startsWith('find') || query.startsWith('locate') || query.startsWith('where is') || query.startsWith('lookup')) {
+      const cleanTerm = query.replace(/^(search|find|locate|where is|lookup|search for|look for)\s+/i, '').trim();
+      const matches = this.search(cleanTerm);
+      if (matches.length > 0) {
+        let text = `🔍 **AI Search Results for "${cleanTerm}":** Found **${matches.length}** matching item(s) across the Rift Valley Basin:\n\n`;
+        matches.forEach(m => {
+          if (m.type === 'STATION') {
+            text += `• 📍 **${m.title}** (\`${m.id}\`): ${m.subtitle}\n`;
+          } else {
+            text += `• ⚡ **${m.title}** [\`${m.badge}\`]: ${m.subtitle}\n`;
+          }
+        });
+        const first = matches[0];
+        return {
+          text: `${offlineNotice}\n\n${text}`,
+          suggestions: matches.slice(0, 3).map(m => `Focus on ${m.title}`),
+          action: first.stationId ? { type: 'SELECT_STATION', stationId: first.stationId, metricType: first.metricType } : undefined
+        };
+      }
     }
 
     // 1. Alerts & Warnings

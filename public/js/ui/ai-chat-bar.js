@@ -10,7 +10,7 @@ export class AiChatBar {
    * @param {Object} options
    * @param {HTMLElement} options.mountEl - The container element to mount into.
    * @param {import('../services/shamba-agent.js').ShambaAgent} options.agent - The AI agent.
-   * @param {(stationId: string) => void} [options.onSelectStation] - Callback to select station.
+   * @param {(stationId: string, metricType?: string) => void} [options.onSelectStation] - Callback to select station and metric.
    */
   constructor({ mountEl, agent, onSelectStation = null }) {
     this._mountEl = mountEl;
@@ -37,83 +37,135 @@ export class AiChatBar {
   _render() {
     this._mountEl.className = 'ai-chat-container';
     this._mountEl.innerHTML = `
-      <!-- Floating Conversational Dialog Popover (Expands above bar) -->
+      <!-- Floating Conversational Dialog Popover with Circulating Glow Track -->
       <div class="ai-popover" id="aiPopover" aria-hidden="true">
-        <div class="ai-popover-header">
-          <div class="ai-header-brand">
-            <span class="ai-sparkle">✦</span>
-            <span class="ai-header-title">Shamba Watch Field AI</span>
-            <span class="ai-header-status">
-              <span class="ai-status-dot"></span>
-              <span class="ai-status-text">Intelligence Gateway</span>
-            </span>
+        <div class="ai-popover-glow-track"></div>
+        <div class="ai-popover-inner">
+          <div class="ai-popover-header">
+            <div class="ai-header-brand">
+              <span class="ai-sparkle">✦</span>
+              <span class="ai-header-title">Shamba Watch Field AI</span>
+              <span class="ai-header-status">
+                <span class="ai-status-dot"></span>
+                <span class="ai-status-text">Intelligence Gateway</span>
+              </span>
+            </div>
+            <div class="ai-header-actions">
+              <button class="ai-btn-expand" id="aiExpandBtn" type="button" title="Fit chat to full screen" aria-label="Toggle Fullscreen">⛶ Fit Screen</button>
+              <button class="ai-btn-clear" id="aiClearBtn" type="button" title="Clear conversation history">↺ Clear</button>
+              <button class="ai-popover-close" id="aiCloseBtn" type="button" aria-label="Minimize">&times;</button>
+            </div>
           </div>
-          <div class="ai-header-actions">
-            <button class="ai-btn-expand" id="aiExpandBtn" type="button" title="Fit chat to full screen" aria-label="Toggle Fullscreen">⛶ Fit Screen</button>
-            <button class="ai-btn-clear" id="aiClearBtn" type="button" title="Clear conversation history">↺ Clear</button>
-            <button class="ai-popover-close" id="aiCloseBtn" type="button" aria-label="Minimize">&times;</button>
+
+          <!-- Scrollable Multi-Turn Message Feed -->
+          <div class="ai-message-list" id="aiMessageList"></div>
+
+          <!-- Suggestion Chips -->
+          <div class="ai-suggestions" id="aiSuggestions">
+            <button class="ai-chip" type="button">How does this platform work?</button>
+            <button class="ai-chip" type="button">Any active alerts?</button>
+            <button class="ai-chip" type="button">Naivasha moisture</button>
+            <button class="ai-chip" type="button">Irrigation advice</button>
           </div>
+
+          <!-- In-Drawer Input Bar with Circulating Glow Track & Search Autocomplete -->
+          <form class="ai-dialog-form" id="aiDialogForm">
+            <div class="ai-dialog-glow-wrap">
+              <div class="ai-dialog-glow-track"></div>
+              <div class="ai-dialog-inner">
+                <span class="ai-dialog-sparkle">✦</span>
+                <input 
+                  type="text" 
+                  id="aiDialogInput" 
+                  class="ai-dialog-input" 
+                  placeholder="Search stations, sensors, or ask AI..." 
+                  autocomplete="off" 
+                  spellcheck="false"
+                />
+              </div>
+            </div>
+            <button type="submit" class="ai-dialog-send-btn" aria-label="Send Message">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+            <div class="ai-search-autocomplete ai-dialog-autocomplete" id="aiDialogAutocomplete"></div>
+          </form>
         </div>
+      </div>
 
-        <!-- Scrollable Multi-Turn Message Feed -->
-        <div class="ai-message-list" id="aiMessageList"></div>
-
-        <!-- Suggestion Chips -->
-        <div class="ai-suggestions" id="aiSuggestions">
-          <button class="ai-chip" type="button">How does this platform work?</button>
-          <button class="ai-chip" type="button">Any active alerts?</button>
-          <button class="ai-chip" type="button">Naivasha moisture</button>
-          <button class="ai-chip" type="button">Irrigation advice</button>
-        </div>
-
-        <!-- In-Drawer Input Bar -->
-        <form class="ai-dialog-form" id="aiDialogForm">
+      <!-- Small Floating Bar at Center Bottom with Circulating Glow Track & Search Autocomplete -->
+      <div class="ai-pill-glow-wrap" id="aiPillGlowWrap">
+        <div class="ai-pill-glow-track"></div>
+        <form class="ai-bar-pill" id="aiBarForm">
+          <span class="ai-pill-sparkle">✦</span>
           <input 
             type="text" 
-            id="aiDialogInput" 
-            class="ai-dialog-input" 
-            placeholder="Type a message or agronomic question..." 
+            id="aiInput" 
+            class="ai-pill-input" 
+            placeholder="Search & ask Shamba Watch AI... (/)" 
             autocomplete="off" 
             spellcheck="false"
           />
-          <button type="submit" class="ai-dialog-send-btn" aria-label="Send Message">
+          <button type="submit" class="ai-pill-send-btn" aria-label="Submit Question">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
             </svg>
           </button>
         </form>
+        <div class="ai-search-autocomplete ai-pill-autocomplete" id="aiPillAutocomplete"></div>
       </div>
-
-      <!-- Small Floating Bar at Center Bottom -->
-      <form class="ai-bar-pill" id="aiBarForm">
-        <span class="ai-pill-sparkle">✦</span>
-        <input 
-          type="text" 
-          id="aiInput" 
-          class="ai-pill-input" 
-          placeholder="Ask Shamba Watch AI..." 
-          autocomplete="off" 
-          spellcheck="false"
-        />
-        <button type="submit" class="ai-pill-send-btn" aria-label="Submit Question">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="19" x2="12" y2="5"></line>
-            <polyline points="5 12 12 5 19 12"></polyline>
-          </svg>
-        </button>
-      </form>
     `;
   }
 
   _bindEvents() {
     const barForm = this._mountEl.querySelector('#aiBarForm');
     const barInput = this._mountEl.querySelector('#aiInput');
+    const barAutocomplete = this._mountEl.querySelector('#aiPillAutocomplete');
+
     const dialogForm = this._mountEl.querySelector('#aiDialogForm');
     const dialogInput = this._mountEl.querySelector('#aiDialogInput');
+    const dialogAutocomplete = this._mountEl.querySelector('#aiDialogAutocomplete');
+
     const closeBtn = this._mountEl.querySelector('#aiCloseBtn');
     const clearBtn = this._mountEl.querySelector('#aiClearBtn');
     const suggestionsEl = this._mountEl.querySelector('#aiSuggestions');
+
+    // 1. Setup instant search autocomplete for bottom bar
+    this._setupAutocomplete({
+      inputEl: barInput,
+      dropdownEl: barAutocomplete,
+      onSelect: (item) => {
+        barInput.value = '';
+        if (this._onSelectStation) {
+          this._onSelectStation(item.stationId, item.metricType);
+        }
+        if (item.type === 'STATION') {
+          this.ask(`Tell me about station ${item.title}`);
+        } else {
+          this.ask(`Inspect telemetry for sensor ${item.title} (${item.id})`);
+        }
+      }
+    });
+
+    // 2. Setup instant search autocomplete for drawer input
+    this._setupAutocomplete({
+      inputEl: dialogInput,
+      dropdownEl: dialogAutocomplete,
+      onSelect: (item) => {
+        dialogInput.value = '';
+        if (this._onSelectStation) {
+          this._onSelectStation(item.stationId, item.metricType);
+        }
+        if (item.type === 'STATION') {
+          this.ask(`Tell me about station ${item.title}`);
+        } else {
+          this.ask(`Inspect telemetry for sensor ${item.title} (${item.id})`);
+        }
+      }
+    });
 
     // Bottom floating pill submission
     barForm.addEventListener('submit', async (e) => {
@@ -121,6 +173,7 @@ export class AiChatBar {
       const val = barInput.value.trim();
       if (!val) return;
       barInput.value = '';
+      barAutocomplete.classList.remove('visible');
       await this.ask(val);
     });
 
@@ -130,6 +183,7 @@ export class AiChatBar {
       const val = dialogInput.value.trim();
       if (!val) return;
       dialogInput.value = '';
+      dialogAutocomplete.classList.remove('visible');
       await this.ask(val);
     });
 
@@ -162,8 +216,11 @@ export class AiChatBar {
     document.addEventListener('pointerdown', (e) => {
       if (!this._isOpen || this._isFullscreen) return;
       const popover = this._mountEl.querySelector('#aiPopover');
-      const barForm = this._mountEl.querySelector('#aiBarForm');
-      if (popover && !popover.contains(e.target) && (!barForm || !barForm.contains(e.target))) {
+      const pillWrap = this._mountEl.querySelector('#aiPillGlowWrap');
+      const headerLauncher = document.getElementById('headerAiLauncher');
+      if (popover && !popover.contains(e.target) && 
+          (!pillWrap || !pillWrap.contains(e.target)) && 
+          (!headerLauncher || !headerLauncher.contains(e.target))) {
         this.close();
       }
     });
@@ -175,6 +232,145 @@ export class AiChatBar {
         this.ask(chip.textContent.trim());
       }
     });
+  }
+
+  /**
+   * Configures real-time typeahead search dropdown for an input element.
+   * @private
+   */
+  _setupAutocomplete({ inputEl, dropdownEl, onSelect }) {
+    let selectedIndex = -1;
+    let currentResults = [];
+
+    const hide = () => {
+      dropdownEl.classList.remove('visible');
+      dropdownEl.innerHTML = '';
+      selectedIndex = -1;
+      currentResults = [];
+    };
+
+    const highlightText = (text, q) => {
+      if (!q) return text;
+      const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<mark>$1</mark>');
+    };
+
+    const updateSelectionHighlight = () => {
+      const items = dropdownEl.querySelectorAll('.ai-search-item');
+      items.forEach((item, idx) => {
+        item.classList.toggle('selected', idx === selectedIndex);
+      });
+    };
+
+    const render = () => {
+      if (currentResults.length === 0) {
+        dropdownEl.innerHTML = `
+          <div class="ai-search-empty">No matching stations or sensors found.</div>
+        `;
+        dropdownEl.classList.add('visible');
+        return;
+      }
+
+      dropdownEl.innerHTML = `
+        <div class="ai-search-header-hint">Instant AI Telemetry Search</div>
+        ${currentResults.map((item, idx) => `
+          <div class="ai-search-item ${idx === selectedIndex ? 'selected' : ''}" data-index="${idx}">
+            <div class="ai-search-item-left">
+              <span class="search-badge ${item.badgeClass}">${item.badge}</span>
+              <div class="ai-search-item-info">
+                <div class="ai-search-item-title">${highlightText(item.title, inputEl.value.trim())}</div>
+                <div class="ai-search-item-sub">${item.subtitle}</div>
+              </div>
+            </div>
+            <span class="ai-search-arrow">↵</span>
+          </div>
+        `).join('')}
+      `;
+      dropdownEl.classList.add('visible');
+
+      dropdownEl.querySelectorAll('.ai-search-item').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = Number(el.dataset.index);
+          const chosen = currentResults[idx];
+          if (chosen) {
+            hide();
+            onSelect(chosen);
+          }
+        });
+        el.addEventListener('mouseenter', () => {
+          selectedIndex = Number(el.dataset.index);
+          updateSelectionHighlight();
+        });
+      });
+    };
+
+    inputEl.addEventListener('input', () => {
+      const q = inputEl.value.trim();
+      if (!q) {
+        hide();
+        return;
+      }
+      currentResults = typeof this._agent?.search === 'function' ? this._agent.search(q) : [];
+      selectedIndex = -1;
+      render();
+    });
+
+    inputEl.addEventListener('keydown', (e) => {
+      if (!dropdownEl.classList.contains('visible') || currentResults.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = (selectedIndex + 1) % currentResults.length;
+        updateSelectionHighlight();
+        const selectedEl = dropdownEl.querySelector(`.ai-search-item[data-index="${selectedIndex}"]`);
+        if (selectedEl) selectedEl.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = (selectedIndex - 1 + currentResults.length) % currentResults.length;
+        updateSelectionHighlight();
+        const selectedEl = dropdownEl.querySelector(`.ai-search-item[data-index="${selectedIndex}"]`);
+        if (selectedEl) selectedEl.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (selectedIndex >= 0 && selectedIndex < currentResults.length) {
+          e.preventDefault();
+          e.stopPropagation();
+          const chosen = currentResults[selectedIndex];
+          hide();
+          onSelect(chosen);
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        hide();
+      }
+    });
+
+    // Dismiss when clicking outside
+    document.addEventListener('pointerdown', (e) => {
+      if (!dropdownEl.contains(e.target) && !inputEl.contains(e.target)) {
+        hide();
+      }
+    });
+  }
+
+  /**
+   * Opens the AI dialog and focuses the input, optionally prefilling an initial query.
+   * @param {string} [initialQuery='']
+   */
+  openAndFocus(initialQuery = '') {
+    this.open();
+    const dialogInput = this._mountEl.querySelector('#aiDialogInput');
+    if (dialogInput) {
+      if (initialQuery) {
+        dialogInput.value = initialQuery;
+        const event = new Event('input', { bubbles: true });
+        dialogInput.dispatchEvent(event);
+      }
+      dialogInput.focus();
+      if (initialQuery) {
+        dialogInput.select();
+      }
+    }
   }
 
   /**
@@ -214,9 +410,9 @@ export class AiChatBar {
         time: this._getTimeString()
       });
 
-      // 6. Handle UI action (e.g., station focus)
+      // 6. Handle UI action (e.g., station focus and metric selection)
       if (result.action && result.action.type === 'SELECT_STATION' && this._onSelectStation) {
-        this._onSelectStation(result.action.stationId);
+        this._onSelectStation(result.action.stationId, result.action.metricType);
       }
 
       // 7. Update Suggestion Chips

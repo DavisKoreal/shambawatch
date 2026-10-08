@@ -44,26 +44,12 @@
     <div class="header-right">
       <div class="clock" id="clock">—</div>
 
-      <!-- Clockwise Glowing Search Bar (Theme Matched: Moss & Basin Water) -->
-      <div class="search-glow-wrap" id="searchGlowWrap">
-        <div class="search-glow-track"></div>
-        <div class="search-inner">
-          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input 
-            type="text" 
-            id="searchInput" 
-            class="search-input" 
-            placeholder="Search stations, sensors... (/)" 
-            autocomplete="off" 
-            spellcheck="false"
-          />
-          <span class="search-kbd">/</span>
-        </div>
-        <div class="search-dropdown" id="searchDropdown"></div>
-      </div>
+      <!-- Unified AI Search & Intelligence Launcher (Merged into AI) -->
+      <button class="header-ai-launcher" id="headerAiLauncher" type="button" title="AI Search & Field Intelligence (Press / or Ctrl+K)" aria-label="Open AI Search & Intelligence">
+        <span class="header-ai-sparkle">✦</span>
+        <span class="header-ai-launcher-text">Search & Ask AI...</span>
+        <span class="search-kbd">/</span>
+      </button>
 
       <div class="source-pill production-pill" id="telemetryStatusPill" title="Production Telemetry Stream · Google Cloud Firestore Live">
         <span class="source-dot live" id="telemetryStatusDot"></span>

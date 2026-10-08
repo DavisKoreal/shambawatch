@@ -12,7 +12,6 @@ import { TelemetryDetailView } from './telemetry-detail-view.js';
 import { TimeseriesChartView } from './timeseries-chart-view.js';
 import { ThemeToggleView } from './theme-toggle-view.js';
 import { MapView } from './map-view.js';
-import { SearchBar } from './search-bar.js';
 import { NotificationManager } from './notification-manager.js';
 import { AiChatBar } from './ai-chat-bar.js';
 import { ShambaAgent } from '../services/shamba-agent.js';
@@ -93,22 +92,7 @@ export class AppShell {
       }
     );
 
-    // 5. Initialize Search Bar Component
-    this._searchBar = new SearchBar({
-      inputEl: document.getElementById('searchInput'),
-      dropdownEl: document.getElementById('searchDropdown'),
-      registry: telemetryService.registry,
-      stations: () => stationService.getActiveStations(),
-      onSelect: ({ stationId, metricType }) => {
-        stationService.selectStation(stationId, true);
-        if (metricType) {
-          analyticsService.setMetricType(metricType);
-          this._timeseriesChartView.setActiveMetricButton(metricType);
-        }
-      }
-    });
-
-    // 6. Initialize AI Field Agent & Chat Bar
+    // 5. Initialize AI Field Agent & Unified AI Search Bar
     this._shambaAgent = new ShambaAgent({
       registry: telemetryService.registry,
       stations: () => stationService.getActiveStations(),
@@ -118,10 +102,32 @@ export class AppShell {
     this._aiChatBar = new AiChatBar({
       mountEl: document.getElementById('aiChatMount'),
       agent: this._shambaAgent,
-      onSelectStation: (stationId) => {
+      onSelectStation: (stationId, metricType) => {
         stationService.selectStation(stationId, true);
+        if (metricType) {
+          analyticsService.setMetricType(metricType);
+          this._timeseriesChartView.setActiveMetricButton(metricType);
+        }
       }
     });
+
+    // 6. Connect Header AI Search Launcher & Global Shortcuts (/ or Ctrl+K)
+    const headerAiLauncher = document.getElementById('headerAiLauncher');
+    if (headerAiLauncher) {
+      headerAiLauncher.addEventListener('click', () => {
+        this._aiChatBar.openAndFocus();
+      });
+    }
+
+    this._globalKeyHandler = (e) => {
+      if ((e.key === '/' || (e.key === 'k' && (e.ctrlKey || e.metaKey))) &&
+          document.activeElement.tagName !== 'INPUT' &&
+          document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        this._aiChatBar.openAndFocus();
+      }
+    };
+    document.addEventListener('keydown', this._globalKeyHandler);
 
     // 7. Wire EventBus Subscriptions (Rule 46)
     this._wireEventSubscriptions();
@@ -257,6 +263,10 @@ export class AppShell {
    * Disposes all subscriptions and timers (Rule 15).
    */
   dispose() {
+    if (this._globalKeyHandler) {
+      document.removeEventListener('keydown', this._globalKeyHandler);
+      this._globalKeyHandler = null;
+    }
     if (this._clockTimer) {
       clearInterval(this._clockTimer);
       this._clockTimer = null;
