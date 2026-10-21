@@ -112,6 +112,83 @@
   }
 }
 
+/* ============================================================================
+   REVOLUT DESIGN SYSTEM TOKENS (version: alpha)
+   High-contrast stark black canvas, cobalt-violet (#494fdf), saturated accents
+   ============================================================================ */
+:root {
+  /* Brand & Primary */
+  --revo-primary: #494fdf;
+  --revo-primary-bright: #4f55f1;
+  --revo-primary-deep: #3a40c4;
+  --revo-on-primary: #ffffff;
+
+  /* Text & Inks */
+  --revo-ink: #191c1f;
+  --revo-body: #1f2226;
+  --revo-charcoal: #3a3d40;
+  --revo-mute: #505a63;
+  --revo-ash: #5c5e60;
+  --revo-stone: #8d969e;
+  --revo-faint: #c9c9cd;
+  --revo-on-dark: #ffffff;
+  --revo-on-dark-mute: rgba(255, 255, 255, 0.72);
+
+  /* Canvases & Surfaces */
+  --revo-canvas-light: #ffffff;
+  --revo-canvas-dark: #000000;
+  --revo-surface-soft: #f4f4f4;
+  --revo-surface-card: #ffffff;
+  --revo-surface-deep: #0a0a0a;
+  --revo-surface-elevated: #16181a;
+
+  /* Hairlines & Dividers */
+  --revo-hairline-light: #e2e2e7;
+  --revo-hairline-dark: rgba(255, 255, 255, 0.12);
+  --revo-hairline-strong: #191c1f;
+  --revo-divider-soft: rgba(255, 255, 255, 0.06);
+
+  /* Saturated Product Accent Palette */
+  --revo-accent-teal: #00a87e;
+  --revo-accent-blue-link: #376cd5;
+  --revo-accent-light-blue: #007bc2;
+  --revo-accent-light-green: #428619;
+  --revo-accent-green-text: #006400;
+  --revo-accent-yellow: #b09000;
+  --revo-accent-warning: #ec7e00;
+  --revo-accent-pink: #e61e49;
+  --revo-accent-danger: #e23b4a;
+  --revo-accent-deep-red: #8b0000;
+  --revo-accent-brown: #936d62;
+  --revo-link: #376cd5;
+
+  /* Typography Stacks */
+  --revo-font-display: 'Aeonik Pro', 'Inter Tight', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --revo-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --revo-font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+
+  /* Border Radius Scale */
+  --revo-rounded-none: 0px;
+  --revo-rounded-sm: 8px;
+  --revo-rounded-md: 12px;
+  --revo-rounded-lg: 20px;
+  --revo-rounded-xl: 28px;
+  --revo-rounded-full: 9999px;
+
+  /* Spacing Scale */
+  --revo-space-xxs: 4px;
+  --revo-space-xs: 6px;
+  --revo-space-sm: 8px;
+  --revo-space-md: 14px;
+  --revo-space-lg: 16px;
+  --revo-space-xl: 24px;
+  --revo-space-xxl: 32px;
+  --revo-space-xxxl: 48px;
+  --revo-space-block: 80px;
+  --revo-space-section: 88px;
+  --revo-space-band: 120px;
+}
+
 /* Smooth Theme Transitions on User Switch (H50) */
 html.theme-transitioning,
 html.theme-transitioning *,

@@ -69,7 +69,8 @@ export class MarketingPageView {
   }
 
   /**
-   * Renders the complete 30-characteristic marketing page template.
+   * Renders the complete Revolut-styled marketing page template.
+   * Two-mode rhythm switching between stark black (#000000) and pure white (#ffffff).
    * @private
    */
   _render() {
@@ -82,237 +83,288 @@ export class MarketingPageView {
     this._mountEl.innerHTML = `
       <div class="marketing-page" id="marketingPageRoot">
 
-        <!-- 1. URGENCY & SUBSIDY BANNER (Hypothesis 26) -->
+        <!-- BAND 1: URGENCY & SUBSIDY STRIP (Level 0 Dark) -->
         <aside class="mkt-urgency-banner" role="complementary" aria-label="Limited Subsidy Offer">
-          <span class="mkt-urgency-badge">${Icons.bolt({ size: 14 })} Q4 Planting Season Subsidy</span>
-          <span>18 Subsidized Solar LoRa Gateways Remaining for ${regionParam} Farms</span>
+          <span class="mkt-badge-feature">${Icons.bolt({ size: 13 })} Q4 Planting Subsidy</span>
+          <span>18 Subsidized Solar LoRa Gateways Remaining for ${regionParam} Agricultural Basins</span>
           <span class="mkt-timer-box" id="mktCountdownTimer">14d : 08h : 42m : 19s</span>
         </aside>
 
-        <!-- 2. MINIMAL NAVIGATION (Characteristic 6, Hypothesis 9) -->
+        <!-- BAND 2: TOP NAVIGATION (64px, Stark Black #000000) -->
         <header class="mkt-nav" role="banner">
-          <a href="#" class="mkt-nav-brand" aria-label="Shamba Watch Home">
-            <div class="mkt-brand-logo">S</div>
-            <div class="mkt-brand-titles">
-              <h1>Shamba Watch</h1>
-              <span>Precision IoT Telemetry</span>
-            </div>
-          </a>
+          <div class="mkt-container-wide mkt-nav-inner">
+            <a href="#" class="mkt-nav-brand" aria-label="Shamba Watch Home">
+              <div class="mkt-brand-stamp">S</div>
+              <span class="mkt-brand-title">Shamba Watch</span>
+            </a>
 
-          <div class="mkt-nav-right">
-            <button class="mkt-btn-signin" id="mktNavSignInBtn" type="button" aria-label="Sign in to platform">
-              <span>${Icons.lock({ size: 15 })}</span>
-              <span>Sign In</span>
-            </button>
-            <button class="mkt-btn-cta-nav" id="mktNavCtaBtn" type="button">
-              Get Started Free ${Icons.arrowUpRight({ size: 14 })}
-            </button>
+            <nav class="mkt-nav-menu" aria-label="Quick Navigation">
+              <a href="#features" class="mkt-nav-link">Hardware & Probes</a>
+              <a href="#comparison" class="mkt-nav-link">Telemetry Benchmarks</a>
+              <a href="#plans" class="mkt-nav-link">Field Deployments</a>
+              <a href="#faq" class="mkt-nav-link">FAQ</a>
+            </nav>
+
+            <div class="mkt-nav-actions">
+              <button class="mkt-nav-signin-btn" id="mktNavSignInBtn" type="button" aria-label="Sign in to platform">
+                Sign In
+              </button>
+              <button class="mkt-btn-primary" id="mktNavCtaBtn" type="button">
+                <span>Start Free Pilot</span>
+                <span>${Icons.arrowUpRight({ size: 14 })}</span>
+              </button>
+            </div>
           </div>
         </header>
 
-        <!-- 3. HERO SECTION (Characteristics 1, 2, 3, 4, 5, Hypotheses 1, 2, 7, 8, 18) -->
-        <section class="mkt-hero" aria-labelledby="heroTitle">
-          <div class="mkt-hero-copy">
-            
-            <div class="mkt-pill-tag">
-              <span class="mkt-pill-pulse"></span>
-              <span>Live LoRaWAN IoT Telemetry · ${regionParam} Basin</span>
-            </div>
+        <!-- BAND 3: HERO STORYTELLING BAND (Stark Black #000000) -->
+        <section class="mkt-hero-band" aria-labelledby="heroTitle">
+          <div class="mkt-container">
+            <div class="mkt-hero-header">
+              
+              <div class="mkt-badge-tag">
+                <span class="mkt-pulse-dot"></span>
+                <span>Live LoRaWAN IoT Telemetry · ${regionParam} Basin</span>
+              </div>
 
-            <!-- Benefit-focused, customer-language headline (Hyp 1, 18) -->
-            <h2 class="mkt-hero-title" id="heroTitle">
-              Cut Crop Loss by 40% with Real-Time <em>${personalizedCrop}</em> Soil & Weather Telemetry.
-            </h2>
+              <!-- Oversized Aeonik Pro Display Headline (136px / clamp) -->
+              <h1 class="mkt-display-xxl" id="heroTitle">
+                Cut Crop Loss by 40%.
+              </h1>
+              
+              <div class="mkt-hero-copy">
+                <p class="mkt-body-lg">
+                  Autonomous solar nodes monitor root-zone moisture, canopy microclimate, and water stress 24/7 across ${personalizedCrop} acreage. Continuous 15km LoRa connectivity. Zero cellular SIMs. Zero guessing.
+                </p>
+              </div>
 
-            <!-- Supporting UVP Subheadline (Char 3) -->
-            <p class="mkt-hero-sub">
-              Autonomous solar sensors monitor root-zone moisture, microclimate and water stress 24/7 across agricultural production basins. Zero guesswork. Zero connectivity deadzones.
-            </p>
-
-            <!-- High-Contrast Primary CTA & Secondary Action (Hyp 2, 7, 8, 27) -->
-            <div class="mkt-hero-actions">
-              <div class="mkt-cta-row">
+              <!-- High-Contrast Hero Actions: White Pill Primary + Outlined Pill Secondary -->
+              <div class="mkt-hero-actions-row">
                 <button class="mkt-btn-primary" id="mktHeroCtaBtn" type="button">
-                  <span>Start 14-Day Free Pilot — Instant Access</span>
+                  <span>Start 14-Day Free Pilot</span>
                   <span>${Icons.arrowUpRight({ size: 16 })}</span>
                 </button>
-                <button class="mkt-btn-secondary" id="mktHeroSignInBtn" type="button">
-                  <span>Sign In to Platform</span>
-                  <span>${Icons.lock({ size: 16 })}</span>
+                <button class="mkt-btn-outline-dark" id="mktHeroSignInBtn" type="button">
+                  <span>${Icons.lock({ size: 16 })} Sign In to Platform</span>
                 </button>
               </div>
 
-
-              <!-- Trust Badges below CTA (Characteristic 10, Hypothesis 6) -->
-              <div class="mkt-trust-strip">
-                <span class="mkt-trust-item">${Icons.shieldCheck({ size: 14 })} 256-bit AES LoRaWAN</span>
-                <span class="mkt-trust-item">${Icons.sprout({ size: 14 })} KALRO Agronomy Standard</span>
-                <span class="mkt-trust-item">${Icons.sun({ size: 14 })} IP68 Weatherproof Hardware</span>
-                <span class="mkt-trust-item">${Icons.shield({ size: 14 })} Guaranteed Sensor Accuracy</span>
+              <!-- Trust Badges below CTA -->
+              <div class="mkt-hero-trust-strip">
+                <span class="mkt-badge-tag">${Icons.shieldCheck({ size: 13 })} 256-bit AES LoRaWAN</span>
+                <span class="mkt-badge-tag">${Icons.sprout({ size: 13 })} KALRO Agronomy Standard</span>
+                <span class="mkt-badge-tag">${Icons.sun({ size: 13 })} IP68 Weatherproof Mast</span>
+                <span class="mkt-badge-tag">${Icons.shield({ size: 13 })} Guaranteed Sensor Accuracy</span>
               </div>
-            </div>
 
+            </div>
           </div>
+        </section>
 
-          <!-- 4. HERO INTERACTIVE PRODUCT DEMO CARD (Characteristic 4, Hypotheses 5, 19) -->
-          <div class="mkt-demo-frame" aria-label="Interactive Live Telemetry Preview">
-            <div class="mkt-demo-frame-header">
-              <div class="mkt-frame-dots">
-                <div class="mkt-frame-dot" style="background:#E53E3E;"></div>
-                <div class="mkt-frame-dot" style="background:#ECC94B;"></div>
-                <div class="mkt-frame-dot" style="background:#48BB78;"></div>
-              </div>
-              <span class="mkt-frame-title">SHAMBA-LIVE // STATION-NAIVASHA-01</span>
-              <span style="font-size:11px; color:var(--moss);">● SIMULATED FEED</span>
-            </div>
-
-            <div class="mkt-demo-content">
-              <div class="mkt-demo-status-row">
-                <div class="mkt-demo-station-tag">
-                  <strong>Naivasha Basin Station #01</strong>
-                  <span>Crop: Roses & French Beans · 1,890m ASL</span>
+        <!-- BAND 4: FULL-BLEED PRODUCT MOCKUP HERO BAND (Stage Level 4 on #000000) -->
+        <section class="mkt-mockup-band" aria-label="Interactive Live Telemetry Preview">
+          <div class="mkt-container-wide">
+            <div class="mkt-mockup-console">
+              
+              <!-- Console Top Bar -->
+              <div class="mkt-console-topbar">
+                <div class="mkt-console-dots">
+                  <div class="mkt-console-dot"></div>
+                  <div class="mkt-console-dot"></div>
+                  <div class="mkt-console-dot"></div>
                 </div>
-                <div class="mkt-demo-live-badge">
-                  <span class="mkt-pill-pulse"></span>
-                  <span>99.8% SIGNAL</span>
+                <div class="mkt-console-meta">SHAMBA-OS // LORAWAN TELEMETRY ENGINE // NODE: #02010509</div>
+                <div class="mkt-chip-teal">
+                  <span class="mkt-pulse-dot"></span>
+                  <span>LIVE RECEPTION</span>
                 </div>
               </div>
 
-              <!-- Telemetry Cards -->
-              <div class="mkt-telemetry-sim-grid">
-                <div class="mkt-telemetry-card">
-                  <div class="mkt-card-label">Root Moisture (-20cm)</div>
-                  <div class="mkt-card-value" id="mktLiveMoistVal">34.2%</div>
-                  <div class="mkt-card-status mkt-status-good">${Icons.check({ size: 12 })} Optimal Field Capacity</div>
+              <div class="mkt-console-body">
+                
+                <!-- Station Title & Metadata -->
+                <div class="mkt-console-station-header">
+                  <div class="mkt-station-title-group">
+                    <strong>Naivasha Agricultural Basin · Station #01</strong>
+                    <span>DevAddr: 02010509 · Root Depth: 0–40cm · High-Density Sensor Array</span>
+                  </div>
+                  <div class="mkt-chip-blue">
+                    <span>99.8% GATEWAY UPTIME</span>
+                  </div>
                 </div>
-                <div class="mkt-telemetry-card">
-                  <div class="mkt-card-label">Canopy Air Temp</div>
-                  <div class="mkt-card-value">22.4°C</div>
-                  <div class="mkt-card-status mkt-status-good">${Icons.check({ size: 12 })} Safe Transpiration</div>
-                </div>
-                <div class="mkt-telemetry-card">
-                  <div class="mkt-card-label">Vapor Pressure Deficit</div>
-                  <div class="mkt-card-value">1.18 kPa</div>
-                  <div class="mkt-card-status mkt-status-good">${Icons.check({ size: 12 })} Moderate Demand</div>
-                </div>
-                <div class="mkt-telemetry-card">
-                  <div class="mkt-card-label">Solar Battery Reserve</div>
-                  <div class="mkt-card-value">98%</div>
-                  <div class="mkt-card-status mkt-status-good">${Icons.battery({ size: 12 })} LiFePO4 Full</div>
-                </div>
-              </div>
 
-              <!-- Animated Telemetry Wave Preview -->
-              <div class="mkt-sim-graph">
-                <svg viewBox="0 0 400 90" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="mktGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stop-color="#7A9471" stop-opacity="0.4"></stop>
-                      <stop offset="100%" stop-color="#7A9471" stop-opacity="0.0"></stop>
-                    </linearGradient>
-                  </defs>
-                  <path d="M0,60 Q50,30 100,45 T200,25 T300,50 T400,35 L400,90 L0,90 Z" fill="url(#mktGrad)"></path>
-                  <path d="M0,60 Q50,30 100,45 T200,25 T300,50 T400,35" fill="none" stroke="#7A9471" stroke-width="2.5"></path>
-                  <circle cx="400" cy="35" r="4" fill="#EDE8DE" stroke="#7A9471" stroke-width="2"></circle>
-                </svg>
-              </div>
+                <!-- 4-Up Telemetry Metric Cards with Saturated Revolut Product Chips -->
+                <div class="mkt-telemetry-grid">
+                  
+                  <div class="mkt-metric-tile">
+                    <div class="mkt-metric-tile-label">Root Moisture (-20cm)</div>
+                    <div class="mkt-metric-tile-value" id="mktLiveMoistVal">34.2%</div>
+                    <div>
+                      <span class="mkt-chip-teal">${Icons.check({ size: 12 })} Optimal Field Capacity</span>
+                    </div>
+                  </div>
 
-              <!-- Interactive Prompt to Launch Platform -->
-              <div class="mkt-demo-interactive-cta">
-                <span>View Full GIS Map & All 4 Basin Stations</span>
-                <button class="mkt-btn-launch-demo" id="mktDemoLaunchBtn" type="button">
-                  Launch Live Platform ${Icons.arrowUpRight({ size: 14 })}
-                </button>
+                  <div class="mkt-metric-tile">
+                    <div class="mkt-metric-tile-label">Canopy Air Temp</div>
+                    <div class="mkt-metric-tile-value">22.4°C</div>
+                    <div>
+                      <span class="mkt-chip-blue">${Icons.check({ size: 12 })} Safe Transpiration</span>
+                    </div>
+                  </div>
+
+                  <div class="mkt-metric-tile">
+                    <div class="mkt-metric-tile-label">Vapor Pressure Deficit</div>
+                    <div class="mkt-metric-tile-value">1.18 kPa</div>
+                    <div>
+                      <span class="mkt-chip-pink">${Icons.check({ size: 12 })} Moderate Demand</span>
+                    </div>
+                  </div>
+
+                  <div class="mkt-metric-tile">
+                    <div class="mkt-metric-tile-label">Solar Battery Reserve</div>
+                    <div class="mkt-metric-tile-value">98%</div>
+                    <div>
+                      <span class="mkt-chip-green">${Icons.battery({ size: 12 })} LiFePO4 Full Reserve</span>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Animated Timeseries Telemetry Wave Preview -->
+                <div class="mkt-console-wave-container">
+                  <div class="mkt-wave-meta-row">
+                    <span>Continuous Soil Dynamics · Last 24 Hours</span>
+                    <span style="color:var(--revo-accent-teal);">Active Telemetry Stream</span>
+                  </div>
+                  <svg class="mkt-console-wave-svg" viewBox="0 0 600 110" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="revoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#494fdf" stop-opacity="0.45"></stop>
+                        <stop offset="100%" stop-color="#494fdf" stop-opacity="0.0"></stop>
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,75 Q75,35 150,55 T300,30 T450,65 T600,40 L600,110 L0,110 Z" fill="url(#revoGrad)"></path>
+                    <path d="M0,75 Q75,35 150,55 T300,30 T450,65 T600,40" fill="none" stroke="#4f55f1" stroke-width="2.5"></path>
+                    <circle cx="600" cy="40" r="5" fill="#ffffff" stroke="#494fdf" stroke-width="2.5"></circle>
+                  </svg>
+                </div>
+
+                <!-- Interactive Launch Prompt -->
+                <div class="mkt-console-footer-cta">
+                  <span>Interactive Telemetry Engine · Real-Time Dynamic Ingestion</span>
+                  <button class="mkt-btn-pill-sm" id="mktDemoLaunchBtn" type="button">
+                    <span>Launch Live Platform</span>
+                    <span>${Icons.arrowUpRight({ size: 14 })}</span>
+                  </button>
+                </div>
+
               </div>
             </div>
           </div>
         </section>
 
-        <!-- 5. SOCIAL PROOF LOGOS (Characteristic 7, Hypothesis 15) -->
-        <section class="mkt-logos-section" aria-label="Partner and Customer Organizations">
-          <div class="mkt-logos-title">Trusted By Leading Agricultural Leaders Across East Africa</div>
-          <div class="mkt-logos-row">
-            <span class="mkt-partner-logo">${Icons.sprout({ size: 15 })} Nakuru Farmers Co-operative</span>
-            <span class="mkt-partner-logo">${Icons.leaf({ size: 15 })} Naivasha Flower Growers Association</span>
-            <span class="mkt-partner-logo">${Icons.flask({ size: 15 })} KALRO Kenya Agricultural Research</span>
-            <span class="mkt-partner-logo">${Icons.leaf({ size: 15 })} East Africa Tea Trade Chamber</span>
-          </div>
-        </section>
-
-        <!-- 6. QUANTIFIED METRICS & SUCCESS RESULTS (Characteristic 9, Hypothesis 16) -->
-        <section class="mkt-stats-section" aria-label="Quantified Success Metrics">
-          <div class="mkt-stats-grid">
-            <div class="mkt-stat-card">
-              <div class="mkt-stat-number">38.4%</div>
-              <div class="mkt-stat-label">Average Water Saved</div>
-              <div class="mkt-stat-desc">Through precision root-zone drip triggering vs timed schedules.</div>
-            </div>
-            <div class="mkt-stat-card">
-              <div class="mkt-stat-number">42%</div>
-              <div class="mkt-stat-label">Reduction in Crop Wilt</div>
-              <div class="mkt-stat-desc">Early warning alerts triggered before irreversible damage occurs.</div>
-            </div>
-            <div class="mkt-stat-card">
-              <div class="mkt-stat-number">15 km</div>
-              <div class="mkt-stat-label">LoRaWAN Range</div>
-              <div class="mkt-stat-desc">Single solar gateway covers entire escarpments and valleys without cellular SIMs.</div>
-            </div>
-            <div class="mkt-stat-card">
-              <div class="mkt-stat-number">12,400+</div>
-              <div class="mkt-stat-label">Acres Protected</div>
-              <div class="mkt-stat-desc">From Mau Narok potato highlands to Naivasha horticulture basins.</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 7. EMOTIONAL PAIN POINT VS. AGRONOMIC BENEFIT (Characteristic 26, 27) -->
-        <section class="mkt-pain-section">
+        <!-- BAND 5: LOGOS & CREDIBILITY (Stark Black #000000) -->
+        <section class="mkt-logos-band" aria-label="Partner and Customer Organizations">
           <div class="mkt-container">
-            <div class="mkt-section-header">
-              <span>Why Traditional Farming Fails</span>
-              <h2>Farming Shouldn't Be a High-Stakes Guessing Game</h2>
-              <p>Over-irrigation rots root zones and wastes costly pump fuel. Under-irrigation permanently stunts yield grade. Shamba Watch closes the loop.</p>
-            </div>
-
-            <div class="mkt-comparison-grid">
-              <div class="mkt-pain-card">
-                <h3><span>${Icons.alertTriangle({ size: 18 })}</span> The Old Way (Blind Farming)</h3>
-                <ul class="mkt-bullet-list">
-                  <li><span class="icon">${Icons.x({ size: 14 })}</span> Walking fields feeling topsoil with fingers — missing deep sub-surface root drought.</li>
-                  <li><span class="icon">${Icons.x({ size: 14 })}</span> Relying on generic regional weather forecasts that miss localized valley microclimates.</li>
-                  <li><span class="icon">${Icons.x({ size: 14 })}</span> Expensive cellular SIM cards per station with frequent battery deaths and SIM disconnects.</li>
-                  <li><span class="icon">${Icons.x({ size: 14 })}</span> Late frost or heat stress alerts received after 30% of the crop has already suffered necrosis.</li>
-                </ul>
-              </div>
-
-              <div class="mkt-benefit-card">
-                <h3><span>${Icons.checkCircle({ size: 18 })}</span> The Shamba Watch Way</h3>
-                <ul class="mkt-bullet-list">
-                  <li><span class="icon">${Icons.check({ size: 14 })}</span> Continuous 24/7 sub-surface moisture telemetry at root depths (-10cm, -20cm, -40cm).</li>
-                  <li><span class="icon">${Icons.check({ size: 14 })}</span> Microclimate weather masts measuring VPD, canopy temperature, and humidity directly on your block.</li>
-                  <li><span class="icon">${Icons.check({ size: 14 })}</span> Solar-powered autonomous LoRa nodes with 45-day battery reserve and 15km line-of-sight range.</li>
-                  <li><span class="icon">${Icons.check({ size: 14 })}</span> AI Agronomist assistant offering instant actionable irrigation prescriptions right on your phone.</li>
-                </ul>
-              </div>
+            <div class="mkt-logos-title">Trusted by agricultural leaders & estate operators</div>
+            <div class="mkt-logos-grid">
+              <div class="mkt-logo-card">${Icons.sprout({ size: 15 })} Nakuru Farmers Co-operative</div>
+              <div class="mkt-logo-card">${Icons.leaf({ size: 15 })} Naivasha Flower Growers Association</div>
+              <div class="mkt-logo-card">${Icons.flask({ size: 15 })} KALRO Agricultural Research</div>
+              <div class="mkt-logo-card">${Icons.leaf({ size: 15 })} East Africa Tea Trade Chamber</div>
             </div>
           </div>
         </section>
 
-        <!-- 8. COMPARISON TABLE VS ALTERNATIVES (Characteristic 13, Hypothesis 20) -->
-        <section class="mkt-table-section">
+        <!-- BAND 6: CATALOGUE BAND 1 (Pillars & Benchmarks on Pure White #ffffff) -->
+        <section class="mkt-catalogue-band" id="features" aria-labelledby="catTitle">
           <div class="mkt-container">
-            <div class="mkt-section-header">
-              <span>Competitive Landscape</span>
-              <h2>How Shamba Watch Compares</h2>
-              <p>Engineered from the ground up for East African field realities, remote topography, and solar autonomy.</p>
+            
+            <div class="mkt-catalogue-header">
+              <span class="mkt-badge-tag-light">Agronomic Architecture</span>
+              <h2 class="mkt-display-lg" id="catTitle" style="margin-top:14px;">
+                Designed for Field Autonomy. Built for Heavy Production.
+              </h2>
+              <p class="mkt-body-lg">
+                Replace manual soil feel with calibrated precision telemetry. Continuous measurements direct to your smartphone with zero cellular carrier fees.
+              </p>
             </div>
 
-            <div class="mkt-table-wrap">
-              <table class="mkt-table">
+            <!-- 3-Up Feature Grid with Distinct Accent Icons -->
+            <div class="mkt-feature-grid">
+              
+              <div class="mkt-feature-card-light">
+                <div class="mkt-feature-card-top">
+                  <div class="mkt-feature-card-icon mkt-icon-teal">
+                    ${Icons.radio({ size: 22 })}
+                  </div>
+                  <h3>15km LoRaWAN Mesh</h3>
+                  <p>Long-range sub-gigahertz telemetry passes effortlessly through highland topography, tree canopies, and metal greenhouses without requiring individual SIM cards.</p>
+                </div>
+                <div>
+                  <span class="mkt-chip-teal">Zero SIM Subscriptions</span>
+                </div>
+              </div>
+
+              <div class="mkt-feature-card-light">
+                <div class="mkt-feature-card-top">
+                  <div class="mkt-feature-card-icon mkt-icon-blue">
+                    ${Icons.sun({ size: 22 })}
+                  </div>
+                  <h3>45-Day Solar Dark Reserve</h3>
+                  <p>Industrial LiFePO4 cells paired with intelligent MPPT charging run uninterrupted through monsoon overcast seasons and prolonged highland fog covers.</p>
+                </div>
+                <div>
+                  <span class="mkt-chip-blue">LiFePO4 Chemistry</span>
+                </div>
+              </div>
+
+              <div class="mkt-feature-card-light">
+                <div class="mkt-feature-card-top">
+                  <div class="mkt-feature-card-icon mkt-icon-violet">
+                    ${Icons.sparkles({ size: 22 })}
+                  </div>
+                  <h3>AI Agronomist Assistant</h3>
+                  <p>Instant conversational queries on water demand, wilt points, and irrigation timing calculated directly against live soil and microclimate physics.</p>
+                </div>
+                <div>
+                  <span class="mkt-badge-feature" style="font-size:11px;">Built-In Intelligence</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Quantitative 4-Card Strip on White Surface Soft (#f4f4f4) -->
+            <div class="mkt-metrics-strip">
+              <div class="mkt-metric-pill-tile">
+                <strong>38.4%</strong>
+                <span>Average Water Saved</span>
+                <small>Through root-zone drip triggering vs timed irrigation cycles.</small>
+              </div>
+              <div class="mkt-metric-pill-tile">
+                <strong>42%</strong>
+                <span>Reduction in Wilt</span>
+                <small>Early warning alerts before irreversible crop stress occurs.</small>
+              </div>
+              <div class="mkt-metric-pill-tile">
+                <strong>15 km</strong>
+                <span>Gateway Range</span>
+                <small>Single solar gateway connects entire ridge without cellular deadzones.</small>
+              </div>
+              <div class="mkt-metric-pill-tile">
+                <strong>12,400+</strong>
+                <span>Acres Protected</span>
+                <small>From Mau Narok highlands to Naivasha horticulture basins.</small>
+              </div>
+            </div>
+
+            <!-- Clean Comparison Table inside White Catalogue Band -->
+            <div class="mkt-table-wrapper" id="comparison">
+              <table class="mkt-comparison-table">
                 <thead>
                   <tr>
-                    <th>Feature / Capability</th>
-                    <th class="highlight">Shamba Watch 2.0</th>
+                    <th>Capability / Feature</th>
+                    <th class="revo-highlight">Shamba Watch 2.0</th>
                     <th>Manual Soil Gauges</th>
                     <th>Imported Satellite Stations</th>
                   </tr>
@@ -320,31 +372,31 @@ export class MarketingPageView {
                 <tbody>
                   <tr>
                     <td><strong>Telemetry Frequency</strong></td>
-                    <td class="highlight">Continuous (Real-Time)</td>
+                    <td class="revo-highlight">Continuous (Real-Time Stream)</td>
                     <td>Manual (Once per day)</td>
                     <td>Periodic (4–8 hr delay)</td>
                   </tr>
                   <tr>
                     <td><strong>Cellular SIM Required per Probe</strong></td>
-                    <td class="highlight">No (LoRa 15km Mesh)</td>
-                    <td>No (Offline)</td>
+                    <td class="revo-highlight">No (LoRa 15km Mesh)</td>
+                    <td>No (Offline Gauge)</td>
                     <td>Yes (Expensive Data Plans)</td>
                   </tr>
                   <tr>
-                    <td><strong>Autonomous Solar LiFePO4 Power</strong></td>
-                    <td class="highlight">Yes (45-Day Dark Reserve)</td>
+                    <td><strong>Autonomous Solar Power</strong></td>
+                    <td class="revo-highlight">Yes (45-Day Dark Reserve)</td>
                     <td>N/A</td>
-                    <td>Often Lead-Acid (Prone to theft)</td>
+                    <td>Lead-Acid (Prone to failure)</td>
                   </tr>
                   <tr>
                     <td><strong>Field AI Agronomist Chat</strong></td>
-                    <td class="highlight">Included (24/7 Guidance)</td>
+                    <td class="revo-highlight">Included (24/7 Guidance)</td>
                     <td>None</td>
                     <td>Raw charts only</td>
                   </tr>
                   <tr>
                     <td><strong>Pricing & Deployment</strong></td>
-                    <td class="highlight">Contact for Pricing</td>
+                    <td class="revo-highlight">Contact for Pricing</td>
                     <td>High Labor Overhead</td>
                     <td>Costly Proprietary Imports</td>
                   </tr>
@@ -352,290 +404,454 @@ export class MarketingPageView {
               </table>
             </div>
 
-            <!-- Repeated CTA after section (Hypothesis 29) -->
-            <div style="text-align: center; margin-top: 28px;">
-              <button class="mkt-btn-primary mkt-trigger-signup" type="button">
-                Start Your 14-Day Free Trial Today ${Icons.arrowUpRight({ size: 16 })}
+            <div class="mkt-table-cta-row">
+              <button class="mkt-btn-dark mkt-trigger-signup" type="button">
+                <span>Start Your 14-Day Free Pilot</span>
+                <span>${Icons.arrowUpRight({ size: 16 })}</span>
               </button>
             </div>
+
           </div>
         </section>
 
-        <!-- 9. TESTIMONIALS WITH VERIFIED ROLES & QUANTIFIED IMPACT (Characteristic 8, Hypotheses 4, 16, 28) -->
-        <section class="mkt-testimonials-section">
+        <!-- BAND 7: STORYTELLING BAND 2 (Stark Black #000000) -->
+        <section class="mkt-story-band" aria-labelledby="storyTitle">
           <div class="mkt-container">
-            <div class="mkt-section-header">
-              <span>Farmer Case Studies</span>
-              <h2>Proven Results From the Field</h2>
-              <p>Hear from agronomists and estate managers operating throughout commercial agricultural basins.</p>
+            
+            <div class="mkt-story-header">
+              <span class="mkt-badge-tag">Operational Comparison</span>
+              <h2 class="mkt-display-lg" id="storyTitle" style="margin-top:14px;">
+                Farming Shouldn't Be a High-Stakes Guessing Game.
+              </h2>
+              <p class="mkt-body-lg">
+                Over-irrigation rots root zones and wastes costly pump fuel. Under-irrigation permanently stunts harvest grade. Shamba Watch closes the loop.
+              </p>
             </div>
 
+            <!-- 2-Up Comparison Cards: The Old Way vs The Shamba Watch Way -->
+            <div class="mkt-duo-grid">
+              
+              <div class="mkt-feature-card-dark">
+                <div class="mkt-card-title-row">
+                  <span style="color:var(--revo-accent-danger);">${Icons.alertTriangle({ size: 20 })}</span>
+                  <h3>The Old Way (Blind Farming)</h3>
+                </div>
+                <ul class="mkt-bullet-list">
+                  <li>
+                    <span class="bullet-icon" style="color:var(--revo-accent-danger);">${Icons.x({ size: 15 })}</span>
+                    <span>Walking fields feeling topsoil with fingers — missing sub-surface root drought.</span>
+                  </li>
+                  <li>
+                    <span class="bullet-icon" style="color:var(--revo-accent-danger);">${Icons.x({ size: 15 })}</span>
+                    <span>Relying on generic regional forecasts that miss localized valley microclimates.</span>
+                  </li>
+                  <li>
+                    <span class="bullet-icon" style="color:var(--revo-accent-danger);">${Icons.x({ size: 15 })}</span>
+                    <span>Costly cellular SIM cards per probe with frequent battery deaths and SIM disconnects.</span>
+                  </li>
+                  <li>
+                    <span class="bullet-icon" style="color:var(--revo-accent-danger);">${Icons.x({ size: 15 })}</span>
+                    <span>Frost or heat stress alerts received after 30% of the crop has already suffered necrosis.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="mkt-feature-card-dark accent-border">
+                <div class="mkt-card-title-row">
+                  <span style="color:var(--revo-accent-teal);">${Icons.checkCircle({ size: 20 })}</span>
+                  <h3>The Shamba Watch Way</h3>
+                </div>
+                <ul class="mkt-bullet-list">
+                  <li>
+                    <span class="bullet-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span>
+                    <span>Continuous 24/7 moisture telemetry at root depths (-10cm, -20cm, -40cm).</span>
+                  </li>
+                  <li>
+                    <span class="bullet-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span>
+                    <span>Microclimate masts measuring VPD, canopy temperature, and humidity directly on your block.</span>
+                  </li>
+                  <li>
+                    <span class="bullet-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span>
+                    <span>Solar-powered autonomous LoRa nodes with 45-day battery reserve and 15km range.</span>
+                  </li>
+                  <li>
+                    <span class="bullet-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span>
+                    <span>AI Agronomist assistant offering instant actionable irrigation prescriptions on your phone.</span>
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+
+            <!-- Verified Testimonials 3-Up Grid -->
             <div class="mkt-testimonials-grid">
-              <div class="mkt-testimonial-card">
-                <p class="mkt-quote">
+              
+              <div class="mkt-testimonial-card-dark">
+                <p class="mkt-quote-text">
                   "We reduced our drip irrigation expenditure by 34% in the first 60 days while increasing our export yield grade by 18%. Shamba Watch paid for itself in less than two weeks."
                 </p>
-                <div class="mkt-quote-metric">${Icons.star({ size: 14 })} 34% Pump Fuel Saved</div>
-                <div class="mkt-author-row">
-                  <div class="mkt-avatar">MK</div>
-                  <div class="mkt-author-meta">
-                    <strong>Mwangi Karanja</strong>
-                    <span>Lead Agronomist · Oserian Flower Basin</span>
+                <div>
+                  <span class="mkt-chip-teal">${Icons.star({ size: 13 })} 34% Pump Fuel Saved</span>
+                  <div class="mkt-testimonial-author">
+                    <div class="mkt-author-avatar">MK</div>
+                    <div class="mkt-author-info">
+                      <strong>Mwangi Karanja</strong>
+                      <span>Lead Agronomist · Oserian Flower Basin</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div class="mkt-testimonial-card">
-                <p class="mkt-quote">
+              <div class="mkt-testimonial-card-dark">
+                <p class="mkt-quote-text">
                   "Before Shamba Watch, frost warnings came too late. The SMS and live telemetry alerts saved 40 acres of seed potato crop in one freeze event. Unmatched reliability."
                 </p>
-                <div class="mkt-quote-metric">${Icons.star({ size: 14 })} 40 Acres Saved From Frost</div>
-                <div class="mkt-author-row">
-                  <div class="mkt-avatar">FC</div>
-                  <div class="mkt-author-meta">
-                    <strong>Faith Chebet</strong>
-                    <span>Operations Director · Molo Highland Producers</span>
+                <div>
+                  <span class="mkt-chip-blue">${Icons.star({ size: 13 })} 40 Acres Saved</span>
+                  <div class="mkt-testimonial-author">
+                    <div class="mkt-author-avatar">FC</div>
+                    <div class="mkt-author-info">
+                      <strong>Faith Chebet</strong>
+                      <span>Operations Director · Molo Highland Producers</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div class="mkt-testimonial-card">
-                <p class="mkt-quote">
+              <div class="mkt-testimonial-card-dark">
+                <p class="mkt-quote-text">
                   "Our field stations in Rongai used to constantly drop offline due to poor 3G coverage. Shamba Watch's LoRa mesh connects across the entire ridge with zero monthly SIM costs."
                 </p>
-                <div class="mkt-quote-metric">${Icons.star({ size: 14 })} 99.8% Gateway Uptime</div>
-                <div class="mkt-author-row">
-                  <div class="mkt-avatar">DK</div>
-                  <div class="mkt-author-meta">
-                    <strong>David Kiprono</strong>
-                    <span>Estate Manager · Rongai Cereal Growers</span>
+                <div>
+                  <span class="mkt-chip-green">${Icons.star({ size: 13 })} 99.8% Gateway Uptime</span>
+                  <div class="mkt-testimonial-author">
+                    <div class="mkt-author-avatar">DK</div>
+                    <div class="mkt-author-info">
+                      <strong>David Kiprono</strong>
+                      <span>Estate Manager · Rongai Cereal Growers</span>
+                    </div>
                   </div>
                 </div>
               </div>
+
             </div>
+
           </div>
         </section>
 
-        <!-- 10. CUSTOM PLANS & CONTACT FOR PRICING (Characteristics 11, 12) -->
-        <section class="mkt-pricing-section">
+        <!-- BAND 8: THE SIGNATURE PLANNING SECTION (Stark Black #000000) -->
+        <!-- Revolut Pattern: Level 2 #16181a cards flanking Level 3 Cobalt-Violet #494fdf Featured Card -->
+        <section class="mkt-plans-band" id="plans" aria-labelledby="plansTitle">
           <div class="mkt-container">
-            <div class="mkt-section-header">
-              <span>Field Solutions</span>
-              <h2>Flexible Plans for Every Farm Scale</h2>
-              <p>Hardware installed and calibrated directly on your land by local agronomy technicians. Contact us for custom pricing.</p>
-            </div>
-
-            <div class="mkt-pricing-grid">
-              
-              <!-- Tier 1 -->
-              <div class="mkt-pricing-card">
-                <div>
-                  <h3 style="font-size:20px; margin:0;">Smallholder Starter</h3>
-                  <p style="font-size:13px; color:var(--ink-dim); margin:6px 0 0 0;">Ideal for single-block family farms & greenhouses.</p>
-                  <div class="mkt-price-tag">
-                    <span class="mkt-price-amount">Contact for Pricing</span>
-                    <span class="mkt-price-period">Single Station Deployment</span>
-                  </div>
-                  <ul class="mkt-bullet-list">
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> 1 Field Monitoring Station</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Dual-depth root moisture telemetry</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Mobile SMS & Web alert thresholds</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Community agronomy support</li>
-                  </ul>
-                </div>
-                <button class="mkt-btn-secondary mkt-trigger-signup" type="button" style="margin-top:24px; justify-content:center;">
-                  Contact for Pricing ${Icons.arrowUpRight({ size: 14 })}
-                </button>
-              </div>
-
-              <!-- Tier 2 (Featured) -->
-              <div class="mkt-pricing-card featured">
-                <div class="mkt-popular-ribbon">Most Popular</div>
-                <div>
-                  <h3 style="font-size:20px; margin:0; color:var(--moss);">Commercial Basin Pro</h3>
-                  <p style="font-size:13px; color:var(--ink-dim); margin:6px 0 0 0;">For commercial farms, tea estates & flower growers.</p>
-                  <div class="mkt-price-tag">
-                    <span class="mkt-price-amount">Contact for Pricing</span>
-                    <span class="mkt-price-period">Commercial Field Package</span>
-                  </div>
-                  <ul class="mkt-bullet-list">
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Up to 5 Solar Field Stations</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Full LoRaWAN 15km Gateway mast</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Unlimited Farmer & Agronomist accounts</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> AI Agronomist Query Assistant</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Complete 30-day historical timeseries</li>
-                  </ul>
-                </div>
-                <button class="mkt-btn-primary mkt-trigger-signup" type="button" style="margin-top:24px; justify-content:center;">
-                  Contact for Pricing ${Icons.arrowUpRight({ size: 14 })}
-                </button>
-              </div>
-
-              <!-- Tier 3 -->
-              <div class="mkt-pricing-card">
-                <div>
-                  <h3 style="font-size:20px; margin:0;">Co-operative Basin</h3>
-                  <p style="font-size:13px; color:var(--ink-dim); margin:6px 0 0 0;">For co-operatives, agribusinesses & basin projects.</p>
-                  <div class="mkt-price-tag">
-                    <span class="mkt-price-amount">Contact for Pricing</span>
-                    <span class="mkt-price-period">Enterprise & Basin Network</span>
-                  </div>
-                  <ul class="mkt-bullet-list">
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Up to 20 Solar Field Stations</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Multi-gateway fault tolerance</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Custom REST & Webhook data pipelines</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> Dedicated agronomist field calibration</li>
-                    <li><span class="icon">${Icons.check({ size: 14 })}</span> 99.9% Enterprise SLA</li>
-                  </ul>
-                </div>
-                <button class="mkt-btn-secondary mkt-trigger-signup" type="button" style="margin-top:24px; justify-content:center;">
-                  Contact Agribusiness Team ${Icons.arrowUpRight({ size: 14 })}
-                </button>
-              </div>
-
-            </div>
-
-            <!-- Agronomic Guarantee -->
-            <div class="mkt-guarantee-box">
-              <span style="display:inline-flex; color:var(--moss);">${Icons.shieldCheck({ size: 36 })}</span>
-              <div>
-                <strong style="display:block; font-size:15px; color:var(--ink);">Engineered & Calibrated On-Site</strong>
-                <span style="font-size:13px; color:var(--ink-dim);">
-                  Every deployment is verified on your soil with calibrated depth probes to ensure dependable real-time telemetry from day one.
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 11. MINIMAL 2-FIELD LEAD CAPTURE FORM (Characteristic 15, Hypothesis 3) -->
-        <section class="mkt-lead-section">
-          <div class="mkt-container">
-            <div class="mkt-lead-box">
-              <h2 style="font-family:var(--font-display); font-size:26px; margin:0 0 8px 0; color:var(--ink);">
-                Request a Custom Quote & Field Survey
+            
+            <div class="mkt-plans-header">
+              <span class="mkt-badge-tag">Field Deployments</span>
+              <h2 class="mkt-display-lg" id="plansTitle" style="margin-top:14px;">
+                Engineered for Every Acreage.
               </h2>
-              <p style="font-size:14px; color:var(--ink-dim); margin:0;">
-                Tell us your location and crop. Our team will contact you with custom pricing and assess your field LoRa coverage within 24 hours.
+              <p class="mkt-body-lg">
+                Hardware installed and calibrated directly on your soil by local agronomic engineers. Contact us for custom deployment pricing.
               </p>
+            </div>
 
-              <form class="mkt-lead-form" id="mktLeadForm">
-                <input type="text" class="mkt-form-input" id="mktLeadName" placeholder="Your Full Name (e.g. John Chege)" required>
-                <input type="text" class="mkt-form-input" id="mktLeadContact" placeholder="Email or Phone (e.g. 0712 345 678)" required>
-                <button type="submit" class="mkt-btn-primary" id="mktLeadSubmitBtn" style="justify-content:center; padding:14px;">
-                  Schedule Free Field Survey ${Icons.arrowUpRight({ size: 14 })}
+            <div class="mkt-plans-grid">
+              
+              <!-- Tier 1: Smallholder Starter (Level 2 #16181a) -->
+              <div class="mkt-plan-card">
+                <div class="mkt-plan-header-block">
+                  <div class="mkt-plan-top-row">
+                    <h3>Starter</h3>
+                    <span class="mkt-badge-tag">Single Block</span>
+                  </div>
+                  <p class="mkt-plan-desc">For single-block family farms and high-value greenhouses.</p>
+                  
+                  <div class="mkt-plan-price-tag">
+                    <span class="mkt-plan-price-amount">Contact for Pricing</span>
+                    <span class="mkt-plan-price-period">Custom Field Deployment</span>
+                  </div>
+
+                  <ul class="mkt-plan-features-list">
+                    <li><span class="check-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span> 1 Solar Field Monitoring Station</li>
+                    <li><span class="check-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span> Dual-depth root moisture telemetry</li>
+                    <li><span class="check-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span> SMS & Web threshold alerts</li>
+                    <li><span class="check-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span> Community agronomic support</li>
+                  </ul>
+                </div>
+
+                <button class="mkt-btn-outline-dark mkt-trigger-signup" type="button" style="width:100%;">
+                  <span>Contact for Pricing</span>
+                  <span>${Icons.arrowUpRight({ size: 14 })}</span>
+                </button>
+              </div>
+
+              <!-- Tier 2: Commercial Basin Pro (Level 3 Cobalt Violet #494fdf Inversion) -->
+              <div class="mkt-plan-card-featured">
+                <div class="mkt-plan-header-block">
+                  <div class="mkt-plan-top-row">
+                    <h3>Commercial</h3>
+                    <span style="background:rgba(255,255,255,0.22); color:#ffffff; font-size:12px; font-weight:700; padding:4px 12px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.04em;">Most Popular</span>
+                  </div>
+                  <p class="mkt-plan-desc" style="color:rgba(255,255,255,0.9);">For commercial farms, tea estates & flower growers.</p>
+                  
+                  <div class="mkt-plan-price-tag">
+                    <span class="mkt-plan-price-amount">Contact for Pricing</span>
+                    <span class="mkt-plan-price-period" style="color:rgba(255,255,255,0.85);">Commercial Field Package</span>
+                  </div>
+
+                  <ul class="mkt-plan-features-list">
+                    <li><span class="check-icon">${Icons.check({ size: 15 })}</span> Up to 5 Solar Field Stations</li>
+                    <li><span class="check-icon">${Icons.check({ size: 15 })}</span> Full LoRaWAN 15km Gateway mast</li>
+                    <li><span class="check-icon">${Icons.check({ size: 15 })}</span> Unlimited Farmer & Agronomist accounts</li>
+                    <li><span class="check-icon">${Icons.check({ size: 15 })}</span> AI Agronomist Query Assistant</li>
+                    <li><span class="check-icon">${Icons.check({ size: 15 })}</span> 30-Day historical timeseries analytics</li>
+                  </ul>
+                </div>
+
+                <!-- White Pill Button on Cobalt Violet Card (Revolut Signature) -->
+                <button class="mkt-btn-primary mkt-trigger-signup" type="button" style="width:100%;">
+                  <span>Contact for Pricing</span>
+                  <span>${Icons.arrowUpRight({ size: 14 })}</span>
+                </button>
+              </div>
+
+              <!-- Tier 3: Co-operative Basin (Level 2 #16181a) -->
+              <div class="mkt-plan-card">
+                <div class="mkt-plan-header-block">
+                  <div class="mkt-plan-top-row">
+                    <h3>Enterprise</h3>
+                    <span class="mkt-badge-tag">Basin Network</span>
+                  </div>
+                  <p class="mkt-plan-desc">For co-operatives, agribusinesses & basin projects.</p>
+                  
+                  <div class="mkt-plan-price-tag">
+                    <span class="mkt-plan-price-amount">Contact for Pricing</span>
+                    <span class="mkt-plan-price-period">Enterprise & Basin Network</span>
+                  </div>
+
+                  <ul class="mkt-plan-features-list">
+                    <li><span class="check-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span> Up to 20 Solar Field Stations</li>
+                    <li><span class="check-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span> Multi-gateway fault tolerance</li>
+                    <li><span class="check-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span> Custom REST & Webhook data pipelines</li>
+                    <li><span class="check-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span> Dedicated agronomist field calibration</li>
+                    <li><span class="check-icon" style="color:var(--revo-accent-teal);">${Icons.check({ size: 15 })}</span> 99.9% Enterprise SLA</li>
+                  </ul>
+                </div>
+
+                <button class="mkt-btn-outline-dark mkt-trigger-signup" type="button" style="width:100%;">
+                  <span>Contact Agribusiness Team</span>
+                  <span>${Icons.arrowUpRight({ size: 14 })}</span>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Assurance Box -->
+            <div class="mkt-assurance-box">
+              <span class="mkt-assurance-icon">${Icons.shieldCheck({ size: 36 })}</span>
+              <div class="mkt-assurance-text">
+                <strong>Engineered & Calibrated On-Site</strong>
+                <span>Every deployment is calibrated on your specific soil type with custom depth probes to guarantee accurate real-time telemetry from day one.</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- BAND 9: CATALOGUE BAND 2 (Pure White #ffffff) -->
+        <section class="mkt-inquiry-band" id="faq" aria-labelledby="inquiryTitle">
+          <div class="mkt-container">
+            
+            <!-- 2-Field Lead Capture Card (text-input: 56px, rounded-12px) -->
+            <div class="mkt-lead-card">
+              <div class="mkt-lead-header">
+                <span class="mkt-badge-tag-light">Quick Inquiry</span>
+                <h2 class="mkt-display-md" id="inquiryTitle" style="margin-top:10px;">
+                  Request a Custom Quote & Field Survey
+                </h2>
+                <p class="mkt-body-md">
+                  Tell us your location and crop. Our team will contact you with custom pricing and assess your field LoRa coverage within 24 hours.
+                </p>
+              </div>
+
+              <form class="mkt-lead-form-grid" id="mktLeadForm">
+                <input type="text" class="mkt-text-input" id="mktLeadName" placeholder="Your Full Name (e.g. John Chege)" required>
+                <input type="text" class="mkt-text-input" id="mktLeadContact" placeholder="Email or Phone (e.g. 0712 345 678)" required>
+                <button type="submit" class="mkt-btn-dark" id="mktLeadSubmitBtn">
+                  <span>Schedule Free Field Survey</span>
+                  <span>${Icons.arrowUpRight({ size: 14 })}</span>
                 </button>
               </form>
-              <div id="mktLeadFeedback" style="display:none; font-size:13px; margin-top:12px; color:var(--moss); font-weight:600;"></div>
+              <div id="mktLeadFeedback" class="mkt-lead-feedback" style="display:none;"></div>
             </div>
+
+            <!-- FAQ Accordion -->
+            <div class="mkt-faq-wrapper">
+              <div class="mkt-faq-header">
+                <span class="mkt-badge-tag-light">Frequently Asked Questions</span>
+                <h2 class="mkt-display-md" style="margin-top:10px;">Common Inquiries</h2>
+                <p class="mkt-body-md">Everything you need to know about installation, range, and accuracy.</p>
+              </div>
+
+              <div class="mkt-faq-list">
+                
+                <div class="mkt-faq-item open">
+                  <button class="mkt-faq-question" type="button">
+                    <span class="q-title">1. Does Shamba Watch work without 3G/4G coverage on my farm?</span>
+                    <span class="toggle-icon">+</span>
+                  </button>
+                  <div class="mkt-faq-answer">
+                    Yes! That is exactly what Shamba Watch was engineered for. Our field sensors use 868MHz LoRaWAN wireless technology, transmitting telemetry up to 15 kilometers over hills and valleys to a central solar gateway mast. No SIM cards or monthly data bundles are required on your field probes.
+                  </div>
+                </div>
+
+                <div class="mkt-faq-item">
+                  <button class="mkt-faq-question" type="button">
+                    <span class="q-title">2. What happens during the rainy or cloudy season without bright sun?</span>
+                    <span class="toggle-icon">+</span>
+                  </button>
+                  <div class="mkt-faq-answer">
+                    Every field probe and gateway includes industrial LiFePO4 solar batteries with an autonomous power management circuit. Even in complete, continuous darkness or torrential monsoons, the stations run continuously for 45 days on internal battery reserve alone.
+                  </div>
+                </div>
+
+                <div class="mkt-faq-item">
+                  <button class="mkt-faq-question" type="button">
+                    <span class="q-title">3. How quickly can I install and start viewing soil moisture readings?</span>
+                    <span class="toggle-icon">+</span>
+                  </button>
+                  <div class="mkt-faq-answer">
+                    In less than 10 minutes. Probes arrive pre-calibrated for agricultural volcanic and loam soils. You simply auger a borehole to root zone depth, insert the probe, clamp the solar mast, and the live stream immediately populates on your dashboard.
+                  </div>
+                </div>
+
+                <div class="mkt-faq-item">
+                  <button class="mkt-faq-question" type="button">
+                    <span class="q-title">4. Can multiple farm workers or agronomists access the same field?</span>
+                    <span class="toggle-icon">+</span>
+                  </button>
+                  <div class="mkt-faq-answer">
+                    Yes. Shamba Watch includes full Role-Based Access Control (RBAC). Estate managers can assign individual stations to specific block supervisors or agronomists, giving each team member customized view permissions.
+                  </div>
+                </div>
+
+                <div class="mkt-faq-item">
+                  <button class="mkt-faq-question" type="button">
+                    <span class="q-title">5. How does pricing and deployment work?</span>
+                    <span class="toggle-icon">+</span>
+                  </button>
+                  <div class="mkt-faq-answer">
+                    Pricing is tailored based on your farm acreage, topography, and probe density requirements. Contact us for custom pricing and our engineering team will provide a tailored deployment estimate.
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
           </div>
         </section>
 
-        <!-- 12. FAQ ACCORDION (Characteristic 14, Hypothesis 13) -->
-        <section class="mkt-faq-section">
-          <div class="mkt-section-header">
-            <span>Got Questions?</span>
-            <h2>Frequently Asked Questions</h2>
-            <p>Everything you need to know about installation, range, and accuracy.</p>
+        <!-- BAND 10: GLOBAL FOOTER (Stark Black #000000) -->
+        <footer class="mkt-footer" role="contentinfo">
+          <div class="mkt-container">
+            <div class="mkt-footer-top">
+              
+              <div class="mkt-footer-brand">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div class="mkt-brand-stamp">S</div>
+                  <span class="mkt-brand-title" style="font-size:20px;">Shamba Watch</span>
+                </div>
+                <p>
+                  Industrial precision IoT telemetry and agronomist intelligence for commercial agriculture. Autonomous solar LoRaWAN networks engineered for production basins.
+                </p>
+              </div>
+
+              <div class="mkt-footer-col">
+                <h4>Platform</h4>
+                <ul class="mkt-footer-links">
+                  <li><a href="#" class="mkt-trigger-signup">Live Telemetry Map</a></li>
+                  <li><a href="#" class="mkt-trigger-signup">LoRa Probe Fleet</a></li>
+                  <li><a href="#" class="mkt-trigger-signup">Agronomist AI Chat</a></li>
+                  <li><a href="#" class="mkt-trigger-signup">Station RBAC Console</a></li>
+                </ul>
+              </div>
+
+              <div class="mkt-footer-col">
+                <h4>Hardware</h4>
+                <ul class="mkt-footer-links">
+                  <li><a href="#">LoRaWAN Mast v2</a></li>
+                  <li><a href="#">Dual-Depth Probe</a></li>
+                  <li><a href="#">LiFePO4 Solar Pack</a></li>
+                  <li><a href="#">Microclimate Station</a></li>
+                </ul>
+              </div>
+
+              <div class="mkt-footer-col">
+                <h4>Compliance</h4>
+                <ul class="mkt-footer-links">
+                  <li><a href="#">KALRO Standard</a></li>
+                  <li><a href="#">IP68 Ingress Test</a></li>
+                  <li><a href="#">Privacy Policy</a></li>
+                  <li><a href="#">Terms of Service</a></li>
+                </ul>
+              </div>
+
+            </div>
+
+            <div class="mkt-footer-bottom">
+              <div>© 2026 Shamba Watch Precision IoT. All rights reserved.</div>
+              <div style="display:flex; gap:20px;">
+                <span>256-bit AES Encryption</span>
+                <span>LoRaWAN EU868 / AS923</span>
+                <span>Solar Autonomous</span>
+              </div>
+            </div>
           </div>
+        </footer>
 
-          <div class="mkt-faq-list">
-            
-            <div class="mkt-faq-item open">
-              <button class="mkt-faq-question" type="button">
-                <span>1. Does Shamba Watch work without 3G/4G coverage on my farm?</span>
-                <span class="toggle">+</span>
-              </button>
-              <div class="mkt-faq-answer">
-                Yes! That is exactly what Shamba Watch was engineered for. Our field sensors use 868MHz LoRaWAN wireless technology, transmitting telemetry up to 15 kilometers over hills and valleys to a central solar gateway mast. No SIM cards or monthly data bundles are required on your field probes.
-              </div>
-            </div>
-
-            <div class="mkt-faq-item">
-              <button class="mkt-faq-question" type="button">
-                <span>2. What happens during the rainy or cloudy season without bright sun?</span>
-                <span class="toggle">+</span>
-              </button>
-              <div class="mkt-faq-answer">
-                Every field probe and gateway includes industrial LiFePO4 solar batteries with an autonomous power management circuit. Even in complete, continuous darkness or torrential monsoons, the stations run continuously for 45 days on internal battery reserve alone.
-              </div>
-            </div>
-
-            <div class="mkt-faq-item">
-              <button class="mkt-faq-question" type="button">
-                <span>3. How quickly can I install and start viewing soil moisture readings?</span>
-                <span class="toggle">+</span>
-              </button>
-              <div class="mkt-faq-answer">
-                In less than 10 minutes. Probes arrive pre-calibrated for agricultural volcanic and loam soils. You simply auger a borehole to root zone depth, insert the probe, clamp the solar mast, and the live stream immediately populates on your dashboard.
-              </div>
-            </div>
-
-            <div class="mkt-faq-item">
-              <button class="mkt-faq-question" type="button">
-                <span>4. Can multiple farm workers or agronomists access the same field?</span>
-                <span class="toggle">+</span>
-              </button>
-              <div class="mkt-faq-answer">
-                Yes. Shamba Watch includes full Role-Based Access Control (RBAC). Estate managers can assign individual stations to specific block supervisors or agronomists, giving each team member customized view permissions.
-              </div>
-            </div>
-
-            <div class="mkt-faq-item">
-              <button class="mkt-faq-question" type="button">
-                <span>5. How does pricing and deployment work?</span>
-                <span class="toggle">+</span>
-              </button>
-              <div class="mkt-faq-answer">
-                Pricing is tailored based on your farm acreage, topography, and probe density requirements. Contact us for custom pricing and our engineering team will provide a tailored deployment estimate.
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        <!-- 13. STICKY MOBILE CTA BAR (Characteristic 16, Hypothesis 10) -->
+        <!-- STICKY MOBILE CTA BAR (Bottom, Dark) -->
         <div class="mkt-sticky-cta-bar" id="mktStickyBar" aria-label="Persistent Call To Action">
-          <div>
-            <strong style="display:block; font-size:13px; color:var(--ink);">Start 14-Day Free Pilot</strong>
-            <span style="font-size:11px; color:var(--ink-dim);">Full hardware & platform access</span>
+          <div class="mkt-sticky-info">
+            <strong>Start 14-Day Free Pilot</strong>
+            <span>Full hardware & platform access</span>
           </div>
-          <button class="mkt-btn-primary mkt-trigger-signup" type="button" style="padding:10px 18px; font-size:13px;">
-            Get Access ${Icons.arrowUpRight({ size: 14 })}
+          <button class="mkt-btn-primary mkt-trigger-signup" type="button" style="padding:10px 20px; font-size:14px; height:40px;">
+            <span>Get Access</span>
+            <span>${Icons.arrowUpRight({ size: 14 })}</span>
           </button>
         </div>
 
-        <!-- 14. EXIT-INTENT MODAL (Characteristic 17, Hypothesis 21) -->
+        <!-- EXIT-INTENT MODAL (Fintech Dark, Level 2 Surface #16181a) -->
         <div class="mkt-exit-intent-overlay" id="mktExitOverlay" role="dialog" aria-modal="true" aria-labelledby="exitTitle">
           <div class="mkt-exit-box">
             <button class="mkt-exit-close" id="mktExitCloseBtn" type="button" aria-label="Close offer">×</button>
-            <span style="display:inline-flex; color:var(--moss); margin-bottom:8px;">${Icons.gift({ size: 36 })}</span>
-            <h3 id="exitTitle" style="font-family:var(--font-display); font-size:22px; color:var(--ink); margin:0 0 8px 0;">
+            <div style="color:var(--revo-accent-teal);">${Icons.gift({ size: 36 })}</div>
+            <h3 id="exitTitle" style="font-family:var(--revo-font-display); font-size:22px; margin:0;">
               Before You Go: Free Agronomy Guide
             </h3>
-            <p style="font-size:13px; color:var(--ink-dim); margin:0 0 16px 0;">
+            <p style="font-size:14px; color:var(--revo-on-dark-mute); line-height:1.5; margin:0;">
               Download the <strong>"Commercial Soil Moisture & Drip Irrigation Playbook (2026 Edition)"</strong> + get priority agronomic survey access.
             </p>
-            <form id="mktExitForm" style="display:flex; flex-direction:column; gap:10px;">
-              <input type="email" class="mkt-form-input" id="mktExitEmail" placeholder="Enter your email address" required>
-              <button type="submit" class="mkt-btn-primary" style="justify-content:center;">
-                Send Me The Free Guide ${Icons.arrowUpRight({ size: 14 })}
+            <form id="mktExitForm" style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
+              <input type="email" class="mkt-text-input" id="mktExitEmail" placeholder="Enter your work email address" required style="border-color:rgba(255,255,255,0.15); background:#0d0f11; color:#ffffff;">
+              <button type="submit" class="mkt-btn-primary" style="justify-content:center; width:100%;">
+                <span>Send Me The Free Guide</span>
+                <span>${Icons.arrowUpRight({ size: 14 })}</span>
               </button>
             </form>
-            <div id="mktExitFeedback" style="display:none; font-size:12px; color:var(--moss); margin-top:8px; font-weight:600;"></div>
+            <div id="mktExitFeedback" style="display:none; font-size:13px; color:var(--revo-accent-teal); font-weight:600;"></div>
           </div>
         </div>
 
-        <!-- 15. LIVE SOCIAL PROOF TOAST (Hypothesis 25) -->
+        <!-- LIVE SOCIAL PROOF TOAST -->
         <div class="mkt-social-toast" id="mktSocialToast" role="status" aria-live="polite">
-          <span style="display:inline-flex; color:var(--moss);">${Icons.sprout({ size: 18 })}</span>
+          <span style="color:var(--revo-accent-teal);">${Icons.sprout({ size: 18 })}</span>
           <div>
-            <strong id="mktSocialName" style="color:var(--ink);">Farmer Joseph (Naivasha)</strong>
-            <span id="mktSocialAction" style="display:block; color:var(--ink-dim);">Connected a new soil probe (2 min ago)</span>
+            <strong id="mktSocialName" style="display:block; color:#ffffff;">Farmer Joseph (Naivasha)</strong>
+            <span id="mktSocialAction" style="display:block; color:var(--revo-on-dark-mute); font-size:12px;">Connected a new soil probe (2 min ago)</span>
           </div>
         </div>
 
-        <!-- 16. FLOATING LIVE AI AGRONOMIST CHATBOT (Characteristic 18, Hypothesis 14) -->
+        <!-- FLOATING LIVE AI AGRONOMIST CHATBOT BUTTON -->
         <button class="mkt-chat-floating-btn" id="mktChatFloatingBtn" type="button" aria-label="Ask Shamba AI Agronomist">
           <span>${Icons.sparkles({ size: 16 })}</span>
           <span>Ask AI Agronomist</span>
