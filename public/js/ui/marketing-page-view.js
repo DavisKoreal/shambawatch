@@ -120,41 +120,68 @@ export class MarketingPageView {
         <!-- BAND 3: HERO STORYTELLING BAND (Stark Black #000000) -->
         <section class="mkt-hero-band" aria-labelledby="heroTitle">
           <div class="mkt-container">
-            <div class="mkt-hero-header">
-              
-              <div class="mkt-badge-tag">
-                <span class="mkt-pulse-dot"></span>
-                <span>Live LoRaWAN IoT Telemetry · ${regionParam} Basin</span>
+            <div class="mkt-hero-layout">
+              <div class="mkt-hero-header">
+                
+                <div class="mkt-badge-tag">
+                  <span class="mkt-pulse-dot"></span>
+                  <span>Live LoRaWAN IoT Telemetry · ${regionParam} Basin</span>
+                </div>
+
+                <!-- Oversized Aeonik Pro Display Headline (136px / clamp) -->
+                <h1 class="mkt-display-xxl" id="heroTitle">
+                  Cut Crop Loss by 40%.
+                </h1>
+                
+                <div class="mkt-hero-copy">
+                  <p class="mkt-body-lg">
+                    Autonomous solar nodes monitor root-zone moisture, canopy microclimate, and water stress 24/7 across ${personalizedCrop} acreage. Continuous 15km LoRa connectivity. Zero cellular SIMs. Zero guessing.
+                  </p>
+                </div>
+
+                <!-- High-Contrast Hero Actions: White Pill Primary + Outlined Pill Secondary -->
+                <div class="mkt-hero-actions-row">
+                  <button class="mkt-btn-primary" id="mktHeroCtaBtn" type="button">
+                    <span>Start 14-Day Free Pilot</span>
+                    <span>${Icons.arrowUpRight({ size: 16 })}</span>
+                  </button>
+                  <button class="mkt-btn-outline-dark" id="mktHeroSignInBtn" type="button">
+                    <span>${Icons.lock({ size: 16 })} Sign In to Platform</span>
+                  </button>
+                </div>
+
+                <!-- Trust Badges below CTA -->
+                <div class="mkt-hero-trust-strip">
+                  <span class="mkt-badge-tag">${Icons.shieldCheck({ size: 13 })} 256-bit AES LoRaWAN</span>
+                  <span class="mkt-badge-tag">${Icons.sprout({ size: 13 })} KALRO Agronomy Standard</span>
+                  <span class="mkt-badge-tag">${Icons.sun({ size: 13 })} IP68 Weatherproof Mast</span>
+                  <span class="mkt-badge-tag">${Icons.shield({ size: 13 })} Guaranteed Sensor Accuracy</span>
+                </div>
+
               </div>
 
-              <!-- Oversized Aeonik Pro Display Headline (136px / clamp) -->
-              <h1 class="mkt-display-xxl" id="heroTitle">
-                Cut Crop Loss by 40%.
-              </h1>
-              
-              <div class="mkt-hero-copy">
-                <p class="mkt-body-lg">
-                  Autonomous solar nodes monitor root-zone moisture, canopy microclimate, and water stress 24/7 across ${personalizedCrop} acreage. Continuous 15km LoRa connectivity. Zero cellular SIMs. Zero guessing.
-                </p>
-              </div>
-
-              <!-- High-Contrast Hero Actions: White Pill Primary + Outlined Pill Secondary -->
-              <div class="mkt-hero-actions-row">
-                <button class="mkt-btn-primary" id="mktHeroCtaBtn" type="button">
-                  <span>Start 14-Day Free Pilot</span>
-                  <span>${Icons.arrowUpRight({ size: 16 })}</span>
-                </button>
-                <button class="mkt-btn-outline-dark" id="mktHeroSignInBtn" type="button">
-                  <span>${Icons.lock({ size: 16 })} Sign In to Platform</span>
-                </button>
-              </div>
-
-              <!-- Trust Badges below CTA -->
-              <div class="mkt-hero-trust-strip">
-                <span class="mkt-badge-tag">${Icons.shieldCheck({ size: 13 })} 256-bit AES LoRaWAN</span>
-                <span class="mkt-badge-tag">${Icons.sprout({ size: 13 })} KALRO Agronomy Standard</span>
-                <span class="mkt-badge-tag">${Icons.sun({ size: 13 })} IP68 Weatherproof Mast</span>
-                <span class="mkt-badge-tag">${Icons.shield({ size: 13 })} Guaranteed Sensor Accuracy</span>
+              <!-- Hero Visual Card (Photography-led story visual) -->
+              <div class="mkt-hero-visual-card" aria-label="Field Telemetry Mast Visual">
+                <img src="images/hero-mast.jpg" alt="Solar-powered LoRaWAN agricultural telemetry mast in highland tea farm at sunrise" class="mkt-hero-visual-img">
+                <div class="mkt-hero-visual-overlay">
+                  <div class="mkt-hero-visual-badge-top">
+                    <span class="mkt-badge-tag">Station #02010509</span>
+                    <span class="mkt-chip-teal">
+                      <span class="mkt-pulse-dot"></span>
+                      <span>Solar Autonomy Active</span>
+                    </span>
+                  </div>
+                  <div class="mkt-hero-visual-badge-bottom">
+                    <div class="mkt-hero-visual-stat">
+                      <strong>1,890m ASL</strong>
+                      <span>Naivasha Highland Basin</span>
+                    </div>
+                    <div class="mkt-hero-visual-stat" style="text-align:right;">
+                      <strong style="color:var(--revo-accent-teal);">99.8%</strong>
+                      <span>LoRa Packet Reliability</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -230,24 +257,67 @@ export class MarketingPageView {
 
                 </div>
 
-                <!-- Animated Timeseries Telemetry Wave Preview -->
-                <div class="mkt-console-wave-container">
-                  <div class="mkt-wave-meta-row">
-                    <span>Continuous Soil Dynamics · Last 24 Hours</span>
-                    <span style="color:var(--revo-accent-teal);">Active Telemetry Stream</span>
+                <!-- Split Layout: Macro Probe Photo & Timeseries Wave -->
+                <div class="mkt-console-split">
+                  
+                  <!-- Live Probe Physical Installation Visual -->
+                  <div class="mkt-probe-showcase">
+                    <div class="mkt-probe-photo-wrap">
+                      <img src="images/soil-probe.jpg" alt="Rugged stainless steel root-zone soil moisture probe" class="mkt-probe-photo">
+                      <div class="mkt-probe-photo-overlay">
+                        <span class="mkt-chip-teal" style="align-self:flex-start;">IP68 Sub-Surface Probe</span>
+                      </div>
+                    </div>
+                    <div class="mkt-probe-details">
+                      <div class="mkt-depth-indicator">
+                        <span style="color:var(--revo-on-dark-mute);">-10cm Topsoil Layer</span>
+                        <strong style="color:#ffffff;">28.4% Moist</strong>
+                      </div>
+                      <div class="mkt-depth-indicator" style="border-color:rgba(0,168,126,0.3); background:rgba(0,168,126,0.08);">
+                        <span style="color:var(--revo-accent-teal); font-weight:600;">-20cm Active Root Zone</span>
+                        <strong style="color:var(--revo-accent-teal);">34.2% Optimal</strong>
+                      </div>
+                      <div class="mkt-depth-indicator">
+                        <span style="color:var(--revo-on-dark-mute);">-40cm Deep Subsoil</span>
+                        <strong style="color:#ffffff;">39.1% Reserve</strong>
+                      </div>
+                    </div>
                   </div>
-                  <svg class="mkt-console-wave-svg" viewBox="0 0 600 110" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="revoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#494fdf" stop-opacity="0.45"></stop>
-                        <stop offset="100%" stop-color="#494fdf" stop-opacity="0.0"></stop>
-                      </linearGradient>
-                    </defs>
-                    <path d="M0,75 Q75,35 150,55 T300,30 T450,65 T600,40 L600,110 L0,110 Z" fill="url(#revoGrad)"></path>
-                    <path d="M0,75 Q75,35 150,55 T300,30 T450,65 T600,40" fill="none" stroke="#4f55f1" stroke-width="2.5"></path>
-                    <circle cx="600" cy="40" r="5" fill="#ffffff" stroke="#494fdf" stroke-width="2.5"></circle>
-                  </svg>
+
+                  <!-- Animated Timeseries Telemetry Wave Preview -->
+                  <div class="mkt-console-wave-container">
+                    <div class="mkt-wave-meta-row">
+                      <span>Continuous Soil Dynamics · Last 24 Hours</span>
+                      <span style="color:var(--revo-accent-teal);">Active Telemetry Stream</span>
+                    </div>
+                    <svg class="mkt-console-wave-svg" viewBox="0 0 600 110" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="revoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stop-color="#494fdf" stop-opacity="0.45"></stop>
+                          <stop offset="100%" stop-color="#494fdf" stop-opacity="0.0"></stop>
+                        </linearGradient>
+                      </defs>
+                      <path d="M0,75 Q75,35 150,55 T300,30 T450,65 T600,40 L600,110 L0,110 Z" fill="url(#revoGrad)"></path>
+                      <path d="M0,75 Q75,35 150,55 T300,30 T450,65 T600,40" fill="none" stroke="#4f55f1" stroke-width="2.5"></path>
+                      <circle cx="600" cy="40" r="5" fill="#ffffff" stroke="#494fdf" stroke-width="2.5"></circle>
+                    </svg>
+                  </div>
+
                 </div>
+
+                <!-- Interactive Launch Prompt -->
+                <div class="mkt-console-footer-cta">
+                  <span>Interactive Telemetry Engine · Real-Time Dynamic Ingestion</span>
+                  <button class="mkt-btn-pill-sm" id="mktDemoLaunchBtn" type="button">
+                    <span>Launch Live Platform</span>
+                    <span>${Icons.arrowUpRight({ size: 14 })}</span>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
 
                 <!-- Interactive Launch Prompt -->
                 <div class="mkt-console-footer-cta">
@@ -290,44 +360,59 @@ export class MarketingPageView {
               </p>
             </div>
 
-            <!-- 3-Up Feature Grid with Distinct Accent Icons -->
+            <!-- 3-Up Feature Grid with Evocative Story Photography -->
             <div class="mkt-feature-grid">
               
               <div class="mkt-feature-card-light">
-                <div class="mkt-feature-card-top">
-                  <div class="mkt-feature-card-icon mkt-icon-teal">
-                    ${Icons.radio({ size: 22 })}
-                  </div>
-                  <h3>15km LoRaWAN Mesh</h3>
-                  <p>Long-range sub-gigahertz telemetry passes effortlessly through highland topography, tree canopies, and metal greenhouses without requiring individual SIM cards.</p>
-                </div>
                 <div>
+                  <div class="mkt-card-img-wrap">
+                    <img src="images/lora-gateway.jpg" alt="15km LoRaWAN Solar Gateway Mast overlooking agricultural valley" class="mkt-card-photo" loading="lazy">
+                  </div>
+                  <div class="mkt-feature-card-top">
+                    <div class="mkt-feature-card-icon mkt-icon-teal">
+                      ${Icons.radio({ size: 22 })}
+                    </div>
+                    <h3>15km LoRaWAN Mesh</h3>
+                    <p>Long-range sub-gigahertz telemetry passes effortlessly through highland topography, tree canopies, and metal greenhouses without requiring individual SIM cards.</p>
+                  </div>
+                </div>
+                <div style="margin-top:20px;">
                   <span class="mkt-chip-teal">Zero SIM Subscriptions</span>
                 </div>
               </div>
 
               <div class="mkt-feature-card-light">
-                <div class="mkt-feature-card-top">
-                  <div class="mkt-feature-card-icon mkt-icon-blue">
-                    ${Icons.sun({ size: 22 })}
-                  </div>
-                  <h3>45-Day Solar Dark Reserve</h3>
-                  <p>Industrial LiFePO4 cells paired with intelligent MPPT charging run uninterrupted through monsoon overcast seasons and prolonged highland fog covers.</p>
-                </div>
                 <div>
+                  <div class="mkt-card-img-wrap">
+                    <img src="images/solar-weather.jpg" alt="Industrial solar panel and LiFePO4 battery pack on weather mast" class="mkt-card-photo" loading="lazy">
+                  </div>
+                  <div class="mkt-feature-card-top">
+                    <div class="mkt-feature-card-icon mkt-icon-blue">
+                      ${Icons.sun({ size: 22 })}
+                    </div>
+                    <h3>45-Day Solar Dark Reserve</h3>
+                    <p>Industrial LiFePO4 cells paired with intelligent MPPT charging run uninterrupted through monsoon overcast seasons and prolonged highland fog covers.</p>
+                  </div>
+                </div>
+                <div style="margin-top:20px;">
                   <span class="mkt-chip-blue">LiFePO4 Chemistry</span>
                 </div>
               </div>
 
               <div class="mkt-feature-card-light">
-                <div class="mkt-feature-card-top">
-                  <div class="mkt-feature-card-icon mkt-icon-violet">
-                    ${Icons.sparkles({ size: 22 })}
-                  </div>
-                  <h3>AI Agronomist Assistant</h3>
-                  <p>Instant conversational queries on water demand, wilt points, and irrigation timing calculated directly against live soil and microclimate physics.</p>
-                </div>
                 <div>
+                  <div class="mkt-card-img-wrap">
+                    <img src="images/agronomist-tablet.jpg" alt="Agronomist inspecting smart greenhouse with live telemetry" class="mkt-card-photo" loading="lazy">
+                  </div>
+                  <div class="mkt-feature-card-top">
+                    <div class="mkt-feature-card-icon mkt-icon-violet">
+                      ${Icons.sparkles({ size: 22 })}
+                    </div>
+                    <h3>AI Agronomist Assistant</h3>
+                    <p>Instant conversational queries on water demand, wilt points, and irrigation timing calculated directly against live soil and microclimate physics.</p>
+                  </div>
+                </div>
+                <div style="margin-top:20px;">
                   <span class="mkt-badge-feature" style="font-size:11px;">Built-In Intelligence</span>
                 </div>
               </div>
@@ -432,6 +517,9 @@ export class MarketingPageView {
             <div class="mkt-duo-grid">
               
               <div class="mkt-feature-card-dark">
+                <div class="mkt-card-img-wrap" style="height:170px;">
+                  <img src="images/drought-cracked.jpg" alt="Parched cracked drought soil" class="mkt-card-photo" style="filter:contrast(1.1) brightness(0.85);" loading="lazy">
+                </div>
                 <div class="mkt-card-title-row">
                   <span style="color:var(--revo-accent-danger);">${Icons.alertTriangle({ size: 20 })}</span>
                   <h3>The Old Way (Blind Farming)</h3>
@@ -457,6 +545,9 @@ export class MarketingPageView {
               </div>
 
               <div class="mkt-feature-card-dark accent-border">
+                <div class="mkt-card-img-wrap" style="height:170px;">
+                  <img src="images/precision-irrigation.jpg" alt="Lush precision drip irrigated crops" class="mkt-card-photo" loading="lazy">
+                </div>
                 <div class="mkt-card-title-row">
                   <span style="color:var(--revo-accent-teal);">${Icons.checkCircle({ size: 20 })}</span>
                   <h3>The Shamba Watch Way</h3>
@@ -483,7 +574,7 @@ export class MarketingPageView {
 
             </div>
 
-            <!-- Verified Testimonials 3-Up Grid -->
+            <!-- Verified Testimonials 3-Up Grid with Authentic Photo Portraits -->
             <div class="mkt-testimonials-grid">
               
               <div class="mkt-testimonial-card-dark">
@@ -493,7 +584,9 @@ export class MarketingPageView {
                 <div>
                   <span class="mkt-chip-teal">${Icons.star({ size: 13 })} 34% Pump Fuel Saved</span>
                   <div class="mkt-testimonial-author">
-                    <div class="mkt-author-avatar">MK</div>
+                    <div class="mkt-author-avatar">
+                      <img src="images/farmer-mwangi.jpg" alt="Mwangi Karanja, Lead Agronomist" class="mkt-author-photo" loading="lazy">
+                    </div>
                     <div class="mkt-author-info">
                       <strong>Mwangi Karanja</strong>
                       <span>Lead Agronomist · Oserian Flower Basin</span>
@@ -509,7 +602,9 @@ export class MarketingPageView {
                 <div>
                   <span class="mkt-chip-blue">${Icons.star({ size: 13 })} 40 Acres Saved</span>
                   <div class="mkt-testimonial-author">
-                    <div class="mkt-author-avatar">FC</div>
+                    <div class="mkt-author-avatar">
+                      <img src="images/farmer-faith.jpg" alt="Faith Chebet, Operations Director" class="mkt-author-photo" loading="lazy">
+                    </div>
                     <div class="mkt-author-info">
                       <strong>Faith Chebet</strong>
                       <span>Operations Director · Molo Highland Producers</span>
@@ -525,7 +620,9 @@ export class MarketingPageView {
                 <div>
                   <span class="mkt-chip-green">${Icons.star({ size: 13 })} 99.8% Gateway Uptime</span>
                   <div class="mkt-testimonial-author">
-                    <div class="mkt-author-avatar">DK</div>
+                    <div class="mkt-author-avatar">
+                      <img src="images/farmer-david.jpg" alt="David Kiprono, Estate Manager" class="mkt-author-photo" loading="lazy">
+                    </div>
                     <div class="mkt-author-info">
                       <strong>David Kiprono</strong>
                       <span>Estate Manager · Rongai Cereal Growers</span>
@@ -559,6 +656,9 @@ export class MarketingPageView {
               <!-- Tier 1: Smallholder Starter (Level 2 #16181a) -->
               <div class="mkt-plan-card">
                 <div class="mkt-plan-header-block">
+                  <div class="mkt-plan-img-wrap">
+                    <img src="images/farm-starter.jpg" alt="Smallholder starter block" class="mkt-plan-photo" loading="lazy">
+                  </div>
                   <div class="mkt-plan-top-row">
                     <h3>Starter</h3>
                     <span class="mkt-badge-tag">Single Block</span>
@@ -587,6 +687,9 @@ export class MarketingPageView {
               <!-- Tier 2: Commercial Basin Pro (Level 3 Cobalt Violet #494fdf Inversion) -->
               <div class="mkt-plan-card-featured">
                 <div class="mkt-plan-header-block">
+                  <div class="mkt-plan-img-wrap">
+                    <img src="images/farm-commercial.jpg" alt="Commercial agriculture estate" class="mkt-plan-photo" loading="lazy">
+                  </div>
                   <div class="mkt-plan-top-row">
                     <h3>Commercial</h3>
                     <span style="background:rgba(255,255,255,0.22); color:#ffffff; font-size:12px; font-weight:700; padding:4px 12px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.04em;">Most Popular</span>
@@ -617,6 +720,9 @@ export class MarketingPageView {
               <!-- Tier 3: Co-operative Basin (Level 2 #16181a) -->
               <div class="mkt-plan-card">
                 <div class="mkt-plan-header-block">
+                  <div class="mkt-plan-img-wrap">
+                    <img src="images/farm-enterprise.jpg" alt="Enterprise agricultural basin" class="mkt-plan-photo" loading="lazy">
+                  </div>
                   <div class="mkt-plan-top-row">
                     <h3>Enterprise</h3>
                     <span class="mkt-badge-tag">Basin Network</span>
@@ -824,21 +930,28 @@ export class MarketingPageView {
         <div class="mkt-exit-intent-overlay" id="mktExitOverlay" role="dialog" aria-modal="true" aria-labelledby="exitTitle">
           <div class="mkt-exit-box">
             <button class="mkt-exit-close" id="mktExitCloseBtn" type="button" aria-label="Close offer">×</button>
-            <div style="color:var(--revo-accent-teal);">${Icons.gift({ size: 36 })}</div>
-            <h3 id="exitTitle" style="font-family:var(--revo-font-display); font-size:22px; margin:0;">
-              Before You Go: Free Agronomy Guide
-            </h3>
-            <p style="font-size:14px; color:var(--revo-on-dark-mute); line-height:1.5; margin:0;">
-              Download the <strong>"Commercial Soil Moisture & Drip Irrigation Playbook (2026 Edition)"</strong> + get priority agronomic survey access.
-            </p>
-            <form id="mktExitForm" style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
-              <input type="email" class="mkt-text-input" id="mktExitEmail" placeholder="Enter your work email address" required style="border-color:rgba(255,255,255,0.15); background:#0d0f11; color:#ffffff;">
-              <button type="submit" class="mkt-btn-primary" style="justify-content:center; width:100%;">
-                <span>Send Me The Free Guide</span>
-                <span>${Icons.arrowUpRight({ size: 14 })}</span>
-              </button>
-            </form>
-            <div id="mktExitFeedback" style="display:none; font-size:13px; color:var(--revo-accent-teal); font-weight:600;"></div>
+            <div class="mkt-exit-content-grid">
+              <div class="mkt-exit-book-wrap">
+                <img src="images/playbook-cover.jpg" alt="Commercial Soil Moisture & Drip Irrigation Playbook" class="mkt-exit-book-img">
+              </div>
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                <div style="color:var(--revo-accent-teal);">${Icons.gift({ size: 32 })}</div>
+                <h3 id="exitTitle" style="font-family:var(--revo-font-display); font-size:22px; margin:0;">
+                  Before You Go: Free Agronomy Guide
+                </h3>
+                <p style="font-size:13px; color:var(--revo-on-dark-mute); line-height:1.5; margin:0;">
+                  Download the <strong>"Commercial Soil Moisture & Drip Irrigation Playbook (2026 Edition)"</strong> + get priority agronomic survey access.
+                </p>
+                <form id="mktExitForm" style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+                  <input type="email" class="mkt-text-input" id="mktExitEmail" placeholder="Enter your work email address" required style="border-color:rgba(255,255,255,0.15); background:#0d0f11; color:#ffffff; height:48px;">
+                  <button type="submit" class="mkt-btn-primary" style="justify-content:center; width:100%; height:44px;">
+                    <span>Send Me The Free Guide</span>
+                    <span>${Icons.arrowUpRight({ size: 14 })}</span>
+                  </button>
+                </form>
+                <div id="mktExitFeedback" style="display:none; font-size:13px; color:var(--revo-accent-teal); font-weight:600;"></div>
+              </div>
+            </div>
           </div>
         </div>
 
