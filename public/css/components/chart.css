@@ -1,6 +1,11 @@
 /**
  * Shamba Watch 2.0 — Timeseries Strip & SVG Chart Component
- * Fully responsive to screen height and width (100dvh).
+ * Adheres to Revolut Design System:
+ * - Stark black & elevated dark surfaces (#0a0a0a / #16181a)
+ * - Pill-shaped metric selector buttons and time window pills (border-radius: 9999px)
+ * - White pill active state (#ffffff bg, #000000 text)
+ * - Cobalt-violet (#494fdf) gradients and deep saturated product accents
+ * - Clean fintech tabular metrics and hairline dividers
  */
 
 .strip {
@@ -18,7 +23,7 @@
 .strip-label {
   width: clamp(240px, 24vw, 310px);
   border-right: 1px solid var(--hairline);
-  padding: 10px 14px;
+  padding: 10px 16px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -42,7 +47,7 @@
 .strip-header-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -56,28 +61,29 @@
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  letter-spacing: -0.01em;
 }
 
 .strip-hw-tag {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--ink-faint);
-  background: var(--panel-raised);
-  padding: 1px 5px;
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 7px;
+  border-radius: 9999px;
   border: 1px solid var(--hairline);
   flex-shrink: 0;
 }
 
 .btn-strip-deep-dive {
-  background: rgba(122, 148, 113, 0.15);
-  border: 1px solid var(--moss-dim);
-  color: var(--moss);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  background: rgba(73, 79, 223, 0.15);
+  border: 1px solid rgba(73, 79, 223, 0.35);
+  color: #7980ff;
+  font-family: var(--font-body);
+  font-size: 11px;
   font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 4px;
+  padding: 3px 10px;
+  border-radius: 9999px;
   cursor: pointer;
   transition: all 0.15s ease;
   flex-shrink: 0;
@@ -85,9 +91,10 @@
 }
 
 .btn-strip-deep-dive:hover {
-  background: var(--moss);
-  color: var(--bg);
-  border-color: var(--moss);
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .strip-metric-sub {
@@ -120,6 +127,10 @@
 .stat-chip {
   font-variant-numeric: tabular-nums;
   color: var(--ink-dim);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  border: 1px solid var(--hairline);
 }
 
 .stat-chip strong {
@@ -127,14 +138,17 @@
   font-weight: 600;
 }
 
-/* Strip Chart & Top Toolbar */
+/* ==========================================================================
+   STRIP CHART & TOP TOOLBAR
+   ========================================================================== */
+
 .strip-chart {
   flex: 1;
   min-width: 0;
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 6px 12px 4px 6px;
+  padding: 6px 14px 4px 10px;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -144,7 +158,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 4px 4px 4px;
+  padding: 0 4px 6px 4px;
   flex-shrink: 0;
   overflow-x: auto;
   white-space: nowrap;
@@ -153,39 +167,44 @@
 .metric-select {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   flex-shrink: 0;
 }
 
+/* Revolut pill-shaped buttons */
 .ms-btn {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background: var(--panel-raised);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--ink-dim);
   cursor: pointer;
-  border: 1px solid transparent;
-  letter-spacing: 0.03em;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.01em;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 .ms-btn:hover {
-  color: var(--ink);
-  border-color: var(--hairline);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
 }
 
+/* Revolut white-pill active button on dark surfaces */
 .ms-btn.active {
-  border-color: var(--moss);
-  color: var(--ink);
-  background: rgba(122, 148, 113, 0.22);
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  border-color: #ffffff;
 }
 
 .window-select {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -193,20 +212,21 @@
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--ink-faint);
-  margin-right: 2px;
+  margin-right: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   white-space: nowrap;
 }
 
 .ws-btn {
-  background: var(--panel-raised);
-  border: 1px solid var(--hairline);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--ink-dim);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 3px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 9999px;
   cursor: pointer;
   font-variant-numeric: tabular-nums;
   transition: all 0.15s ease;
@@ -214,19 +234,25 @@
 }
 
 .ws-btn:hover {
-  color: var(--ink);
-  border-color: var(--moss-dim);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .ws-btn.active {
-  border-color: var(--moss);
-  color: var(--ink);
-  background: var(--moss-dim);
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  border-color: #ffffff;
 }
 
 .ws-btn-custom {
   border-style: dashed;
 }
+
+/* ==========================================================================
+   SVG CHART RENDERING & TOOLTIPS
+   ========================================================================== */
 
 .strip-svg-wrap {
   flex: 1;
@@ -243,7 +269,6 @@
   user-select: none;
 }
 
-/* SVG Chart Elements & Interactive Tooltips */
 .chart-axis-label {
   font-family: var(--font-mono);
   font-size: 9px;
@@ -258,9 +283,8 @@
 }
 
 .chart-grid-line {
-  stroke: var(--hairline);
-  stroke-dasharray: 3, 3;
-  opacity: 0.6;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-dasharray: 2, 4;
 }
 
 .chart-threshold-line {
@@ -280,12 +304,12 @@
 
 .chart-point:hover, .chart-point.active {
   r: 5px;
-  stroke: var(--bg);
+  stroke: #ffffff;
   stroke-width: 2px;
 }
 
 .chart-tooltip-box {
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
   pointer-events: none;
 }
 
@@ -318,20 +342,20 @@
     font-size: 9px;
   }
   .btn-strip-deep-dive {
-    padding: 1px 5px;
-    font-size: 9px;
+    padding: 2px 7px;
+    font-size: 10px;
   }
   .strip-chart-toolbar {
     gap: 6px;
     padding-bottom: 2px;
   }
   .ms-btn {
-    padding: 1px 5px;
-    font-size: 9px;
+    padding: 2px 7px;
+    font-size: 10px;
   }
   .ws-btn {
-    padding: 1px 4px;
-    font-size: 9px;
+    padding: 2px 6px;
+    font-size: 10px;
   }
 }
 

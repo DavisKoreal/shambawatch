@@ -1,5 +1,12 @@
 /**
- * Shamba Watch 2.0 — Telemetry Detail Panel, Metric Cards, Soil Core, and Thermal Camera
+ * Shamba Watch 2.0 — Telemetry Detail Panel & Sensor Presentation
+ * Adheres to Revolut Design System:
+ * - Stark black & elevated surface-elevated (#16181a)
+ * - 16px rounded cards with hairline borders (rgba(255,255,255,0.08))
+ * - Saturated product accents (Teal #00a87e, Light-blue #007bc2, Warning #ec7e00, Danger #e23b4a)
+ * - Cobalt-violet (#494fdf) active outlines
+ * - Pill-shaped action buttons and metadata chips (border-radius: 9999px)
+ * - High-contrast Aeonik / Inter Tight display numbers
  */
 
 .detail {
@@ -7,6 +14,9 @@
   border-left: 1px solid var(--hairline);
   overflow-y: auto;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .detail-header {
@@ -18,96 +28,248 @@
 
 .detail-title {
   font-family: var(--font-display);
-  font-size: clamp(17px, 1.8vw, 21px);
+  font-size: clamp(20px, 2vw, 24px);
   font-weight: 600;
   margin: 0;
-  letter-spacing: -0.01em;
-  font-optical-sizing: auto;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 .detail-coords {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--ink-faint);
-  margin-bottom: 18px;
+  margin-bottom: 8px;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "zero" 1;
 }
 
 .metric-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
+
+@media (max-width: 1200px) {
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   REVOLUT-INSPIRED SENSOR METRIC CARDS
+   ========================================================================== */
 
 .metric-card {
   background: var(--panel-raised);
   border: 1px solid var(--hairline);
-  border-radius: 7px;
-  padding: 10px 12px;
-  transition: border-color .2s;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 120px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
 }
 
+.metric-card:hover {
+  background: #1b1e22;
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.metric-card:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-bright);
+}
+
+/* Selected state: Cobalt-Violet glow outline */
+.metric-card.metric-card-selected {
+  background: #121424;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* Status-driven border accents */
 .metric-card.status-alert {
   border-color: var(--earth);
+  box-shadow: inset 2px 0 0 var(--earth);
 }
 
 .metric-card.status-watch {
   border-color: var(--nutrient);
+  box-shadow: inset 2px 0 0 var(--nutrient);
 }
 
+.metric-card.status-nominal {
+  border-color: var(--hairline);
+}
+
+/* Card Header: Title & Depth Tag */
 .metric-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-faint);
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
-.metric-value {
-  font-family: var(--font-mono);
-  font-size: 19px;
+.sensor-title {
+  font-family: var(--font-body);
+  font-size: 13px;
   font-weight: 600;
-  margin-top: 4px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sensor-depth-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink-dim);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* Hardware ID & Battery Row */
+.metric-hw-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0 8px;
+}
+
+.sensor-hw-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.sensor-battery-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(0, 168, 126, 0.12);
+  color: var(--moss);
+  border: 1px solid rgba(0, 168, 126, 0.25);
+  padding: 1px 8px;
+  border-radius: 9999px;
+}
+
+/* Large Display Metric Value */
+.metric-value {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--ink);
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "zero" 1;
+  margin-bottom: 10px;
 }
 
 .metric-unit {
-  font-size: 11px;
-  color: var(--ink-dim);
+  font-family: var(--font-body);
+  font-size: 13px;
   font-weight: 400;
-  margin-left: 2px;
+  color: var(--ink-dim);
+  letter-spacing: 0;
+  margin-left: 3px;
+}
+
+/* Card Footer: Delta and Action Pill Buttons */
+.metric-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--divider);
+  gap: 8px;
 }
 
 .metric-delta {
-  font-size: 10px;
-  margin-top: 3px;
   font-family: var(--font-mono);
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
+  white-space: nowrap;
 }
 
-.up { color: var(--water); }
+.up { color: var(--moss); }
 .down { color: var(--earth); }
 
+.sensor-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-sensor-inspect,
+.btn-sensor-ask-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-sensor-inspect:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-sensor-ask-ai:hover {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+/* Skeletons */
 .metric-card-skeleton {
   background: var(--panel-raised);
   border: 1px solid var(--hairline);
-  border-radius: 7px;
-  padding: 12px;
+  border-radius: 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 84px;
+  min-height: 120px;
 }
 
-/* Soil core signature visualization */
+/* ==========================================================================
+   SOIL CORE SIGNATURE VISUALIZATION
+   ========================================================================== */
+
 .core-section {
-  margin-bottom: 22px;
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  padding: 16px;
 }
 
 .section-label {
@@ -116,7 +278,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-faint);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -124,17 +286,18 @@
 
 .core-wrap {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   align-items: stretch;
 }
 
 .core-sample {
-  width: 64px;
-  border-radius: 4px;
+  width: 68px;
+  border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--hairline);
   flex-shrink: 0;
   position: relative;
+  background: var(--surface-deep);
 }
 
 .core-band {
@@ -147,12 +310,13 @@
 .core-band::after {
   content: attr(data-pct);
   position: absolute;
-  right: 4px;
+  right: 6px;
   bottom: 2px;
   font-family: var(--font-mono);
   font-size: 8px;
-  color: rgba(20,18,15,.75);
+  color: #ffffff;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
 }
 
 .core-readouts {
@@ -167,11 +331,12 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  border-bottom: 1px dotted var(--hairline);
+  border-bottom: 1px solid var(--divider);
   padding-bottom: 6px;
 }
 
 .cr-name {
+  font-family: var(--font-body);
   font-size: 12px;
   color: var(--ink-dim);
 }
@@ -179,7 +344,8 @@
 .cr-val {
   font-family: var(--font-mono);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "zero" 1;
 }
@@ -189,25 +355,28 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 6px;
-  border-bottom: 1px dotted var(--hairline);
+  border-bottom: 1px solid var(--divider);
 }
 
-/* Camera thumbnail */
+/* ==========================================================================
+   THERMAL FIELD CAMERA THUMBNAIL
+   ========================================================================== */
+
 .cam-thumb {
-  height: 110px;
-  border-radius: 7px;
+  height: 120px;
+  border-radius: 16px;
   border: 1px solid var(--hairline);
   position: relative;
   overflow: hidden;
-  background: linear-gradient(160deg,#2a1f14,#1a2620 55%, #24170f 100%);
+  background: linear-gradient(160deg, #16181a, #0a0a0a 55%, #16181a 100%);
 }
 
 .cam-thumb::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 40% 55%, rgba(193,98,44,.55) 0%, rgba(193,98,44,0) 35%),
-              radial-gradient(circle at 65% 40%, rgba(76,135,166,.25) 0%, rgba(76,135,166,0) 30%);
+  background: radial-gradient(circle at 40% 55%, rgba(226, 59, 74, 0.35) 0%, rgba(226, 59, 74, 0) 40%),
+              radial-gradient(circle at 65% 40%, rgba(0, 123, 194, 0.3) 0%, rgba(0, 123, 194, 0) 35%);
   mix-blend-mode: screen;
 }
 
@@ -216,7 +385,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: rgba(122,148,113,.5);
+  background: rgba(0, 168, 126, 0.6);
   animation: scan 3.2s linear infinite;
 }
 
@@ -227,28 +396,32 @@
 
 .cam-label {
   position: absolute;
-  top: 8px;
-  left: 9px;
+  top: 10px;
+  left: 12px;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: #F2ECDD;
-  background: rgba(0,0,0,.6);
-  padding: 2px 6px;
-  border-radius: 3px;
-  backdrop-filter: blur(2px);
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
 }
 
 .cam-temp {
   position: absolute;
-  bottom: 8px;
-  right: 9px;
-  font-family: var(--font-mono);
+  bottom: 10px;
+  right: 12px;
+  font-family: var(--font-display);
   font-size: 13px;
-  color: #F2ECDD;
-  background: rgba(0,0,0,.6);
-  padding: 2px 7px;
-  border-radius: 3px;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(8px);
 }

@@ -56,9 +56,9 @@
     from 0deg,
     transparent 0deg,
     transparent 180deg,
-    rgba(76, 135, 166, 0.45) 230deg,
-    rgba(122, 148, 113, 0.95) 275deg,
-    rgba(201, 162, 39, 0.75) 320deg,
+    rgba(73, 79, 223, 0.45) 230deg,
+    rgba(0, 168, 126, 0.95) 275deg,
+    rgba(0, 123, 194, 0.75) 320deg,
     transparent 360deg
   );
   animation: rotateClockwise 3.2s linear infinite;
@@ -116,12 +116,12 @@
 }
 
 .ai-pill-send-btn {
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--moss-dim);
-  border: 1px solid var(--moss);
-  color: var(--ink);
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,8 +131,8 @@
 }
 
 .ai-pill-send-btn:hover {
-  background: var(--moss);
-  color: var(--bg);
+  background: var(--primary-bright);
+  color: #ffffff;
   transform: scale(1.05);
 }
 
@@ -623,9 +623,9 @@
     from 0deg,
     transparent 0deg,
     transparent 180deg,
-    rgba(76, 135, 166, 0.45) 230deg,
-    rgba(122, 148, 113, 0.95) 275deg,
-    rgba(201, 162, 39, 0.75) 320deg,
+    rgba(73, 79, 223, 0.45) 230deg,
+    rgba(0, 168, 126, 0.95) 275deg,
+    rgba(0, 123, 194, 0.75) 320deg,
     transparent 360deg
   );
   animation: rotateClockwise 3.2s linear infinite;
