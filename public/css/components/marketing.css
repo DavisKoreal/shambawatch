@@ -24,13 +24,29 @@
 /* ============================================================================
    CONTAINER & VIEW STATE
    ============================================================================ */
-html.marketing-mode,
-body.marketing-mode {
+html.marketing-mode {
   height: auto !important;
   max-height: none !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   background-color: var(--revo-canvas-dark, #000000) !important;
+  overscroll-behavior-y: auto !important;
+}
+
+body.marketing-mode {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  background-color: var(--revo-canvas-dark, #000000) !important;
+  overscroll-behavior-y: auto !important;
+}
+
+#marketingPageMount {
+  width: 100%;
+  min-height: 100%;
+  overflow: visible;
 }
 
 .marketing-page {
@@ -41,7 +57,7 @@ body.marketing-mode {
   background-color: var(--revo-canvas-dark, #000000);
   color: var(--revo-on-dark, #ffffff);
   font-family: var(--revo-font-body, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
-  overflow-x: hidden;
+  overflow: visible;
   position: relative;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;

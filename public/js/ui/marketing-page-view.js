@@ -45,6 +45,8 @@ export class MarketingPageView {
   show() {
     this._mountEl.classList.remove('hidden');
     this._mountEl.style.display = 'block';
+    document.documentElement.classList.remove('app-mode');
+    document.body.classList.remove('app-mode');
     document.documentElement.classList.add('marketing-mode');
     document.body.classList.add('marketing-mode');
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -58,6 +60,8 @@ export class MarketingPageView {
     this._mountEl.style.display = 'none';
     document.documentElement.classList.remove('marketing-mode');
     document.body.classList.remove('marketing-mode');
+    document.documentElement.classList.add('app-mode');
+    document.body.classList.add('app-mode');
   }
 
   /**

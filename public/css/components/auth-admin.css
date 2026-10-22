@@ -147,6 +147,7 @@
   z-index: 10000;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity 0.22s ease, visibility 0.22s ease;
   padding: 20px;
 }
@@ -154,6 +155,7 @@
 .shamba-modal-overlay.open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 .shamba-modal-content {
