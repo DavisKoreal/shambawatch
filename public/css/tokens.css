@@ -4,24 +4,43 @@
  * High Contrast and WCAG 2.1 AA/AAA Verified.
  */
 
-:root, [data-theme="dark"] {
+:root,
+html[data-theme="dark"],
+[data-theme="dark"] {
   color-scheme: dark;
   --bg: #000000;
   --panel: #0a0a0a;
   --panel-raised: #16181a;
   --hairline: rgba(255, 255, 255, 0.12);
 
+  /* Masthead & Navigation Tokens */
+  --header-bg: rgba(0, 0, 0, 0.92);
+  --header-border: rgba(255, 255, 255, 0.12);
+  --header-ink: #ffffff;
+  --header-ink-dim: rgba(255, 255, 255, 0.72);
+  --search-launcher-bg: rgba(255, 255, 255, 0.06);
+  --card-hover-bg: #1b1e22;
+  --chart-grid: rgba(255, 255, 255, 0.06);
+
   /* THE THREE UNIVERSAL TEXT SHADES (DARK CANVAS - REVOLUT SPEC) */
   --ink: #ffffff;         /* Shade 1: On-Dark Pure White (>14:1 AAA) */
   --ink-dim: rgba(255, 255, 255, 0.72); /* Shade 2: Contextual White Mute (>7:1 AAA) */
   --ink-faint: #8d969e;   /* Shade 3: Structural Stone (>4.5:1 AA) */
 
-  /* Revolut Product Accent Palette */
+  /* Revolut Product Accent Palette & Farm Green System */
   --primary: #494fdf;
   --primary-bright: #4f55f1;
   --primary-deep: #3a40c4;
-  --moss: #00a87e;        /* Revolut Teal (Nominal / Optimal) */
+  --moss: #00a87e;        /* Revolut Teal & Agronomic Farm Emerald (Nominal / Optimal) */
   --moss-dim: rgba(0, 168, 126, 0.18);
+  --moss-glow: rgba(0, 168, 126, 0.35);
+  --moss-text: #2ee6a8;
+  --farm-green: #00a87e;
+  --farm-green-bright: #10b981;
+  --farm-green-deep: #007856;
+  --farm-green-glow: rgba(0, 168, 126, 0.35);
+  --farm-leaf: #22c55e;
+  --farm-seedling: #4ade80;
   --water: #007bc2;       /* Revolut Light Blue (Water / Ingestion) */
   --water-dim: rgba(0, 123, 194, 0.18);
   --earth: #e23b4a;       /* Revolut Danger / Red (Alert / Critical) */
@@ -47,7 +66,7 @@
 
   --skeleton-base: rgba(22, 24, 26, 0.8);
   --skeleton-mid: rgba(35, 38, 42, 0.95);
-  --skeleton-accent: rgba(73, 79, 223, 0.25);
+  --skeleton-accent: rgba(0, 168, 126, 0.25);
 
   --font-display: 'Inter Tight', 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', monospace;
@@ -60,24 +79,42 @@
   --safe-right: env(safe-area-inset-right, 0px);
 }
 
+html[data-theme="light"],
 [data-theme="light"] {
   color-scheme: light;
   --bg: #ffffff;
-  --panel: #f4f4f4;
+  --panel: #f4f6f4;
   --panel-raised: #ffffff;
   --hairline: #e2e2e7;
+
+  /* Masthead & Navigation Tokens (Light Mode - Crisp Contrast) */
+  --header-bg: rgba(255, 255, 255, 0.95);
+  --header-border: #e2e2e7;
+  --header-ink: #191c1f;
+  --header-ink-dim: #505a63;
+  --search-launcher-bg: #edf2ed;
+  --card-hover-bg: #f0fdf4;
+  --chart-grid: rgba(0, 0, 0, 0.06);
 
   /* THE THREE UNIVERSAL TEXT SHADES (LIGHT CANVAS - REVOLUT SPEC) */
   --ink: #191c1f;         /* Shade 1: Deep Ink (>14:1 AAA) */
   --ink-dim: #505a63;     /* Shade 2: Contextual Mute (>6:1 AA) */
   --ink-faint: #8d969e;   /* Shade 3: Structural Stone (>4.5:1 AA) */
 
-  /* Revolut Product Accent Palette */
+  /* Revolut Product Accent Palette & Farm Green System */
   --primary: #494fdf;
   --primary-bright: #4f55f1;
   --primary-deep: #3a40c4;
-  --moss: #00a87e;
-  --moss-dim: rgba(0, 168, 126, 0.12);
+  --moss: #008763;        /* High-contrast Agronomic Emerald Green */
+  --moss-dim: rgba(0, 135, 99, 0.12);
+  --moss-glow: rgba(0, 135, 99, 0.25);
+  --moss-text: #006400;   /* WCAG AAA compliant farm green */
+  --farm-green: #008763;
+  --farm-green-bright: #059669;
+  --farm-green-deep: #005a41;
+  --farm-green-glow: rgba(0, 135, 99, 0.22);
+  --farm-leaf: #16a34a;
+  --farm-seedling: #22c55e;
   --water: #007bc2;
   --water-dim: rgba(0, 123, 194, 0.12);
   --earth: #e23b4a;
@@ -92,18 +129,18 @@
   --modal-shadow: 0 24px 64px rgba(25, 28, 31, 0.14), 0 0 0 1px #e2e2e7;
   --floating-bar-bg: rgba(255, 255, 255, 0.96);
   --floating-bar-shadow: 0 12px 36px rgba(25, 28, 31, 0.1), 0 0 0 1px #e2e2e7;
-  --legend-bg: rgba(244, 244, 244, 0.94);
+  --legend-bg: rgba(244, 246, 244, 0.95);
   --toast-bg: #ffffff;
   --toast-shadow: 0 12px 32px rgba(25, 28, 31, 0.12);
 
-  --badge-station-bg: rgba(0, 168, 126, 0.12);
+  --badge-station-bg: rgba(0, 135, 99, 0.12);
   --badge-station-text: #006400;
   --badge-sensor-bg: rgba(0, 123, 194, 0.12);
   --badge-sensor-text: #007bc2;
 
-  --skeleton-base: rgba(244, 244, 244, 0.8);
+  --skeleton-base: rgba(244, 246, 244, 0.8);
   --skeleton-mid: rgba(226, 226, 231, 0.95);
-  --skeleton-accent: rgba(73, 79, 223, 0.15);
+  --skeleton-accent: rgba(0, 135, 99, 0.15);
 
   --font-display: 'Inter Tight', 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', monospace;
@@ -118,12 +155,15 @@
 
 /* Accessibility & High Contrast (H44) */
 @media (prefers-contrast: more) {
-  :root, [data-theme="dark"] {
+  :root,
+html[data-theme="dark"],
+[data-theme="dark"] {
     --ink-dim: #FFFFFF;
     --ink-faint: #DDD6C8;
     --hairline: #60594D;
   }
-  [data-theme="light"] {
+  html[data-theme="light"],
+[data-theme="light"] {
     --ink-dim: #000000;
     --ink-faint: #2E2922;
     --hairline: #8C8474;

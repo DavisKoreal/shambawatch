@@ -498,13 +498,14 @@ body.marketing-mode {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.88);
+  background-color: var(--header-bg, rgba(0, 0, 0, 0.88));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--revo-divider-soft, rgba(255, 255, 255, 0.08));
+  border-bottom: 1px solid var(--header-border, var(--hairline));
   height: 64px;
   display: flex;
   align-items: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .mkt-nav-inner {
@@ -519,13 +520,13 @@ body.marketing-mode {
   align-items: center;
   gap: 12px;
   text-decoration: none;
-  color: #ffffff;
+  color: var(--header-ink, #ffffff);
 }
 
 .mkt-brand-stamp {
   width: 32px;
   height: 32px;
-  background-color: var(--revo-primary, #494fdf);
+  background: linear-gradient(135deg, var(--moss, #00a87e) 0%, var(--farm-green-deep, #007856) 100%);
   color: #ffffff;
   font-family: var(--revo-font-display);
   font-weight: 700;
@@ -535,6 +536,8 @@ body.marketing-mode {
   align-items: center;
   justify-content: center;
   letter-spacing: -0.5px;
+  box-shadow: 0 2px 10px rgba(0, 168, 126, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .mkt-brand-title {
@@ -542,7 +545,7 @@ body.marketing-mode {
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.3px;
-  color: #ffffff;
+  color: var(--header-ink, #ffffff);
 }
 
 .mkt-nav-menu {
@@ -552,7 +555,7 @@ body.marketing-mode {
 }
 
 .mkt-nav-link {
-  color: var(--revo-on-dark-mute, rgba(255, 255, 255, 0.72));
+  color: var(--header-ink-dim, rgba(255, 255, 255, 0.72));
   font-size: 14px;
   font-weight: 500;
   padding: 8px 16px;
@@ -562,8 +565,8 @@ body.marketing-mode {
 }
 
 .mkt-nav-link:hover {
-  color: #ffffff;
-  background-color: var(--revo-surface-elevated, #16181a);
+  color: var(--moss, #00a87e);
+  background-color: var(--panel, var(--revo-surface-elevated, #16181a));
 }
 
 .mkt-nav-actions {
@@ -574,18 +577,19 @@ body.marketing-mode {
 
 .mkt-nav-signin-btn {
   background: transparent;
-  color: #ffffff;
+  color: var(--header-ink, #ffffff);
   border: none;
   font-size: 14px;
   font-weight: 600;
   padding: 8px 16px;
   cursor: pointer;
   border-radius: var(--revo-rounded-full, 9999px);
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .mkt-nav-signin-btn:hover {
-  color: var(--revo-on-dark-mute, rgba(255, 255, 255, 0.72));
+  color: var(--moss, #00a87e);
+  background-color: var(--panel);
 }
 
 /* Mobile Navigation Hamburger & Drawer (Hypothesis 17) */
@@ -607,16 +611,16 @@ body.marketing-mode {
 }
 
 .mkt-burger-btn:hover {
-  background-color: var(--revo-surface-elevated, #16181a);
+  background-color: var(--panel, var(--revo-surface-elevated, #16181a));
 }
 
 .mkt-burger-line {
   display: block;
   width: 20px;
   height: 2px;
-  background-color: #ffffff;
+  background-color: var(--header-ink, #ffffff);
   border-radius: 2px;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
 }
 
 .mkt-burger-btn.active .mkt-burger-line:nth-child(1) {
@@ -1913,15 +1917,15 @@ body.marketing-mode {
   color: #ffffff;
 }
 
-/* Floating AI Agronomist Chat Button */
+/* Floating AI Agronomist Chat Button with Farm Green Accent */
 .mkt-chat-floating-btn {
   position: fixed;
   bottom: 24px;
   right: 24px;
   z-index: 998;
-  background-color: var(--revo-primary, #494fdf);
-  color: var(--revo-on-primary, #ffffff);
-  border: none;
+  background: linear-gradient(135deg, var(--moss, #00a87e) 0%, var(--farm-green-deep, #007856) 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--revo-rounded-full, 9999px);
   height: 48px;
   padding: 0 22px;
@@ -1931,13 +1935,14 @@ body.marketing-mode {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(73, 79, 223, 0.45);
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 8px 24px rgba(0, 168, 126, 0.45);
+  transition: all 0.15s ease;
 }
 
 .mkt-chat-floating-btn:hover {
-  background-color: var(--revo-primary-bright, #4f55f1);
+  background: var(--farm-green-bright, #10b981);
   transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 168, 126, 0.6);
 }
 
 /* ============================================================================
@@ -2070,4 +2075,357 @@ body.marketing-mode {
   .mkt-footer-top {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================================================
+   LIGHT MODE ADAPTATION & HIGH-CONTRAST AGRONOMIC THEME
+   Guarantees perfect readability, crisp navbars, and lush farm green accents
+   ============================================================================ */
+
+[data-theme="light"] html.marketing-mode,
+[data-theme="light"] body.marketing-mode {
+  background-color: var(--bg, #ffffff) !important;
+}
+
+[data-theme="light"] .marketing-page {
+  background-color: var(--bg, #ffffff);
+  color: var(--ink);
+}
+
+/* Top Navigation Bar in Light Mode */
+[data-theme="light"] .mkt-nav {
+  background-color: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .mkt-brand-title {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-nav-brand {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-nav-link {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-nav-link:hover {
+  color: var(--moss);
+  background-color: var(--panel);
+}
+
+[data-theme="light"] .mkt-nav-signin-btn {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-nav-signin-btn:hover {
+  color: var(--moss);
+  background-color: var(--panel);
+}
+
+[data-theme="light"] .mkt-nav-actions .mkt-btn-primary {
+  background-color: #191c1f;
+  color: #ffffff;
+}
+
+[data-theme="light"] .mkt-nav-actions .mkt-btn-primary:hover {
+  background-color: var(--moss);
+  color: #ffffff;
+}
+
+[data-theme="light"] .mkt-burger-line {
+  background-color: var(--ink);
+}
+
+[data-theme="light"] .mkt-burger-btn:hover {
+  background-color: var(--panel);
+}
+
+[data-theme="light"] .mkt-mobile-drawer {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .mkt-drawer-link {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-drawer-link:hover {
+  background-color: #f0fdf4;
+  color: var(--moss);
+}
+
+/* Urgency / Subsidy Banner */
+[data-theme="light"] .mkt-urgency-banner {
+  background-color: #f4f6f4;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-urgency-banner span {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-badge-feature {
+  background-color: var(--moss);
+  color: #ffffff;
+}
+
+[data-theme="light"] .mkt-timer-box {
+  background-color: #ffffff;
+  color: #006400;
+  border: 1px solid rgba(0, 168, 126, 0.35);
+}
+
+/* Hero Band in Light Mode */
+[data-theme="light"] .mkt-hero-band {
+  background-color: #ffffff;
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-display-xxl,
+[data-theme="light"] .mkt-display-xl,
+[data-theme="light"] .mkt-display-lg,
+[data-theme="light"] .mkt-heading-lg {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-hero-lead {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-hero-actions-row .mkt-btn-primary {
+  background-color: #191c1f;
+  color: #ffffff;
+}
+
+[data-theme="light"] .mkt-hero-actions-row .mkt-btn-primary:hover {
+  background-color: var(--moss);
+  color: #ffffff;
+}
+
+[data-theme="light"] .mkt-btn-outline-dark {
+  background-color: #ffffff;
+  border-color: var(--hairline);
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-btn-outline-dark:hover {
+  background-color: #f0fdf4;
+  border-color: var(--moss);
+  color: var(--moss);
+}
+
+/* Ticker Band in Light Mode */
+[data-theme="light"] .mkt-ticker-band {
+  background-color: #f8faf8;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+[data-theme="light"] .mkt-ticker-stat-num {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-ticker-stat-label {
+  color: var(--ink-dim);
+}
+
+/* Interactive Console Preview Stage */
+[data-theme="light"] .mkt-console-band {
+  background-color: #ffffff;
+}
+
+[data-theme="light"] .mkt-product-stage {
+  background-color: #f8faf8;
+  border: 1px solid var(--hairline);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .mkt-console-top-strip {
+  border-bottom: 1px solid var(--hairline);
+}
+
+[data-theme="light"] .mkt-console-st-name {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-console-st-meta {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-console-telemetry-card {
+  background-color: #ffffff;
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-console-val {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-console-val-sub {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-console-label {
+  color: var(--ink-dim);
+}
+
+/* Storytelling Band */
+[data-theme="light"] .mkt-story-band {
+  background-color: #ffffff;
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-story-band h2,
+[data-theme="light"] .mkt-story-band h3 {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-story-band p {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-feature-card-dark {
+  background-color: #f8faf8;
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .mkt-feature-card-dark h3 {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-feature-card-dark p {
+  color: var(--ink-dim);
+}
+
+/* Plans Band */
+[data-theme="light"] .mkt-plans-band {
+  background-color: #ffffff;
+}
+
+[data-theme="light"] .mkt-plans-band h2 {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-plans-band p {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-plan-card {
+  background-color: #ffffff;
+  border: 1px solid var(--hairline);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-plan-name {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-plan-desc {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-plan-price {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-plan-billing {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-plan-features li {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-plan-card-featured {
+  background: linear-gradient(135deg, #008763 0%, #006042 100%);
+  color: #ffffff;
+}
+
+[data-theme="light"] .mkt-plan-card-featured .mkt-plan-name,
+[data-theme="light"] .mkt-plan-card-featured .mkt-plan-price,
+[data-theme="light"] .mkt-plan-card-featured .mkt-plan-features li {
+  color: #ffffff;
+}
+
+[data-theme="light"] .mkt-plan-card-featured .mkt-plan-desc,
+[data-theme="light"] .mkt-plan-card-featured .mkt-plan-billing {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Global Footer */
+[data-theme="light"] .mkt-footer {
+  background-color: #f8faf8;
+  border-top: 1px solid var(--hairline);
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-footer-col h4 {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-footer-col ul a {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-footer-col ul a:hover {
+  color: var(--moss);
+}
+
+[data-theme="light"] .mkt-footer-bottom {
+  border-top: 1px solid var(--hairline);
+  color: var(--ink-faint);
+}
+
+/* Floating Elements & Overlays */
+[data-theme="light"] .mkt-sticky-cta-bar {
+  background-color: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid var(--hairline);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .mkt-sticky-info strong {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-sticky-info span {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-exit-modal {
+  background-color: #ffffff;
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="light"] .mkt-exit-modal h3 {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-exit-modal p {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-exit-close {
+  color: var(--ink-dim);
+}
+
+[data-theme="light"] .mkt-exit-close:hover {
+  color: var(--ink);
+}
+
+[data-theme="light"] .mkt-social-toast {
+  background-color: #ffffff;
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
 }

@@ -9,7 +9,7 @@
 
 /* Unified Header AI Search & Intelligence Launcher */
 .header-ai-launcher {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--search-launcher-bg, rgba(255, 255, 255, 0.06));
   border: 1px solid var(--hairline);
   border-radius: 9999px;
   display: inline-flex;
@@ -25,19 +25,19 @@
 }
 
 .header-ai-launcher:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.22);
+  background: var(--panel-raised, rgba(255, 255, 255, 0.1));
+  border-color: var(--moss, rgba(0, 168, 126, 0.4));
   color: var(--ink);
   transform: translateY(-1px);
 }
 
 .header-ai-launcher:focus-visible {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-bright);
+  border-color: var(--moss);
+  box-shadow: 0 0 0 2px var(--moss-glow, rgba(0, 168, 126, 0.35));
 }
 
 .header-ai-sparkle {
-  color: var(--primary-bright);
+  color: var(--moss);
   font-size: 12px;
 }
 

@@ -110,6 +110,15 @@ export class MarketingPageView {
             </nav>
 
             <div class="mkt-nav-actions">
+              <!-- Marketing Theme Toggle Button -->
+              <button class="theme-toggle-btn mkt-theme-toggle" id="mktThemeToggleBtn" type="button" aria-label="Toggle color theme (Light / Dark)" title="Toggle theme (Light / Dark)">
+                <span class="theme-toggle-icon">
+                  <svg class="theme-svg-moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                  <svg class="theme-svg-sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </span>
+                <span class="mkt-theme-toggle-text">Dark</span>
+              </button>
+
               <button class="mkt-nav-signin-btn" id="mktNavSignInBtn" type="button" aria-label="Sign in to platform">
                 Sign In
               </button>
@@ -135,6 +144,13 @@ export class MarketingPageView {
               <a href="#faq" class="mkt-drawer-link">FAQ</a>
             </nav>
             <div class="mkt-drawer-actions">
+              <button class="theme-toggle-btn mkt-drawer-theme-toggle" id="mktDrawerThemeToggleBtn" type="button" aria-label="Toggle color theme (Light / Dark)" style="justify-content: center; width: 100%; min-height: 42px;">
+                <span class="theme-toggle-icon">
+                  <svg class="theme-svg-moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                  <svg class="theme-svg-sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </span>
+                <span class="mkt-theme-toggle-text">Toggle Theme (Light / Dark)</span>
+              </button>
               <button class="mkt-btn-primary" id="mktDrawerCtaBtn" type="button">
                 <span>Start Free Pilot</span>
                 <span>${Icons.arrowUpRight({ size: 14 })}</span>
