@@ -113,6 +113,31 @@ export class MarketingPageView {
                 <span>Start Free Pilot</span>
                 <span>${Icons.arrowUpRight({ size: 14 })}</span>
               </button>
+              <!-- Mobile Hamburger Trigger (Hypothesis 17) -->
+              <button class="mkt-burger-btn" id="mktBurgerBtn" type="button" aria-label="Toggle mobile navigation menu" aria-expanded="false">
+                <span class="mkt-burger-line"></span>
+                <span class="mkt-burger-line"></span>
+                <span class="mkt-burger-line"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Mobile Slide-Down Navigation Drawer (Hypothesis 17 & 24) -->
+          <div class="mkt-mobile-drawer" id="mktMobileDrawer">
+            <nav class="mkt-drawer-nav" aria-label="Mobile Navigation">
+              <a href="#features" class="mkt-drawer-link">Hardware & Probes</a>
+              <a href="#comparison" class="mkt-drawer-link">Telemetry Benchmarks</a>
+              <a href="#plans" class="mkt-drawer-link">Field Deployments</a>
+              <a href="#faq" class="mkt-drawer-link">FAQ</a>
+            </nav>
+            <div class="mkt-drawer-actions">
+              <button class="mkt-btn-primary" id="mktDrawerCtaBtn" type="button">
+                <span>Start Free Pilot</span>
+                <span>${Icons.arrowUpRight({ size: 14 })}</span>
+              </button>
+              <button class="mkt-btn-outline-dark" id="mktDrawerSignInBtn" type="button">
+                <span>${Icons.lock({ size: 14 })} Sign In to Platform</span>
+              </button>
             </div>
           </div>
         </header>
@@ -1000,6 +1025,39 @@ export class MarketingPageView {
     this._mountEl.querySelectorAll('.mkt-trigger-signup').forEach((btn) => {
       btn.addEventListener('click', openSignup);
     });
+
+    // 3. Mobile Navigation Drawer Toggle (Hypotheses 17 & 24)
+    const burgerBtn = this._mountEl.querySelector('#mktBurgerBtn');
+    const mobileDrawer = this._mountEl.querySelector('#mktMobileDrawer');
+    if (burgerBtn && mobileDrawer) {
+      burgerBtn.addEventListener('click', () => {
+        const isOpen = mobileDrawer.classList.toggle('open');
+        burgerBtn.classList.toggle('active', isOpen);
+        burgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+
+      mobileDrawer.querySelectorAll('.mkt-drawer-link').forEach((link) => {
+        link.addEventListener('click', () => {
+          mobileDrawer.classList.remove('open');
+          burgerBtn.classList.remove('active');
+          burgerBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      this._mountEl.querySelector('#mktDrawerCtaBtn')?.addEventListener('click', () => {
+        mobileDrawer.classList.remove('open');
+        burgerBtn.classList.remove('active');
+        burgerBtn.setAttribute('aria-expanded', 'false');
+        openSignup();
+      });
+
+      this._mountEl.querySelector('#mktDrawerSignInBtn')?.addEventListener('click', () => {
+        mobileDrawer.classList.remove('open');
+        burgerBtn.classList.remove('active');
+        burgerBtn.setAttribute('aria-expanded', 'false');
+        openSignIn();
+      });
+    }
 
     // 4. FAQ Accordion Toggles (Char 14)
     this._mountEl.querySelectorAll('.mkt-faq-question').forEach((btn) => {

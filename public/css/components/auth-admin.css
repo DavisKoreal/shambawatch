@@ -193,6 +193,32 @@
   border-color: #ffffff;
 }
 
+@media (max-width: 640px) {
+  .shamba-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .shamba-modal-content {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 94dvh;
+    border-bottom: none;
+    padding-bottom: max(20px, var(--safe-bottom));
+  }
+  .shamba-modal-close {
+    top: 14px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
+  }
+  .auth-modal-box,
+  .admin-portal-box,
+  .sensor-modal-box {
+    padding: 24px 16px;
+  }
+}
+
 /* ==========================================================================
    AUTH MODAL STYLES
    ========================================================================== */
@@ -504,8 +530,10 @@
 .admin-table-container {
   border: 1px solid var(--hairline);
   border-radius: 14px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: #0a0a0a;
+  max-width: 100%;
 }
 
 .admin-table {

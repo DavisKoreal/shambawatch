@@ -162,6 +162,11 @@
   flex-shrink: 0;
   overflow-x: auto;
   white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.strip-chart-toolbar::-webkit-scrollbar {
+  display: none;
 }
 
 .metric-select {
@@ -295,6 +300,8 @@
 .chart-point-hitbox {
   cursor: pointer;
   fill: transparent;
+  stroke: transparent;
+  stroke-width: 24px;
 }
 
 .chart-point {
@@ -326,36 +333,24 @@
 
 @media (max-width: 768px) {
   .strip {
-    height: clamp(105px, 18vh, 130px);
+    height: clamp(110px, 18vh, 135px);
   }
   .strip-label {
-    width: clamp(160px, 34vw, 210px);
-    padding: 6px 8px;
-  }
-  .strip-sensor-title {
-    font-size: 11px;
-  }
-  .strip-sub-info {
-    font-size: 9px;
-  }
-  .stat-chip {
-    font-size: 9px;
-  }
-  .btn-strip-deep-dive {
-    padding: 2px 7px;
-    font-size: 10px;
+    display: none;
   }
   .strip-chart-toolbar {
-    gap: 6px;
-    padding-bottom: 2px;
+    gap: 8px;
+    padding-bottom: 4px;
   }
   .ms-btn {
-    padding: 2px 7px;
-    font-size: 10px;
+    min-height: 34px;
+    padding: 6px 12px;
+    font-size: 11px;
   }
   .ws-btn {
-    padding: 2px 6px;
-    font-size: 10px;
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 11px;
   }
 }
 

@@ -572,6 +572,102 @@ body.marketing-mode {
   color: var(--revo-on-dark-mute, rgba(255, 255, 255, 0.72));
 }
 
+/* Mobile Navigation Hamburger & Drawer (Hypothesis 17) */
+.mkt-burger-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  width: 44px;
+  height: 44px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  border-radius: 9999px;
+  transition: background-color 0.15s ease;
+  touch-action: manipulation;
+}
+
+.mkt-burger-btn:hover {
+  background-color: var(--revo-surface-elevated, #16181a);
+}
+
+.mkt-burger-line {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background-color: #ffffff;
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.mkt-burger-btn.active .mkt-burger-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.mkt-burger-btn.active .mkt-burger-line:nth-child(2) {
+  opacity: 0;
+}
+.mkt-burger-btn.active .mkt-burger-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.mkt-mobile-drawer {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #0a0a0a;
+  border-bottom: 1px solid var(--revo-hairline-dark, rgba(255, 255, 255, 0.12));
+  padding: 20px 24px 28px 24px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.85);
+  flex-direction: column;
+  gap: 20px;
+  z-index: 999;
+}
+
+.mkt-mobile-drawer.open {
+  display: flex;
+}
+
+.mkt-drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mkt-drawer-link {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.mkt-drawer-link:hover,
+.mkt-drawer-link:active {
+  background-color: var(--revo-surface-elevated, #16181a);
+}
+
+.mkt-drawer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mkt-drawer-actions button {
+  width: 100%;
+}
+
 /* ============================================================================
    BAND 3: HERO BAND (hero-band-dark, Stark Black #000000, 88px–120px padding)
    ============================================================================ */
@@ -1834,8 +1930,14 @@ body.marketing-mode {
 
 /* Tablet Large & Tablet (< 1024px) */
 @media (max-width: 1024px) {
-  .mkt-nav-menu {
+  .mkt-nav-menu,
+  .mkt-nav-signin-btn,
+  .mkt-nav-actions .mkt-btn-primary {
     display: none;
+  }
+
+  .mkt-burger-btn {
+    display: flex;
   }
 
   .mkt-telemetry-grid {
@@ -1873,35 +1975,57 @@ body.marketing-mode {
 
   .mkt-sticky-cta-bar {
     display: flex;
+    padding: 12px 16px max(12px, var(--safe-bottom, 12px));
   }
 
   .mkt-chat-floating-btn {
-    bottom: 80px;
+    bottom: calc(76px + var(--safe-bottom, 0px));
     right: 16px;
+    min-height: 44px;
+    padding: 10px 18px;
   }
 
   .mkt-social-toast {
     display: none;
   }
 
+  .mkt-display-xxl {
+    font-size: clamp(34px, 8.5vw, 54px);
+  }
+
+  .mkt-display-xl {
+    font-size: clamp(28px, 6vw, 42px);
+  }
+
   .mkt-hero-band {
-    padding: 48px 0;
+    padding: 40px 0;
   }
 
   .mkt-hero-actions-row {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
   .mkt-hero-actions-row button {
     width: 100%;
+    min-height: 48px;
   }
 
   .mkt-catalogue-band,
   .mkt-story-band,
   .mkt-plans-band,
   .mkt-inquiry-band {
-    padding: 64px 0;
+    padding: 56px 0;
+  }
+
+  .mkt-table-wrapper {
+    padding: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mkt-comparison-table {
+    min-width: 520px;
   }
 
   .mkt-feature-grid,
@@ -1916,6 +2040,15 @@ body.marketing-mode {
 
   .mkt-lead-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mkt-lead-form-card {
+    padding: 24px 18px;
+  }
+
+  .mkt-faq-question {
+    min-height: 48px;
+    padding: 16px 0;
   }
 
   .mkt-footer-top {

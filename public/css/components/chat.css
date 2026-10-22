@@ -819,3 +819,43 @@
   gap: 7px;
   padding: 12px 14px;
 }
+
+/* ==========================================================================
+   MOBILE ERGONOMICS & FULL-SCREEN SHEET (Hypotheses 57-64)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .ai-pill-glow-wrap {
+    bottom: calc(56px + var(--safe-bottom, 0px));
+    width: calc(100vw - 24px);
+    max-width: 360px;
+  }
+  .ai-bar-pill {
+    width: 100% !important;
+  }
+  .ai-pill-input {
+    font-size: 16px !important;
+  }
+  .ai-popover {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    max-height: none !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    padding: 0 !important;
+    z-index: 10001 !important;
+  }
+  .ai-popover-inner {
+    border-radius: 0 !important;
+    border: none !important;
+    padding: max(14px, var(--safe-top)) 14px max(14px, var(--safe-bottom)) 14px !important;
+  }
+}
+

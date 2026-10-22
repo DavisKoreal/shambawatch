@@ -180,15 +180,15 @@ header {
   overflow: hidden;
 }
 
-/* Mobile View Tab Switcher */
+/* Mobile View Tab Switcher (Hypotheses 25 & 26) */
 .mobile-tab-nav {
   display: none;
   background: var(--panel);
   border-bottom: 1px solid var(--hairline);
-  padding: 6px 12px;
+  padding: 8px 12px;
   gap: 8px;
   flex-shrink: 0;
-  z-index: 4;
+  z-index: 100;
 }
 
 .mobile-tab-btn {
@@ -197,26 +197,34 @@ header {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 7px 10px;
+  padding: 8px 12px;
+  min-height: 40px;
   background: var(--panel-raised);
   border: 1px solid var(--hairline);
-  border-radius: 8px;
+  border-radius: 9999px;
   color: var(--ink-dim);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
+  user-select: none;
 }
 
 .mobile-tab-btn:hover {
   color: var(--ink);
-  border-color: var(--moss-dim);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
+.mobile-tab-btn:active {
+  transform: scale(0.97);
+}
+
+/* Revolut White Pill Active State */
 .mobile-tab-btn.active {
-  background: rgba(122, 148, 113, 0.22);
-  border-color: var(--moss);
-  color: var(--ink);
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
   font-weight: 600;
 }
 
@@ -229,15 +237,19 @@ header {
 
 @media (max-width: 768px) {
   header {
-    padding: 8px 12px;
+    padding: max(8px, var(--safe-top)) max(10px, var(--safe-right)) 8px max(10px, var(--safe-left));
+    height: auto;
+    min-height: 52px;
   }
   .brand-mark {
-    width: 28px;
-    height: 28px;
-    font-size: 13px;
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    border-radius: 8px;
   }
   .brand-text h1 {
-    font-size: 15px;
+    font-size: 14px;
+    letter-spacing: -0.01em;
   }
   .brand-text span {
     display: none;
@@ -246,8 +258,45 @@ header {
     display: none;
   }
   .header-right {
-    gap: 8px;
+    gap: 6px;
   }
+
+  /* Compact Collapsible AI Launcher (Hypothesis 19) */
+  .header-ai-launcher {
+    padding: 6px 10px;
+    min-height: 34px;
+  }
+  .header-ai-launcher-text,
+  .search-kbd {
+    display: none;
+  }
+
+  /* Compact Admin Portal Button */
+  .admin-portal-btn {
+    padding: 6px 10px;
+    min-height: 34px;
+  }
+  .admin-portal-btn .btn-label {
+    display: none;
+  }
+
+  /* Compact Theme Switcher */
+  .theme-toggle-btn {
+    padding: 6px 9px;
+    min-height: 34px;
+  }
+  .theme-toggle-text {
+    display: none;
+  }
+
+  /* Compact User Profile Badge */
+  .user-display-name {
+    display: none;
+  }
+  .user-profile-badge {
+    padding: 4px 8px;
+  }
+
   .source-pill {
     padding: 4px 8px;
     font-size: 10px;
@@ -263,8 +312,15 @@ header {
     padding: 4px 8px;
     font-size: 10px;
   }
+  #alertPill #alertCount {
+    display: none;
+  }
+  .alert-pill::after {
+    content: '!';
+    font-weight: 700;
+  }
 
-  /* Mobile Tab Switching */
+  /* Mobile Tab Switching (Hypothesis 25 & 32) */
   .mobile-tab-nav {
     display: flex;
   }
@@ -288,6 +344,9 @@ header {
     min-height: 0;
     border: none;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding-bottom: max(16px, var(--safe-bottom));
   }
   .layout.show-map .map-wrap {
     display: block;
@@ -301,16 +360,32 @@ header {
     display: block;
     overflow-y: auto;
   }
+
+  /* Responsive bottom timeseries strip on mobile */
+  .strip {
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+    max-height: 140px;
+    min-height: 100px;
+    padding-bottom: var(--safe-bottom);
+  }
+  .strip-label {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
-  .brand-mark {
+  .brand-text {
     display: none;
+  }
+  .brand-mark {
+    display: flex;
   }
 }
 
 @media (max-height: 680px) {
   header {
-    padding: 6px 14px;
+    padding: 6px 10px;
   }
 }
